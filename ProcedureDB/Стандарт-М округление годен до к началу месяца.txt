@@ -1,0 +1,15 @@
+SET TERM ^ ;
+
+
+
+CREATE OR ALTER TRIGGER DOC_DETAIL_ACTIVE_BIU0 FOR DOC_DETAIL_ACTIVE
+ACTIVE BEFORE INSERT OR UPDATE POSITION 9
+AS
+begin
+  --> 20180112 godendo 01.mm.yyyy from D_Dmytry
+if ((select docs.doc_type from docs where docs.id=new.doc_id) in (1,2,20)) then
+    if ((extract(day from new.godendo))>1) then new.godendo = cast(''01.''||extract(month from new.godendo)||''.''||extract(year from new.godendo)as timestamp);
+end
+^
+
+SET TERM ; ^

@@ -1,0 +1,102 @@
+begin
+  delete from analytic_malohod where ANALYTIC_UUID=:ANALYTIC_UUID;
+  STRATOFMONTH_BEG='01.'||extract(month from :PERIODBEG)||'.'||extract(year from :PERIODBEG);
+  STRATOFMONTH_END='01.'||extract(month from :periodend)||'.'||extract(year from :periodend);
+  s='select id from g$profiles where id in ('||G$PROFILE_ID||')';
+  suspend;
+  for EXECUTE STATEMENT :s into :profile_id do
+  if (WO_SALE=0) then
+  begin
+    for
+      select w.id,sum(u.quant) from
+       (select wd.part_id,wd.quant,wd.g$profile_id from WAREBASE_D wd where wd.doc_commitdate=:STRATOFMONTH_BEG and
+        wd.g$profile_id=:profile_id and abs(wd.quant)>0.01
+         union all
+       select dd.part_id,dd.quant,dd.g$profile_id from doc_detail dd
+
+        where dd.doc_commitdate
+       between :STRATOFMONTH_BEG and :periodbeg-1 and dd.g$profile_id=:profile_id ) u
+       join parts p on p.id=u.part_id and p.g$profile_id=u.g$profile_id
+       join wares_set_detail wsd on wsd.ware_id = p.ware_id
+       join wares_set ws on ws.d$uuid = wsd.wares_set_d$uuid and ws.folder_id <>272
+       join wares w on w.id=p.ware_id
+
+       group by w.id
+       having abs(sum(u.quant))>=:quant_beg-0.01
+       into
+       :WARE_ID,:OST_BEG do
+    begin
+      select :OST_BEG+coalesce(sum(u.quant),0), coalesce(sum(iif(d.doc_type in (1,2,20),u.quant,0)),0),coalesce(sum(iif(d.doc_type in (3,6,11),-u.quant,0)),0),
+      coalesce(sum(iif(d.doc_type not in (1,2,20,3,6,11),u.quant,0)),0) from
+       (select wd.part_id,wd.quant,wd.g$profile_id from WAREBASE_D wd where wd.ware_id=:Ware_id and
+        wd.doc_commitdate=:STRATOFMONTH_END and
+        wd.g$profile_id=:profile_id and abs(wd.quant)>0.01
+         union all
+       select dd.part_id,dd.quant,dd.g$profile_id from doc_detail dd
+          join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+       join wares w on w.id=p.ware_id and w.id=:ware_id
+       where
+        dd.doc_commitdate  between :stratofmonth_beg and :periodEND and dd.g$profile_id=:profile_id) u
+       join parts p on p.id = u.part_id and p.g$profile_id=u.g$profile_id
+       join wares_set_detail wsd on wsd.ware_id = p.ware_id
+       join wares_set ws on ws.d$uuid = wsd.wares_set_d$uuid and ws.folder_id <>272
+       join docs d on d.id=P.doc_id and P.g$profile_id=d.g$profile_id
+        into :ost_end,:prihod,:rashod,:arashod;
+     if (ost_end>0.001) then
+        insert into analytic_malohod(ANALYTIC_UUID,G$PROFILE_ID,ware_ID,OST_BEG,PRIHOD,RASHOD,OST_END,ARASHOD) values
+      (:ANALYTIC_UUID,:PROFILE_ID,:ware_ID,:OST_BEG,:PRIHOD,:RASHOD,:OST_END,:ARASHOD);
+    end
+  end
+  else     --без продаж
+  begin
+    for
+
+      select w.id,sum(u.quant) from
+       (select wd.ware_id,wd.quant,wd.g$profile_id from WAREBASE_D wd where wd.doc_commitdate=:STRATOFMONTH_BEG and
+        wd.g$profile_id=:profile_id and abs(wd.quant)>0.01
+         union all
+       select w.id,dd.quant,dd.g$profile_id from doc_detail dd
+       join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+       join wares w on w.id=p.ware_id and w.id=:ware_id
+
+        where dd.doc_commitdate
+       between :STRATOFMONTH_BEG and :periodbeg-1 and dd.g$profile_id=:profile_id ) u
+       join parts p on p.ware_id = u.ware_id and p.g$profile_id=u.g$profile_id
+       join wares_set_detail wsd on wsd.ware_id = p.ware_id
+       join wares_set ws on ws.d$uuid = wsd.wares_set_d$uuid and ws.folder_id <>272
+       join wares w on w.id=p.ware_id
+
+       group by w.id
+       having abs(sum(u.quant))>=:quant_beg-0.01 into
+       :WARE_ID,:OST_BEG do
+    begin
+      select :OST_BEG+coalesce(sum(u.quant),0), coalesce(sum(iif(d.doc_type in (1,2,20),u.quant,0)),0),coalesce(sum(iif(d.doc_type in (3,6,11),-u.quant,0)),0),
+      coalesce(sum(iif(d.doc_type not in (1,2,20,3,6,11),u.quant,0)),0)
+
+
+      from
+       (select wd.ware_id,wd.quant,wd.g$profile_id from WAREBASE_D wd
+       where wd.ware_id=:ware_id and
+        wd.doc_commitdate=:STRATOFMONTH_END and
+        wd.g$profile_id=:profile_id and abs(wd.quant)>0.01
+         union all
+       select w.id,dd.quant,dd.g$profile_id from doc_detail dd
+        join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+       join wares w on w.id=p.ware_id and w.id=:ware_id
+       where
+        dd.doc_commitdate   between :STRATOFMONTH_beg and :periodEND and dd.g$profile_id=:profile_id) u
+
+       join parts p on p.ware_id = u.ware_id and p.g$profile_id=u.g$profile_id
+       join wares_set_detail wsd on wsd.ware_id = p.ware_id
+       join wares_set ws on ws.d$uuid = wsd.wares_set_d$uuid and ws.folder_id <>272
+       join docs d on d.id=P.doc_id and P.g$profile_id=d.g$profile_id
+       having
+       coalesce(sum(iif(d.doc_type in (3,6,11),-u.quant,0)),0)=0
+        into :OST_END,:prihod,:rashod,:arashod;
+     if (rashod=0) then
+        insert into analytic_malohod(ANALYTIC_UUID,G$PROFILE_ID,ware_id,OST_BEG,PRIHOD,RASHOD,OST_END,ARASHOD) values
+      (:ANALYTIC_UUID,:PROFILE_ID,:ware_id,:OST_BEG,:PRIHOD,:RASHOD,:OST_END,:ARASHOD);
+    end
+  end
+
+end

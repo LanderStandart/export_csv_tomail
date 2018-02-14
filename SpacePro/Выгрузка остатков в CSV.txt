@@ -1,0 +1,74 @@
+uses
+  unDM, cfIBUtils, unFrameCustomDict, need, cfUtils,
+  inifiles, unMain,  unFRFramePreview,
+  Classes, Graphics, Controls, Forms, Dialogs, AdvPanel,
+  AdvGlowButton, DB, IBDatabase, IBQuery, ExtCtrls, StdCtrls,
+  dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
+  AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,sysUtils;
+
+var q: TIBQuery;
+    sl: TStringList;
+    t,f: String;
+
+begin
+  try
+     sl:= TStringList.Create;
+     f:=extractfilepath(application.ExeName)+'warebase.csv';
+     frmSpacePro.logit(f);
+     if FileExists(f) then
+     begin
+       deletefile(f);
+     end
+
+    q:=dm.TempQuery(nil);
+    try
+      q.Active:=false;
+      q.SQL.text:='select w.*,
+(select membership from GM$PR_MEMBERSHIPS_FOR_SITE(''PARTS='' || part_id || '';PARTS.NAME_ID='' || name_id || '';PARTS.IZG_ID='' || izg_id ||'';'','','',g$profile_id)) as mmbsh_site,
+REPLACE( sname, ''
+'', '''' ) as sname_r,
+REPLACE( SIZG, ''
+'', '''' ) as SIZG_r,
+REPLACE( SCOUNTRY, ''
+'', '''' ) as SCOUNTRY_r,
+REPLACE( BCODE_IZG, ''
+'', '''' ) as BCODE_IZG_r,
+cast(godendo as dm_date) as godendo_date
+  from vw_warebase_g w where g$profile_id>=5 and quant > 0.01 order by g$profile_id';
+      frmSpacePro.logit(q.SQL.text);
+
+      q.Active:=true;
+      t:='Аптека;Группа;Товар;Изготовитель;Страна;Штрихкод;Цена розничная;Остаток;Партия;Номер_профиля;Код_наименования;';
+      sl.Add(t);
+      while not q.eof do
+      begin
+         t:=q.fieldbyname('SPROFILE').AsString+';'+
+         q.fieldbyname('mmbsh_site').AsString+';'+
+         q.fieldbyname('SNAME_R').AsString+';'+
+         q.fieldbyname('SIZG_R').AsString+';'+
+         q.fieldbyname('SCOUNTRY_R').AsString+';'+
+         q.fieldbyname('BCODE_IZG_R').AsString+';'+
+         q.fieldbyname('PRICE').AsString+';'+
+         q.fieldbyname('QUANT').AsString+';'+
+         q.fieldbyname('PART_ID').AsString+';'+
+         q.fieldbyname('G$PROFILE_ID').AsString+';'+                 
+         q.fieldbyname('NAME_ID').AsString+';'+
+         q.fieldbyname('godendo_date').AsString+';';
+         sl.Add(t);
+         frmSpacePro.logit(t);
+         q.next;
+      end;
+      q.transaction.commit;
+      sl.SaveToFile(f);
+      sl.Free;
+      t:='fullssl autotls host=smtp.mail.ru port=465 User=sharapat1@mail.ru Pass=2293236 FROMEMAIL=sharapat1@mail.ru TOEMAIL=kerlaz@live.ru,databox@dobraya-apteka.kz SUBJ="Прайс АйдакеФарм" BODY="Автоматическая рассылка" file0="'+f+'"';
+      ShellExecute(0, 'open','D:\Standart-N\VGMCSend\VGMCSend.exe', t, '', 5);
+
+    except
+      q.Transaction.Rollback;
+    end
+  finally
+    q.Free;
+  end;
+
+end;

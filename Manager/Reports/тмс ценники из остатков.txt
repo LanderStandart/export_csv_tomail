@@ -1,0 +1,90 @@
+uses                                  
+  Classes, Graphics, Controls, Forms, Dialogs, ComCtrls,
+  ToolWin, ImgList, dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBGrid,
+  DB, IBQuery, IBDatabase, unDM, DBTables, cfdxUtils, Menus,
+   Buttons, ExtCtrls, StdCtrls, cfSelectEdit,
+  gb_table, Mask,  unFrameCustomDict, unMain,SysUtils,need,undmReports,unFrameWarebase;
+
+var sl: TStringList;
+    s: String;
+
+function get_report_id;
+var report_id: Integer;
+    q: TIBQuery;
+begin
+  q:=dm.TempQuery(nil);
+  q.Active:=false;
+  q.SQL.Text:='select first 1 id from reports where id=-1';
+  q.Active:=true;
+  report_id:=q.FieldByName('id').AsInteger;
+  if report_id=0 then
+  begin
+    q.Active:=false;
+    q.SQL:='insert into reports(ID,PARENT_ID,STATUS,REPORTTYPE,SORTING,CAPTION) values '+
+    ' (-1,0,0,5,0,''Объединенные ценники'')';
+    q.ExecSQL;
+    //Добавиьт еще загрузку с сервера последней версии
+  end;
+  q.Active:=false;
+  q.SQL.Text:='select first 1 id from reports where id=-1';
+  q.Active:=true;
+  report_id:=q.FieldByName('id').AsInteger;
+  result:=report_id;
+end;
+
+procedure rep;                        
+var doc_id,sqltext: String;
+    report_id: Integer;
+begin
+  //Остатки
+  report_id:=get_report_id;
+  if sl.values['REPEAT']=1 then  //Повторять по кол-ву
+  begin
+    if sl.values['CHECK']=0 then     //Все
+      sqltext:='select * from(select w.doc_id as id,w.quant,w.price_o,w.part_id,w.sname,w.price,w.sizg,w.seria,w.godendo,w.sklad_id,w.ngtd,w.edizm,w.regn,w.sbase_agent_id, '+
+           ' w.barcode,w.bcode_izg,w.scountry,w.kemvsert,w.docnum,w.docdate,w.docdate as commitdate,w.docagent as sagent, iif(ww.mmbsh containing ''ЖНВЛС'',''Да'',''Нет'')as gnvls'+
+           ' from ('+stringreplace(frmmanagerxp2.GetWBSqlText,#13#10,' ',1)+
+           ') w left join OUT$PR_SHTRIH_WAREBASE(w.part_id) pr on pr.id=w.part_id) dd where 1=1';
+    if sl.values['CHECK']=1 then   //отмеченные
+      sqltext:='select * from(select w.doc_id as id,w.quant,w.price_o,w.part_id,w.sname,w.price,w.sizg,w.seria,w.godendo,w.sklad_id,w.ngtd,w.edizm,w.regn,w.sbase_agent_id, '+
+           ' w.barcode,w.bcode_izg,w.scountry,w.kemvsert,w.docnum,w.docdate,w.docdate as commitdate,w.docagent as sagent,iif(w.mmbsh containing ''ЖНВЛС'',''Да'',''Нет'')as gnvls'+
+           ' from vw_warebase w left join OUT$PR_SHTRIH_WAREBASE(w.part_id) pr on pr.id=w.part_id where w.part_id in ('+
+           TFrameWareBase(frmManagerXP2.FindComponent('FrameWarebase1')).GetSelectionSet+'))dd where 1=1';
+  end
+  if sl.values['REPEAT']=0 then     //печать по 1 штуке                 
+  begin
+    if sl.values['CHECK']=0 then  //Все
+      sqltext:='select * from (select w.doc_id as id,w.quant,w.price_o,w.part_id,w.sname,w.price,w.sizg,w.seria,w.godendo,w.sklad_id,w.ngtd,w.edizm,w.regn,w.sbase_agent_id, '+
+           ' w.barcode,w.bcode_izg,w.scountry,w.kemvsert,w.docnum,w.docdate,w.docdate as commitdate,w.docagent as sagent,iif(w.mmbsh containing ''ЖНВЛС'',''Да'',''Нет'')as gnvls'+
+           ' from ('+ stringreplace(frmmanagerxp2.GetWBSqlText,#13#10,' ',1)+') w)dd where 1=1';
+    if sl.values['CHECK']=1 then  //отмеченные
+      sqltext:='select * from(select w.doc_id as id,w.quant,w.price_o,w.part_id,w.sname,w.price,w.sizg,w.seria,w.godendo,w.sklad_id,w.ngtd,w.edizm,w.regn,w.sbase_agent_id, '+
+           ' w.barcode,w.bcode_izg,w.scountry,w.kemvsert,w.docnum,w.docdate,w.docdate as commitdate,w.docagent as sagent,iif(w.mmbsh containing ''ЖНВЛС'',''Да'',''Нет'')as gnvls'+
+           ' from ('+ stringreplace(frmmanagerxp2.GetWBSqlText,#13#10,' ',1)+') w where w.part_id in ('+
+           TFrameWareBase(frmManagerXP2.FindComponent('FrameWarebase1')).GetSelectionSet+'))dd where 1=1';
+  end;
+  dmReports.ShowFRReport(report_id,'sqltext='+sqltext,nil,false);
+end;
+
+begin
+  sl:=TstringList.Create;
+  s:='[CHECK]'#13#10+
+  'type=list'#13#10+
+  'caption=Печать '#13#10+
+  'mode=FIXEDITEMS SHOWONLYVALUES RETURNNAME'#13#10+
+  'default=0'#13#10+
+  '0=Все позиции'#13#10+
+  '1=Отмеченные'#13#10+
+  '[REPEAT]'#13#10+
+  'type=list'#13#10+
+  'caption=Повторять'#13#10+
+  'mode=FIXEDITEMS SHOWONLYVALUES RETURNNAME'#13#10+
+  'default=0'#13#10+
+  '0=Не повторять'#13#10+
+  '1=Повторять по количеству';
+  sl.text:=s;
+  if GetCustomParams(sl,'заполните значения')  then
+  begin
+    rep;
+  end;
+end;

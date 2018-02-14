@@ -1,0 +1,82 @@
+uses
+  Classes, Graphics, Controls, Forms, Dialogs,   undm, IBQuery,DB, IBDatabase,ADODB, SysUtils, unMain,ShellApi;
+
+var 
+q: TIBQuery;
+    ac: TAdoConnection;
+    AdoWork: Tadoquery;
+    t,comments,f,gd,sname: String;
+
+begin
+  q:=dm.TempQuery(nil);
+
+  q.Active:=false;
+  q.SQL.text:='select ware_id,name_id, sname,sizg,scountry,part_id, g$profile_id,price_o,price,0 as price_r, quant, godendo, sprofile, docdate from vw_warebase_g w where abs(realquant) > 0.01';
+  q.Active:=true;
+
+  ac:=TAdoConnection.Create(application);
+  AdoWork:=Tadoquery.create(application);
+  ac.ConnectionString:='Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=dBASE IV;User ID=Admin;Password=;Data Source=D:\Standart-N\';
+  ac.LoginPrompt:=false;
+  AdoWork.Connection:=ac;
+  if FileExists('D:\Standart-N\warebase.dbf') then
+  begin
+    deletefile('D:\Standart-N\warebase.dbf');
+  end
+  AdoWork.Active:=false;
+  t:='CREATE TABLE warebase (ORIG_TOVAR CHAR(250),SIZG CHAR(250),SCOUNTRY CHAR(250), PRICE_O NUMERIC(18,2),PRICE NUMERIC(18,2),QUANT NUMERIC(18,2), GODENDO DATE, COMMENTS CHAR(50))';
+//  frmSpacePro.Logit(t);
+  AdoWork.SQL.Text:=t;
+  AdoWork.ExecSQL;
+
+  while not q.Eof do
+  begin
+    sname:=trim(stringreplace(stringreplace(stringreplace(q.FieldByName('SNAME').AsString,'''','.',1),'"','',1),#13#10,'',1));
+    sname:=stringreplace(sname,'.@','',1);
+    sname:=trim(sname);
+    if pos('(01',sname)>0 then
+      sname:=copy(sname,1,pos('(01',sname)-1);
+    sname:=trim(sname);
+    if pos('(10',sname)>0 then
+      sname:=copy(sname,1,pos('(10',sname)-1);
+    sname:=trim(sname);
+    if copy(trim(sname), Length(trim(sname)),1 )  ='(' then
+      sname:=copy(trim(sname),1,Length(trim(sname))-1);
+    sname:=trim(sname);
+    try
+      if strtoint(copy(sname,1,5))>0 then
+        sname:=copy(sname,7,length(sname)-6);
+    except
+    end;
+    comments:=q.FieldByName('sprofile').AsString;
+    if ((q.FieldByName('GODENDO').AsString='') or (copy(q.FieldByName('GODENDO').AsString,1,10)='30.12.1899')) then
+       gd:='NULL'
+    else
+      gd:=''''+q.FieldByName('GODENDO').AsString+'''';
+    try
+      if strtoint(copy(gd,8,4))<2000 then
+        gd:=stringreplace(gd,copy(gd,8,4),inttostr(2000+strtoint(copy(gd,8,4))/100),1);
+    except
+    end;
+    t:='insert into warebase (ORIG_TOVAR,SIZG,SCOUNTRY,PRICE_O,PRICE,QUANT,GODENDO,COMMENTS) values (''';
+    t:=t+sname+''','''+stringreplace(q.FieldByName('SIZG').AsString,'''','.',1)+
+    ''','''+stringreplace(q.FieldByName('SCOUNTRY').AsString,'''','.',1)+''',';
+
+    t:=t+stringreplace(q.FieldByName('PRICE_O').AsString,',','.',1)+','+stringreplace(q.FieldByName('PRICE').AsString,',','.',1)+',';
+    t:=t+stringreplace(q.FieldByName('QUANT').AsString,',','.',1)+','+gd+
+    ','''+comments+''')';
+//    frmSpacePro.LogIt(t);
+    AdoWork.SQL.Text:=t;
+    AdoWork.ExecSQL;                                                                  
+    q.Next;
+  end;
+  q.Transaction.Commit;
+  f:='D:\Standart-N\warebase.dbf';
+
+  ShellExecute(0, 'open','"C:\Program Files\7-Zip\7z.exe"', ' a -t7z d:\standart-n\warebase '+f, '', 5);
+
+  Sleep(90000);
+  f:='D:\Standart-N\warebase.7z';
+  t:='fullssl autotls host=smtp.mail.ru port=465 User=sharapat1@mail.ru Pass=2293236 FROMEMAIL=sharapat1@mail.ru TOEMAIL=arrdak@gmail.com,shutov@standart-n.ru,kerlaz@live.ru SUBJ="Остатки аптек" BODY="Автоматическая рассылка" file0="'+f+'"';
+  ShellExecute(0, 'open','D:\Standart-N\VGMCSend\VGMCSend.exe', t, '', 5);
+end;
