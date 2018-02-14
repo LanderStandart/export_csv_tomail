@@ -1,0 +1,149 @@
+uses
+  Graphics, Controls, Forms, Dialogs, StdCtrls,
+  ComCtrls, ExtCtrls, ibquery, DB, ChequeList, FR,
+  ScriptRes, Barcode, ZKassa, StrUtils, Windows, Classes,
+  IBDatabase;
+
+var
+  doc_id,vnum : integer;
+  LengthCheak,i ,LinkID, fl: integer;
+  iq,iq1: tibquery;
+  str_temp : string;
+
+//Функция форматирования данных при печати в чеке myFormatString
+//sText - значение теста слева
+//sText1 - значение теста справа
+//sPattern - чем заполнять пустоту
+//lLen чековой ленты
+//lFormatType  0 - по центру, 1 - по границам ленты слева и справа
+//bCutLeft если true, то обрезать лева, иначе обрезается справа
+
+procedure print_tcheck;//Печать товарного чека на фискальнике
+begin
+ 
+
+// LengthCheak := FR_LINELENGTH;
+  //Устанавливаем сформированную строку
+   FR_STRING_SET(str_temp);
+//Печатаем строку на фискальнике
+   FR_PRINTSTRING;
+   FR_GETADVTEXT;
+   FR_PRINTSTRING;
+   FR_PRINTCLICHE;
+   //протяжка
+  // FR_NUMBER_SET(2);
+  // FR_FEEDTAPE;
+   //отрезка
+   FR_BOOLEAN_SET(false);
+   FR_CUTTAPE(false);
+
+   //Отключаем оборудование
+
+end;
+
+
+begin
+ Fr_activate(0);   
+   //Создаем соединение с базой
+   iq := tibquery.create(nil);
+   iq.database := CurrDB;
+   iq.transaction := createwt(CurrDB);
+   iq.transaction.starttransaction;
+
+   iq1 := tibquery.create(nil);
+   iq1.database := CurrDB;
+   iq1.transaction := creatert(CurrDB);
+   iq1.transaction.starttransaction;
+
+ if ChequeList.Count=0 then
+    begin
+     str_temp := '';
+     msgbox('Нет активного чека, Товарный чек не будет распечатан!', 'Ошибка!', mb_ok);
+     exit;
+    end;
+
+for i := 0 to chequelist.count - 1 do
+begin
+
+   iq.active := False;
+   //msgbox(IntToStr(ChequeList.Items[0].ID), 'Ошибка!', mb_ok);
+//запросик к базе
+   fl:=0;
+   iq.sql.text := 'select d.Link_ID,dd.doc_id,dd.sname,dd.mmbsh,dd.quant,dd.discount,-dd.summa as summa,dd.price'+
+                   ',d.vnum,dd.dep,dd.HUMAN_QUANT,dd.sum_dsc from VW_DOC_DETAIL_active dd '+
+                   'left JOIN docs d on d.id = dd.doc_id '+
+                   'where d.doc_type = 3 and d.AUDIT_ID='+IntToStr(SessionID)+'and dd.doc_id='+IntToStr(ChequeList.Items[i].ID);
+   iq.active := True;
+   str_temp := '';
+
+   //забираем данные
+   if not(iq.Eof) then
+    begin
+  Fr_activate(0);
+  LengthCheak := FR_LINELENGTH;
+     str_temp := str_temp + myFormatString('Товарный чек №'+IntToStr(FR_CHEQUENUMBER)+' от '+DateToStr(Date),' ',' ',LengthCheak,0,true)+#13#10;
+     //str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+    end
+   else
+    begin
+     str_temp := '';
+     msgbox('Нет активного чека!', 'Ошибка!', mb_ok);
+     exit;
+    end;
+   while not iq.Eof do
+    begin
+     str_temp := str_temp + myFormatString(iq.FieldByName('sname').AsString,' ',' ',LengthCheak,1,true)+#13#10;
+     if (iq.FieldByName('HUMAN_QUANT').AsString<>'1') then
+      str_temp := str_temp + myFormatString(iq.FieldByName('dep').AsString, Format('%sX%.2f=%.2f', [iq.FieldByName('HUMAN_QUANT').AsString, iq.FieldByName('price').AsFloat, iq.FieldByName('summa').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     else
+      str_temp := str_temp + myFormatString(' ',' ='+Format('%.2f', [iq.FieldByName('summa').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     if (iq.FieldByName('discount').AsFloat<>0) then
+      str_temp := str_temp + myFormatString('Скидка '+FloatToStr((-1)*iq.FieldByName('discount').AsFloat)+'%',' ='+Format('%.2f', [iq.FieldByName('sum_dsc').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     LinkId:=iq.FieldByName('Link_ID').AsInteger;
+     iq.Next;
+    end;
+    str_temp := str_temp + dupestring('-',LengthCheak)+#13#10;
+   if (iq.FieldByName('discount').AsFloat<>0) then
+     str_temp := str_temp + myFormatString('Итого скидка',' ='+Format('%.2f',[(-1)*ChequeList.Items[i].TotalDscSumm]),' ',LengthCheak,1,true)+#13#10;
+
+   str_temp := str_temp + myFormatString('ИТОГО',' ='+Format('%.2f',[ChequeList.Items[i].TotalSumm+ChequeList.Items[i].TotalDscSumm]),' ',LengthCheak,1,true)+#13#10;
+
+
+  //закрываем соединение
+   iq.active := False;
+   iq.sql.text := 'select USERNAME from USERS where id = '+IntToStr(UserID);
+   iq.active := True;
+
+   str_temp := str_temp + dupestring('*',LengthCheak)+#13#10;
+   str_temp := str_temp + myFormatString(DateToStr(Date)+' '+TimeToStr(Time),' ',' ',LengthCheak,1,true)+#13#10;
+   str_temp := str_temp + myFormatString('Кассир:',iq.FieldByName('USERNAME').AsString,' ',LengthCheak,1,true)+#13#10;
+   str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+   str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+
+print_tcheck;
+                                          
+end;
+ChequeList.CloseAll;
+ FR_DEACTIVATE;
+
+iq.active := False;
+iq.SQL.Text := 'select max(vnum)+1 as vnum from docs where docs.doc_type = 11'
+iq.active := True;
+vnum:=iq.FieldByName('vnum').AsInteger;
+iq.active := False;
+
+iq1.active := False;
+iq1.SQL.Text := 'select id from docs where docs.doc_type = 11 and docs.link_id ='+IntToStr(LinkID);
+iq1.active := True;
+
+while not iq1.Eof do
+    begin
+iq.SQL.Text := 'update docs set docs.doc_type = 11,docs.vnum='+IntToStr(vnum)+',docs.docnum=docs.vnum where docs.link_id ='+IntToStr(LinkID);
+iq.active := True;
+vnum:=vnum+1;  
+iq1.Next;
+   end;
+ iq.Transaction.Commit;
+iq.Transaction.Free;
+iq.Free;
+end;

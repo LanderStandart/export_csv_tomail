@@ -1,0 +1,21 @@
+﻿uses
+  ZKassa;
+
+var
+iq : tibquery;
+ddate,curdate: date;
+
+begin
+ //Создаем соединение с базой
+   iq := tibquery.create(nil);
+   iq.transaction := CreateRT(CurrDB);
+   iq.transaction.starttransaction;
+   iq.active := False;
+   //запросик к базе
+   iq.SQL.text := 'select max(g.updatedt)as ddate, current_date  from g$distribute g where g.serverpacket is not null';
+   iq.active := True;
+   ddate := iq.FieldByName('ddate').AsDateTime;
+   curdate := iq.FieldByName('current_date').AsDateTime;
+   if curdate-ddate>1 then // если разница в датах больше дня
+     if MsgBox('Нет обмена с сервером более 24 часов проверьте, что программа запущена или обратитесь в тех. поддержку Стандарт-Н','Проверка синхронизации',MB_ICONWARNING )=ID_OK then Exit;
+end;

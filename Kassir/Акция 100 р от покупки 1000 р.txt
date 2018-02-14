@@ -1,0 +1,43 @@
+var
+ str_temp:string;
+ LengthCheak,summ_aktiv:integer;
+ datestart,dateend:date;
+ begin
+   BonusRecalc;
+
+ //Акция 100 рублей за покупку свыше 1000 рублей
+   datestart:= '30.01.2018'; //Дата начала акции
+   dateend  := '01.02.2018'; //Дата завершения акции
+   summ_aktiv:=10; // Сумма с которой начинается акция
+
+  if (ChequeList.LastSumm >= summ_aktiv) and (date>=dateend) then  exit
+  else
+   begin
+
+    str_temp:='';
+   FR_Activate(0);
+   LengthCheak := FR_LineLength;
+   str_temp := str_temp + myFormatString('ПРАЗДНИКИ ПРОДОЛЖАЮТСЯ',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('  СКИДКА  100  РУБЛЕЙ',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('    *****  ***********  ***********',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('  *******  ***********  ***********',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString(' ***  ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('***   ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***     ***  ***     ***',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***********  ***********',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('      ***  ***********  ***********',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('                                   ',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('ПРИ ПОКУПКЕ ОТ '+InttoStr(summ_aktiv) +' РУБЛЕЙ',' ',' ',LengthCheak,0,true)+#13#10;
+   str_temp := str_temp + myFormatString('С '+(datestart)+' ПО '+ (dateend),' ',' ',LengthCheak,0,true)+#13#10;
+
+  FR_STRING_SET(str_temp);
+   FR_PRINTSTRING;
+   FR_NUMBER_SET(6)
+   FR_FEEDTAPE;
+   FR_CUTTAPE(false);
+   FR_DEACTIVATE;
+  end;
+ end;

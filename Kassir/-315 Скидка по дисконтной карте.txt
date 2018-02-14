@@ -1,0 +1,32 @@
+    uses
+ChequeList, ZKassa;
+
+
+var
+ s,i,j:string;
+ s_start,s_end:Float;
+begin
+s:= Barcode.Text;                      
+s_start:=1;
+s_end:=1100;
+//ScriptRes.Code:=0;
+  if (StrtoFloat(S) >=s_start) and (StrtoFloat(S) <=s_end) then
+                               
+  begin
+      for i := 0 to chequelist.count - 1 do
+       for j := 0 to chequelist[i].count - 1 do
+        begin
+           chequelist[i].p_index := j;
+
+        if PartInGroup (chequelist[i].P_ID,1) <>'1' then  //проверяем что не принадлежит ЖНВЛС
+
+            //назначаем скидку обычным товарам
+            ChequeList[i].P_SetDiscount(-chequelist[i].P_Price*chequelist[i].P_Quant*0.03)//4% если дешевле 1000р
+
+         end;
+  ScriptRes.Code:=1;
+  end;
+
+
+
+end;
