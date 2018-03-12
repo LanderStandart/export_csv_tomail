@@ -42,7 +42,6 @@ end;
 
 Procedure ExtractBase(i:integer); //Выгрузка остатков
  Begin
-
     SQL:='select first 10
     w.docnum,w.docdate,w.docagent,
     (select a.inn from  agents a inner join docs d on d.agent_id=a.id and d.g$profile_id=w.g$profile_id and d.id=w.doc_id
@@ -53,9 +52,8 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
                group by w.sname, w.part_id, w.quant, w.price_o,w.price,w.bcode_izg,
                         w.izg_id, w.sizg, w.scountry, w.g$profile_id,INN,w.doc_id,w.sprofile,
                         w.docnum,w.docdate,w.docagent,godendo_date,w.seria,w.barcode';
-    frmSpacePro.logit(SQL);
     q:=GetSQLResult(SQL);
-    f:=CheckFiles('Basemfo-Аптека '+Copy(q.fieldbyname('sprofile').AsString,1,3)+'.csv');
+    f:=CheckFiles('Basemfo-Аптека '+Copy(q.fieldbyname('sprofile').AsString,1,3)+'.ost');
     frmSpacePro.logit(f);
     frmSpacePro.logit('Выгружаем остатки');
 
@@ -65,17 +63,17 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
       while not q.eof do
       begin
          t:=
-         '0; '+
+         '0;'+
          q.fieldbyname('Docnum').AsString+';'
          +q.fieldbyname('docdate').AsString+';'
          +q.fieldbyname('docagent').AsString+';'
          +q.fieldbyname('INN').AsString+';'
-         +q.fieldbyname('PART_ID').AsString+';'
+         +q.fieldbyname('PART_ID').AsString+';'           
          +q.fieldbyname('SNAME').AsString+';'
          +q.fieldbyname('IZG_ID').AsString+';'
          +q.fieldbyname('SIZG').AsString+';'
          +q.fieldbyname('scountry').AsString+';'
-         +q.fieldbyname('bcode_izg').AsString+';'                                                       
+         +q.fieldbyname('bcode_izg').AsString+';'
          +FloatToStr(FormatFloat('0.##',q.fieldbyname('price_o').AsFloat))+';'
          +FloatToStr(FormatFloat('0.##',q.fieldbyname('price').AsFloat))+';'
          +q.fieldbyname('quant').AsString+';'
@@ -103,6 +101,8 @@ begin
   date_end:=date-25;
   frmSpacePro.logit(date_start);
   frmSpacePro.logit('Начали -'+TimetoStr( time));
+
+ //Выгружаем остатки по точкам
   SQL:='select id from g$profiles';
   q1:=GetSQLResult(SQL);
   while not q1.eof do
@@ -110,8 +110,7 @@ begin
        ExtractBase(q1.fieldbyname('id').AsInteger);
        q1.Next;
       end;
- //выгрузка остатков
- // try
+
   exit;
  //выгрузка продаж
 
@@ -119,9 +118,6 @@ begin
   frmSpacePro.logit('Выгружаем продажи');
   f:=CheckFiles('sales-mfo.csv');
   frmSpacePro.logit(f);
-  f1:=CheckFiles('buys-mfo.csv');
-  frmSpacePro.logit(f1);
-
       SQL:='select  first 15
             (select first 1 p.param_value as inn from params p where p.param_id =''ORG_INN'')as inn,
             d.docnum,
@@ -157,14 +153,10 @@ begin
       Количество;Цена продажи;';
       sl.Add(t);
 
-      t1:='Организация;ИНН;Склад;Номер документа;Дата документа;Наименование товара;Штрихкод;Производитель;Страна производства;
-      Количество;Дистрибьютер;ИНН Дистрибьютера;';
-      sl1.Add(t1);
+
       while not q.eof do
       begin
        frmSpacePro.logit(q.FieldByName('doc_type').AsInteger);
-       if q.FieldByName('doc_type').AsInteger <>1 then
-        begin
          t:=
          'СТАНДАРТ-М;'
          +q.fieldbyname('inn').AsString+';'
@@ -179,31 +171,13 @@ begin
          +q.fieldbyname('price').AsString+';'
          ;
          sl.Add(t);
-        end else
-          begin
-         t1:=q.fieldbyname('SPROFILE').AsString+';'
-         +q.fieldbyname('inn').AsString+';'
-         +q.fieldbyname('docnum').AsString+';'
-         +q.fieldbyname('docdate').AsString+';'
-         +q.fieldbyname('SNAME').AsString+';'
-         +q.fieldbyname('barcode').AsString+';'
-         +q.fieldbyname('izg').AsString+';'
-         +q.fieldbyname('country').AsString+';'
-         +q.fieldbyname('QUANT').AsString+';'
-         +q.fieldbyname('Distrib').AsString+';'
-         +q.fieldbyname('Distrib_inn').AsString+';';
-         sl1.Add(t1);
-          frmSpacePro.logit(t1);
-        end;
-        q.next;
+         q.next;
       end;
 
 
      try
       sl.SaveToFile(f);
       sl.Free;
-      sl1.SaveToFile(f1);
-      sl1.Free;
       except
      frmSpacePro.logit('неверный путь');
     end;
