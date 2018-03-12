@@ -1,0 +1,136 @@
+uses
+  Graphics, Controls, Forms, Dialogs, StdCtrls, 
+  ComCtrls, ExtCtrls, ibquery, DB, ChequeList, FR,
+  ScriptRes, Barcode, ZKassa, StrUtils, Windows, Classes,
+  IBDatabase;
+var
+  doc_id : integer;    
+  LengthCheak,i,j , fl: integer;
+  iq: tibquery;
+  str_temp : string;
+procedure print_tcheck;
+begin
+   Fr_activate(0);
+   //Создаем соединение с базой
+   iq := tibquery.create(nil);
+   iq.database := CurrDB;
+   iq.transaction := creatert(CurrDB);
+   iq.transaction.starttransaction;
+   iq.active := False;
+   //msgbox(IntToStr(ChequeList.Items[0].ID), 'Ошибка!', mb_ok);
+   //запросик к базе   
+   fl:=0;
+   iq.sql.text := 'select dd.sname,dd.mmbsh,dd.quant,dd.discount,-dd.summa as summa,dd.price'+
+                   ',d.vnum,dd.dep,dd.HUMAN_QUANT,dd.sum_dsc from VW_DOC_DETAIL_active dd '+
+                   'left JOIN docs d on d.id = dd.doc_id '+
+                   'where d.doc_type in (3,9) and d.AUDIT_ID='+IntToStr(SessionID);
+   iq.active := True;
+   str_temp := '';       
+
+   //забираем данные
+   if not(iq.Eof) then
+    begin            
+     //Длина чековой ленты
+     LengthCheak := FR_LINELENGTH;
+     str_temp := str_temp + myFormatString('Товарный чек №'+IntToStr(FR_CHEQUENUMBER)+' от '+DateToStr(Date),' ',' ',LengthCheak,0,true)+#13#10;
+     //str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+    end
+   else                   
+    begin                             
+     str_temp := '';
+     msgbox('Нет активного чека, Товарный чек не будет распечатан!', 'Ошибка!', mb_ok);
+     exit;
+    end;              
+   while not iq.Eof do
+    begin    
+     str_temp := str_temp + myFormatString(iq.FieldByName('sname').AsString,' ',' ',LengthCheak,1,true)+#13#10;
+     if (iq.FieldByName('HUMAN_QUANT').AsString<>'1') then
+      str_temp := str_temp + myFormatString(iq.FieldByName('dep').AsString, Format('%sX%.2f=%.2f', [iq.FieldByName('HUMAN_QUANT').AsString, iq.FieldByName('price').AsFloat, iq.FieldByName('summa').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     else
+      str_temp := str_temp + myFormatString(' ',' ='+Format('%.2f', [iq.FieldByName('summa').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     if (iq.FieldByName('discount').AsFloat<>0) then
+      str_temp := str_temp + myFormatString('Скидка '+FloatToStr((-1)*iq.FieldByName('discount').AsFloat)+'%',' ='+Format('%.2f', [iq.FieldByName('sum_dsc').AsFloat]),' ',LengthCheak,1,true)+#13#10;
+     iq.Next;                
+    end;
+    str_temp := str_temp + dupestring('-',LengthCheak)+#13#10; 
+   if (iq.FieldByName('discount').AsFloat<>0) then
+     str_temp := str_temp + myFormatString('Итого скидка',' ='+Format('%.2f',[(-1)*ChequeList.TotalDscSumm]),' ',LengthCheak,1,true)+#13#10;
+    
+   str_temp := str_temp + myFormatString('ИТОГО',' ='+Format('%.2f',[ChequeList.TotalSumm+ChequeList.TotalDscSumm]),' ',LengthCheak,1,true)+#13#10;
+   //Проверяем введение суммы наличности
+   if (ChequeList.Items[0].Cash<>0) then
+    begin
+     str_temp := str_temp + myFormatString('Наличными',' ='+Format('%.2f',[ChequeList.Items[0].Cash]),' ',LengthCheak,1,true)+#13#10;
+     str_temp := str_temp + myFormatString('Сдача',' ='+Format('%.2f',[ChequeList.Items[0].Delivery]),' ',LengthCheak,1,true)+#13#10;
+    end;
+  //закрываем соединение
+   iq.active := False;
+   iq.sql.text := 'select USERNAME from USERS where id = '+IntToStr(UserID);
+   iq.active := True;
+
+   str_temp := str_temp + dupestring('*',LengthCheak)+#13#10;
+   str_temp := str_temp + myFormatString(DateToStr(Date)+' '+TimeToStr(Time),' ',' ',LengthCheak,1,true)+#13#10;
+   str_temp := str_temp + myFormatString('Кассир:',iq.FieldByName('USERNAME').AsString,' ',LengthCheak,1,true)+#13#10;
+
+ //закрываем соединение
+   iq.active := False; 
+                         
+   // Для select можно не завершать транзакцию
+   iq.Transaction.Commit;            
+   iq.Transaction.Free;                                                                              
+   iq.Free;
+                                                                     
+   //str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+   //str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+   //str_temp := str_temp + myFormatCheque('Подпись: _______________________',' ',' ',LengthCheak,1,true)+#13#10;
+   //str_temp := str_temp + myFormatCheque('                   М.П.',' ',' ',LengthCheak,1,true)+#13#10;
+   str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;
+   str_temp := str_temp + dupestring(' ',LengthCheak)+#13#10;   
+   //Устанавливаем сформированную строку
+   showmessage(str_temp);
+   FR_STRING_SET(str_temp);                                                                     
+   //Печатаем строку на фискальнике
+   FR_PRINTSTRING;            
+   FR_GETADVTEXT;
+   FR_PRINTSTRING;
+   FR_PRINTCLICHE;
+   //протяжка
+   FR_NUMBER_SET(2);
+   FR_FEEDTAPE;
+   //отрезка
+   FR_BOOLEAN_SET(false);
+   //FR_CUTTAPE;
+   ChequeList.CloseAll;
+   //Отключаем оборудование
+   FR_DEACTIVATE;
+end;
+
+procedure discount_star;
+var
+  ch: TCheque;
+  i: integer;
+begin
+  
+ for i := 0 to Chequelist.count - 1 do
+       for j := 0 to Chequelist[i].count - 1 do
+        begin
+           Chequelist[i].p_index := j;
+        if abs(Chequelist[i].P_DscSumm) > 10 then Chequelist[i].P_Name := Chequelist[i].P_Name + ' *';
+
+       end;
+
+
+end;
+
+
+begin
+
+ discount_star();
+ if (ChequeList.count>0)and(abs(ChequeList.TotalSumm+ChequeList.TotalDscSumm) <= 0.01) then
+ begin
+   //if msgbox('Внимание льгота 100%'+#13#10+'Желаете провести чек без кассового аппарата? ','Внимание льгота 100%', MB_YESNO + MB_ICONQUESTION ) = ID_YES then
+   //ChequeList.CloseAll;
+  
+   print_tcheck();
+ end
+end

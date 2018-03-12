@@ -42,19 +42,26 @@ begin
    sl:= TStringList.Create;
    f:=CheckFiles('toSite.csv');
    frmSpacePro.logit(f);
-   SQL:='select w.sprofile,w.sname,w.bcode_izg,w.quant,w.price,
+   SQL:='select list(g.caption)as group_tovar,  w.sprofile,w.sname,w.bcode_izg,w.quant,w.price,
                w.G$PROFILE_ID,cast(godendo as dm_date) as godendo_date,
                w.PART_ID,w.SCOUNTRY, w.BARCODE
-                  from vw_warebase w where quant > 0.01
-                  ORDER BY w.G$PROFILE_ID  ';
+                  from vw_warebase w
+              left  join group_detail gd on gd.grouptable_id = w.name_id  and gd.grouptable = ''PARTS.NAME_ID'' and gd.g$profile_id=w.g$profile_id
+              left  join groups g on g.id = gd.group_id  and g.g$profile_id=w.g$profile_id
+
+                  where quant > 0.01
+            group by  w.G$PROFILE_ID,w.sprofile,w.sname,w.mmbsh,w.bcode_izg,w.quant,w.price,
+                godendo_date,
+               w.PART_ID,w.SCOUNTRY, w.BARCODE  ';
 
    GetSQLResult(SQL);
 
-   t:='Товар;Аптека;Кол-во;Цена;Срок Годности;';
+   t:='Код партии;Группа Товара;Товар;Страна;Штрихкод;Аптека;Код Аптеки;Кол-во;Цена;Срок Годности;';
    sl.Add(t);
       while not q.eof do
       begin
          t:=q.fieldbyname('PART_ID').AsString+';'
+		 +q.fieldbyname('group_tovar').AsString+';'
          +q.fieldbyname('SNAME').AsString+';'
          +q.fieldbyname('SCOUNTRY').AsString+';'
          +q.fieldbyname('BARCODE').AsString+';'

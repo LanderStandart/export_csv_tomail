@@ -35,9 +35,7 @@ frmSpacePro.logit('Начали -'+TimetoStr( time));
                (select first 1 p.param_value as inn from params p where p.param_id =''ORG_INN'')as inn,
                 cast(godendo as dm_date) as godendo_date,w.sizg,w.scountry
           from vw_warebase w where quant > 0.01 and w.g$profile_id not in (99,100)
-               and (exists (select barcode from out$mfo om where om.barcode = w.bcode_izg)
-               or exists(select tovar from out$mfo om where om.tovar = w.sname)
-               or exists(select tovar_mfo from out$mfo om where om.tovar_mfo = w.sname))
+               
                group by w.sprofile,w.sname,w.bcode_izg,w.quant,inn,godendo_date,w.sizg,w.scountry';
       frmSpacePro.logit('Выгружаем остатки');
 
