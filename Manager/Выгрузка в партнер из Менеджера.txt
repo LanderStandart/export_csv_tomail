@@ -15,14 +15,14 @@ var q,q1: TIBQuery;
     date_start,date_end:date;
     today:Tdatetime;
 
-
+    
 
 
 function filename:String;
 var
 t,y,m,d:String;
 begin
- d:=Copy(DatetoStr(date),0,2);                                   
+ d:=Copy(DatetoStr(date),0,2);
  m:=Copy(DatetoStr(date),4,2);
  y:=Copy(Datetostr(date),7,4);
  t:=StringReplace(time,':','',1);
@@ -43,14 +43,14 @@ end;
 //Посылаем по ФТП
 Procedure FTP (f:string);
 const
-login='partner12222';
-pass='TRLKJ-vesoy-iqhqy-%5yzj';
+login='partner12053';
+pass='#9HSN-okb-swqbq-HPUX-qll';
 url='partner.melzdrav.ru';
 files=extractfiledrive(application.ExeName)+path;
 
 begin
   t:='-F -DD -u '+login+' -p '+pass+' '+url+' \ '+files+f;
-  frmSpacePro.logit(t);
+  frmManagerXP2.logit(t);
      ShellExecuteA(0, 'open','C:\Standart-N\partner\ncftpput.exe', t, '', 5);
 
 
@@ -85,7 +85,7 @@ try
  q2.SQL.Text:=SQL;
  q2.Active:=true;
     except
-      frmSpacePro.logit('неверный запрос');
+      frmManagerXP2.logit('неверный запрос');
       q2.Transaction.Rollback;
     end;
  result:=q2;
@@ -96,22 +96,20 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
     SQL:='select
                left(w.docnum,iif(position('' '',w.docnum)=0,char_length(w.docnum), position('' '',w.docnum)))as docnum,
                cast(w.docdate as date)as docdate,w.docagent,
-    (select a.inn from  agents a inner join docs d on d.agent_id=a.id and d.g$profile_id=w.g$profile_id and d.id=w.doc_id
-            and a.g$profile_id = w.g$profile_id)as INN,
+    (select a.inn from  agents a inner join docs d on d.agent_id=a.id and d.id=w.doc_id)as INN,
             w.part_id,w.izg_id,w.sizg,w.scountry,w.sname,w.bcode_izg,w.quant,w.price_o,w.price,
-                w.sprofile,cast(godendo as dm_date) as godendo_date,w.seria,w.barcode,g.partner_id
+                cast(godendo as date) as godendo_date,w.seria,w.barcode
           from vw_warebase w
-           inner join g$profiles g on g.id =w.g$profile_id
-           where quant > 0.01 and w.g$profile_id ='+InttoStr(i)+'
+           where quant > 0.01
                group by w.sname, w.part_id, w.quant, w.price_o,w.price,w.bcode_izg,
-                        w.izg_id, w.sizg, w.scountry, w.g$profile_id,INN,w.doc_id,w.sprofile,
-                        docnum,docdate,w.docagent,godendo_date,w.seria,w.barcode,g.partner_id';
- //    frmSpacePro.logit(SQL);
+                        w.izg_id, w.sizg, w.scountry, INN,w.doc_id,
+                        docnum,docdate,w.docagent,godendo_date,w.seria,w.barcode';
+    //frmManagerXP2.logit(SQL);
     q:=GetSQLResult(SQL);
 
-   f:=CheckFiles(q.fieldbyname('partner_id').AsString,'.ost');
-    frmSpacePro.logit(f);
-    frmSpacePro.logit('Выгружаем остатки');
+   f:=CheckFiles('12053','.ost');
+    frmManagerXP2.logit(f);
+    frmManagerXP2.logit('Выгружаем остатки');
 
     {  t:='Тип Данных по строке;Номер Документа из программы участника;Дата создания или изменения строки документа из программы участника'+
       ';Поставщик;ИНН Поставщика;Номер ККМ;Номер чека из программы участника;ФИО Кассира;Тип скидки по строке чека;'+
@@ -137,7 +135,7 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
          +';'
          +';'
          +q.fieldbyname('PART_ID').AsString+';'
-         +q.fieldbyname('SNAME').AsString+';'
+         +StringReplace(q.fieldbyname('SNAME').AsString,';',' ',1)+';' 
          +q.fieldbyname('IZG_ID').AsString+';'
          +q.fieldbyname('SIZG').AsString+';'
          +q.fieldbyname('scountry').AsString+';'
@@ -146,10 +144,10 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
          +FloatToStr(FormatFloat('0.##',q.fieldbyname('price').AsFloat))+';'
          +q.fieldbyname('quant').AsString+';'
          +q.fieldbyname('seria').AsString+';'
-         +q.fieldbyname('godendo_date').AsString+';'
+         +StringReplace(q.fieldbyname('godendo_date').AsString,'.','',1) +';'
          +q.fieldbyname('barcode').AsString+';';
          sl.Add(t);
-       // frmSpacePro.logit(t);
+       // frmManagerXP2.logit(t);
          q.next;
       end;
 
@@ -162,10 +160,10 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
 
 
       except
-     frmSpacePro.logit('неверный путь');
+     frmManagerXP2.logit('неверный путь');
     end;
 
-    frmSpacePro.logit('Остатки выгружены');
+    frmManagerXP2.logit('Остатки выгружены');
 end;
 
 Procedure ExtractMove(i:integer);//Выгрузка движения
@@ -189,34 +187,31 @@ Begin
           vname.svalue as Drug_name,
           w.izg_id,
           vorig_izg.svalue as Drug_Producer_Name,
-          w.barcode,
+          w.barcode as bcodeizg,
           vcountry.svalue as Drug_Producer_country,
           p.price_o as Cena_Zak,
           dd.price as Cena_Rozn,
           dd.quant,
           p.seria,
-          p.godendo,
-          p.barcode,
-          g.partner_id
+          cast(p.godendo as date)as godendo ,
+          p.barcode
 
             from doc_detail dd
 
-  inner join docs d on d.id = dd.doc_id and d.g$profile_id=dd.g$profile_id and d.doc_type in (3,9)
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,9)
   inner join agents a on a.id = d.agent_id
 
-  left join parts p on dd.part_id=p.id  and p.g$profile_id=dd.g$profile_id
+  left join parts p on dd.part_id=p.id
   join WARES w on p.ware_id=w.id
   inner join vals vname on w.name_id=vname.id
   inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
   inner join vals vcountry on w.country_id=vcountry.id
-   inner join g$profiles g on g.id =dd.g$profile_id
-  where dd.g$profile_id ='+InttoStr(i)+'
-     and dd.doc_commitdate between '''+date_start+''' and '''+date_end+''' order by d.docdate';
-//frmSpacePro.logit(SQL);
+  where  dd.doc_commitdate between '''+date_start+''' and '''+date_end+''' order by d.docdate';
+frmManagerXP2.logit(SQL);
 q:=GetSQLResult(SQL);
-f:=CheckFiles(q.fieldbyname('partner_id').AsString,'.mov');
-   frmSpacePro.logit(f);
-   frmSpacePro.logit('Выгружаем Движение');
+f:=CheckFiles('12053','.mov');
+   frmManagerXP2.logit(f);
+   frmManagerXP2.logit('Выгружаем Движение');
 
      {t:='Тип Данных по строке;Номер Документа из программы участника;Дата создания или изменения строки документа из программы участника'+
       ';Поставщик;ИНН Поставщика;Номер ККМ;Номер чека из программы участника;ФИО Кассира;Тип скидки по строке чека;'+
@@ -248,13 +243,14 @@ f:=CheckFiles(q.fieldbyname('partner_id').AsString,'.mov');
          +q.fieldbyname('Drug_code').AsString+';'
          +q.fieldbyname('Drug_name').AsString+';'
          +q.fieldbyname('izg_id').AsString+';'
-         +q.fieldbyname('Drug_Producer_Name').AsString+';'
+          +StringReplace(q.fieldbyname('Drug_name').AsString,';',' ',1)+';' 
+         +q.fieldbyname('bcodeizg').AsString+';'
          +q.fieldbyname('Drug_Producer_country').AsString+';'
          +q.fieldbyname('Cena_Zak').AsString+';'
          +q.fieldbyname('Cena_Rozn').AsString+';'
          +q.fieldbyname('quant').AsString+';'
          +q.fieldbyname('seria').AsString+';'
-         +q.fieldbyname('godendo').AsString+';'
+         +StringReplace(q.fieldbyname('godendo').AsString,'.','',1) +';'
          +q.fieldbyname('barcode').AsString+';'
          ;
          sl.Add(t);
@@ -269,7 +265,7 @@ f:=CheckFiles(q.fieldbyname('partner_id').AsString,'.mov');
 
 
       except
-     frmSpacePro.logit('неверный путь');
+     frmManagerXP2.logit('неверный путь');
     end;
 
 
@@ -279,37 +275,37 @@ begin
  //Базовые переменные - периуд отчета.
   date_start:='01.01.2018';//DateToStr(date-1);
   date_end:='27.01.2018';//DatetoStr(date);
-  frmSpacePro.logit(date_start);
-  frmSpacePro.logit('Начали -'+TimetoStr( time));
+  frmManagerXP2.logit(date_start);
+  frmManagerXP2.logit('Начали -'+TimetoStr( time));
 
 
  //Выгружаем остатки по точкам
-  SQL:='select id from g$profiles where partner_id is not null';
-  q1:=GetSQLResult(SQL);
-  while not q1.eof do
-      begin
-       ExtractBase(q1.fieldbyname('id').AsInteger);
-       q1.Next;
-      end;
+ // SQL:='select 1 as id from g$profiles';
+ // q1:=GetSQLResult(SQL);
+ // while not q1.eof do
+ //     begin
+       ExtractBase('1');
+ //      q1.Next;
+  //    end;
 
 
  //выгрузка движение
 
-   SQL:='select id from g$profiles where partner_id is not null';
+  { SQL:='select id from g$profiles where partner_id is not null';
   q1:=GetSQLResult(SQL);
   while not q1.eof do
       begin
-       frmSpacePro.logit(q1.fieldbyname('id').AsString);
+       frmManagerXP2.logit(q1.fieldbyname('id').AsString);
        ExtractMove(q1.fieldbyname('id').AsInteger);
        q1.Next;
-      end;
+      end; }
+ ExtractMove(1);
+
+    //ftp('*.zip');
 
 
-    ftp('*.zip');
 
-
-
-    frmSpacePro.logit('Готово -'+TimetoStr( time));
+    frmManagerXP2.logit('Готово -'+TimetoStr( time));
     q.Free;
 
 end;
