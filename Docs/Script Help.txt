@@ -1,0 +1,739 @@
+Обертка класса TFR
+--------------------
+
+Константы
+--------------------
+  FR_DRIVER_ATOL	- код драйвера ККМ Атол
+  FR_DRIVER_SHTRIH	- код драйвера ККМ Штрих-М
+  FR_DRIVER_MERCURY	- код драйвера ККМ Меркурий
+  FR_DRIVER_MERCURY2	- код драйвера ЧПМ Меркурий (115, 130 и т.д.)
+  FR_DRIVER_NODEVICE	- код драйвера "без ККМ"
+  FR_CHECKTYPE_REG	- тип чека ПРОДАЖА
+  FR_CHECKTYPE_RETURNREG- тип чека ВОЗВРАТ ПРОДАЖИ
+  FR_PAYTYPE_CASH	- вид оплаты НАЛИЧНЫМИ
+  FR_PAYTYPE1		- вид оплаты 1
+  FR_PAYTYPE2		- вид оплаты 2
+  FR_PAYTYPE3		- вид оплаты 3
+  DOCTYPE_REG		- тип документа ПРОДАЖА
+  DOCTYPE_RETURNREG	- тип документа ВОЗВРАТ ПРОДАЖИ
+  DOCTYPE_Z		- тип документа Z-ОТЧЕТ
+  DOCTYPE_INCOME	- тип документа ВНЕСЕНИЕ ДЕНЕГ В КАССУ
+  DOCTYPE_OUTCOME	- тип документа ИНКАССАЦИЯ
+  CASHDOC_INCOME	- тип "денежного" документа ВНЕСЕНИЕ ДЕНЕГ В КАССУ
+  CASHDOC_OUTCOME	- тип "денежного" документа ИНКАССАЦИЯ
+  CASHDOC_DEPOSITCASH	- тип "денежного" документа ДЕПОЗИТ НАЛИЧНЫЙ
+  CASHDOC_DEPOSITCARD	- тип "денежного" документа ДЕПОЗИТ БЕЗНАЛИЧНЫЙ
+  CASHDOC_OFFSET	- тип "денежного" документа ВЗАИМОЗАЧЕТ
+
+-------------------
+  FR_IsActive		- проверка активности оборудования
+  FR_ACTIVATE(T)	- активировать оборудование базы с кодом T (T = -1 выводит список оборудования)
+  FR_DEACTIVATE		- деактивировать оборудование
+
+  FR_NUMBER		- считать параметр драйвера (используется в паре с вызовом метода) (integer)
+  FR_NUMBER_SET(T)	- установить параметр драйвера (используется в паре с вызовом метода) (integer)
+  FR_STRING		- см.выше (string)
+  FR_STRING_SET(T)	- см.выше (string)
+  FR_DOUBLE		- см.выше (double)
+  FR_DOUBLE_SET(T)	- см.выше (double)
+  FR_BOOLEAN		- см.выше (boolean)
+  FR_BOOLEAN_SET(T)	- см.выше (boolean)
+
+  FR_DRIVER		- используемый драйвер ККМ (-1 - не указан, 0 - без ККМ, 1 - Атол, 2 - Штрих)
+  FR_DRIVER_SET(T)	- установить используемый драйвер
+  FR_BASEID		- base_id  предприятия
+  FR_MODEL		- модель ККМ
+  FR_INN		- ИНН (если ККМ фискализирована)
+  FR_RNM		- РНМ (регистрационный номер ККМ)
+  FR_FISCAL		- признак фискализации
+  FR_EKLZPRESENT	- признак наличия ЭКЛЗ
+  FR_EKLZENABLED	- признак использования ЭКЛЗ
+  FR_LINELENGTH		- ширина ленты в символах шрифтом по умолчанию
+  FR_PAYMENTTYPE1	- наимонование вида оплаты 1
+  FR_PAYMENTTYPE2	- наимонование вида оплаты 2
+  FR_PAYMENTTYPE3	- наимонование вида оплаты 3
+  FR_SERIALNUMBER	- серийный номер ККМ
+  FR_SESSIONNUMBER 	- номер смены
+  FR_DOCUMENTNUMBER 	- номер документа
+  FR_CHEQUENUMBER	- номер чека
+  FR_SESSIONOPENED	- признак открытой смены
+  FR_ISNEEDCLOSESHIFT	- признак окончания смены и необходимости снять Z-отчет
+  FR_SUMMREGALL		- сумма всех регистраций
+  FR_SUMMREGCASH	- сумма регистраций наличными
+  FR_SUMMREGSTORNO	- сумма всех сторно
+  FR_SUMMREGPAY1	- сумма регистраций по типу оплаты 1
+  FR_SUMMREGPAY2	- сумма регистраций по типу оплаты 2
+  FR_SUMMREGPAY3	- сумма регистраций по типу оплаты 3
+  FR_SUMMRETURNREGALL	- сумма всех возвратов
+  FR_SUMMRETURNREGCASH	- сумма возвратов наличными
+  FR_SUMMRETURNREGPAY1	- сумма возвратов типом оплаты 1
+  FR_SUMMRETURNREGPAY2	- сумма возвратов типом оплаты 2
+  FR_SUMMRETURNREGPAY3	- сумма возвратов типом оплаты 3
+  FR_SUMMINCOME		- сумма внесений за смену
+  FR_SUMMOUTCOME	- сумма выплат за смену
+  FR_COUNTCHEQUES	- кол-во ЧЕКОВ (не регистраций!) за смену
+  FR_COUNTREG		- кол-во РЕГИСТРАЦИЙ за смену
+  FR_COUNTRETURNREG	- кол-во возвратов за смену
+  FR_COUNTANNULATEREG	- кол-во аннулирований за смену
+  FR_COUNTSTORNO	- кол-во сторно за смену
+  FR_COUNTINCOME	- кол-во внесений за смену
+  FR_COUNTOUTCOME	- кол-во выплат за смену
+  FR_SUMMCASH		- сумма наличности
+  FR_SUMMPROCEED	- сумма выручки
+  FR_SUMMSESSION	- сменный итог
+  FR_SUMMALLFISCAL	- необнуляемая сумма + сменный итог
+  FR_DATETIME		- дата/время ККМ
+  FR_SESSIONDATETIME	- дата/время окончания текущей смены
+  FR_SESSIONSEKLZ	- количество оставшихся смен в ЭКЛЗ
+  FR_SESSIONSFP		- количество оставшихся смен в ФП/БНП
+  FR_MODE		- текущий режим
+  FR_MODETEXT		- описание текущего режима
+  FR_ADVANCEDMODE	- текущий подрежим
+  FR_ADVANCEDMODETEXT	- описание текущего подрежима
+  
+  FR_SHOWPROP		- вывести на экран диалог настройки ККМ
+  FR_REPORTX		- снять X-отчет
+  FR_REPORTZ		- снять Z-отчет
+  FR_REPORTSECTION	- снять отчет секций
+  FR_GETCLICHE		- получить клише (счит: FR_STRING - клише)
+  FR_GETADVTEXT		- получить рекламный текст (счит: FR_STRING - текст)
+  FR_PRINTSTRING	- печать нефискальных данных (уст: FR_STRING_SET(T) - текст)
+  FR_PRINTCLICHE	- печать клише
+  FR_OPENDRAWER		- открыть денежный ящик
+  FR_CASHINCOME		- внесение суммы (уст: FR_DOUBLE_SET(T) - сумма)
+  FR_CASHOUTCOME	- изъятие суммы (уст: FR_DOUBLE_SET(T) - сумма)
+  FR_CANCELCHEQUE	- отмена чека
+  FR_RENAMECASHIER	- переименовать кассира (уст: FR_NUMBER_SET(T) - номер кассира, FR_STRING_SET(T) - имя кассира)
+  FR_CUTTAPE		- отрезка ленты (уст: FR_BOOLEAN_SET(T) - вид отрезки: True - неполная, False - полная)
+    bPrintCliche	- (boolean) печатать клише следующего чека
+  FR_FEEDTAPE		- протяжка ленты (уст: FR_NUMBER_SET(T) - кол-во строк протяжки)
+  FR_BANKREPORTX	- печать сверки итогов с банком
+  FR_BANKREPORTZ	- закрытие смены по банку
+  FR_PrintBarcode	- печать штрихкода
+    sText		- значение штрихкола
+  FR_ReportOFDConn	- печать отчета о соединении с ОФД (для аппаратов 54-ФЗ)
+  FR_Is54FZ		- признак работы по 54-ФЗ (0-нет, 1-да)
+  FR_FNNumber		- серийный номер фискального накопителя
+  FR_FDNumber		- сквозной номер фискального документа
+  FR_OFDErrDocCount	- количество неотправленных документов в ОФД
+  FR_OFDErrDocDateTime	- дата/время первого неотправленного документа в ОФД
+  FR_PrintCheque	- печатать подготовленный чек на ККМ
+    PCheque		- объект-чек для печати (тип TCheque)
+
+========================================================================================================================
+
+
+Класс ChequeList
+--------------------
+
+Свойства и методы ChequeList (списка активных чеков)
+--------------------
+  Items			- массив активных чеков, доступ по индексу (ChequeList.Items[0] или ChequeList[0])
+  Count			- количество активных чеков
+  PosCount		- количество позиций в активных чеках
+  IsEmpty		- признак отсутствия активных чеков
+  TotalSumm		- сумма по всем активным чекам
+  TotalDscSumm		- сумма скидки по всем активным чекам
+  SetDsicount		- установить общую скидку на все активные чеки
+  IndexByDocID		- получить индекс чека по DocID
+  IndexByPartID		- получить индекс чека по PartID позиции
+  ActiveIID		- ID активного чека (для событий "перед/после добавления позиции в чек")
+  ActivePID		- PartID активной позиции (для событий "перед/после добавления позиции в чек")
+  ActiveQuant		- количество активной позиции (для событий "перед/после добавления позиции в чек")
+  CloseAll		- провести все активные чеки без ККМ
+  Close			- инициировать закрытие чека стандартным способом
+
+  Active		- возвращает текущий активный чек
+  Пример:
+  uses chequelist;
+  begin
+    with ChequeList.Active do FR_TextHeader := 'Привет! Doc_ID=' + IntToStr(ID) + #10;
+  end;
+
+  LastLinkID		- LinkID последней отбитой очереди чеков
+  LastPosCount		- количество позиций в последней отбитой очереди ...
+  LastSumm		- сумма последней отбитой ...
+  LastDscSumm		- сумма скидки последней ...
+  LastCash		- общая наличность ...
+  LastDelivery		- общая сдача ...
+
+Свойства и методы элементов массива Items
+--------------------
+  ID			- ID чека
+  ParentID		- ParentID чека
+  BaseID		- BaseID чека
+  AgentID		- AgentID чека
+  AgentCaption		- AgentCaption чека
+  ChequeType		- тип чека (0-продажа, 1-возврат продажи)
+  TotalSumm		- сумма чека
+  TotalDscSumm		- сумма скидки по чеку
+  Count			- количество позиций в чеке, включая удаленные позиции
+  Cash			- сумма введенных наличных
+  Delivery		- сумма сдачи
+  SetDiscount		- установить суммовую скидку на чек
+    fSumm		- сумма скидки
+  IndexByPartID		- получить индекс позиции чека по PartID
+
+  GetSummPaysByType	- получить сумму платежей по программному виду оплаты
+  Программные виды оплат:
+    PAYTYPE_CASH	- наличные
+    PAYTYPE_PAYCARD	- платежная карта
+    PAYTYPE_GIFTCARD	- подарочная карта
+    PAYTYPE_CREDIT	- кредит
+    PAYTYPE_DEPOSIT	- депозит
+    PAYTYPE_OFFSET	- взаимозачет
+
+  GetSummPaysByTypeFR	- получить сумму платежей по аппаратному виду оплаты 
+  Аппаратные виды оплат:
+    FR_PAYTYPE_CASH	- наличные
+    FR_PAYTYPE1		- вид оплаты 1
+    FR_PAYTYPE2		- вид оплаты 2
+    FR_PAYTYPE3		- вид оплаты 3
+
+  Пример:
+  uses ZKassa, FR;
+  begin
+    with ChequeList.Items[ChequeList.IndexByDocID(ChequeList.ActiveIID)] do
+      msgbox( 
+        format('нал: %.2f'#10'безнал: %.2f'#10'вид 2: %.2f'#10'вид 3: %.2f'#10#10 +
+        'нал: %.2f'#10'безнал: %.2f'#10'подар: %.2f'#10'кредит: %.2f'#10 +
+        'депозит: %.2f'#10'взаим: %.2f'#10,
+        [GetSummPaysByTypeFR(FR_PAYTYPE_CASH), GetSummPaysByTypeFR(FR_PAYTYPE1), GetSummPaysByTypeFR(FR_PAYTYPE2), GetSummPaysByTypeFR(FR_PAYTYPE3),
+        GetSummPaysByType(PAYTYPE_CASH), GetSummPaysByType(PAYTYPE_PAYCARD), GetSummPaysByType(PAYTYPE_GIFTCARD), 
+        GetSummPaysByType(PAYTYPE_CREDIT), GetSummPaysByType(PAYTYPE_DEPOSIT), GetSummPaysByType(PAYTYPE_OFFSET)]), '', 0);
+  end;
+
+  FR_TEXTHEADER		- текст заголовка чека (после клише, но до позиций чека)
+  FR_TEXTBODY		- текст тела чека (после FR_TEXTHEADER)
+  FR_TEXTFOOTER		- текст подвала чека (после позиций чека, но до закрытия)
+
+  FillGroups		- заполнить информацию по группам товаров, входящих в чек. После вызова этого метода можно
+			  получить информацию о группах с помощью методов GroupSumm, GroupSummDsc, GroupCount
+  GroupSumm		- получить сумму позиций товаров, входящих в определенную товарную группу
+    iGroup		- ID товарной группы
+  GroupSummDsc		- получить сумму скидки позиций товаров, входящих в определенную товарную группу
+    iGroup		- ID товарной группы
+  GroupCount		- получить количество позиций товаров, входящих в определенную товарную группу
+    iGroup		- ID товарной группы
+
+  AccompSumm		- получить сумму позиций товаров, добавленных через функцию допродажи
+  AccompSummDsc		- получить сумму скидки позиций товаров, добавленных через функцию допродажи
+  AccompCount		- получить количество позиций товаров, добавленных через функцию допродажи
+
+  Пример:
+  uses zkassa, chequelist;
+  var ch: tcheque;
+  begin
+    ch := ChequeList.Items[0];
+    MsgBox(Format('Сумма= %.2f; Скидка= %.2f; Кол-во= %d; ', [ch.AccompSumm, ch.AccompSummDsc, ch.AccompCount]), '', 0);
+  end;
+
+  ItemsToText		- получить текстовое представление позиций чека (название, кол-во, цена, сумма, скидка), 
+			  отформатированное по ширине ленты соответствующего оборудования
+  Пример:
+  uses zkassa, chequelist;
+  begin
+    MsgBox(Chequelist.Active.ItemsToText, 'Test', 0);
+  end;
+
+  AddReg		- добавить регистрацию в чек продажи/возврата
+    PSection            - номер отдела
+    PSumm               - сумма регистрации
+    PDscSumm            - сумма скидки/наценки
+    PCaption            - наименование товара/услуги
+    PPrice              - цена товара
+    PQuant              - количество
+    PHumanQuant         - количество в виде неправильной дроби (напр. 1/3)
+    PDscPercent         - процент скидки/наценки
+    PDscCard            - штрихкод дисконтной карты
+
+  AddPayment		- добавить платеж в чек продажи/возврата
+    PPayType		- вид платежа (0-наличные, 1-безнал)
+    PSumm               - сумма платежа
+
+  Пример:
+  uses zkassa, fr, chequelist;
+  var ch: TCheque;
+  begin
+    ch := TCheque.Create;
+    ch.AddReg(1, 11, 0, 'Тест', 11, 1, '1', 0, ''); // добавляем в чек позицию "Тест" 1шт, по цене 11руб, без скидок
+    ch.AddPayment(1, 11);                           // добавляем платеж по плат.карте на сумму 11руб
+    FR_Activate(-1);
+
+    if FR_IsNeedCloseShift then FR_ReportZ;         // если необходимо, закрываем смену
+    FR_PrintCheque(ch);                             // печатаем чек на ККМ (ВНИМАНИЕ! Такой чек не отобразится ни в базе, ни в банк.терминале!)
+    ch := nil;
+  end;
+
+Свойства и методы отдельной позиции чека
+--------------------
+  P_Index		- индекс позиции, к которой будут применяться следующие свойства и методы
+  P_ID			- PartID позиции
+  P_Name		- наименование (начиная с версии 2.2.1.78 свойство стало изменяемым)
+  P_Price		- цена
+  P_Quant		- количество
+  P_Summ		- сумма позиции
+  P_Groups		- принадлежность к группам
+  P_DscPrc		- процент скидки
+  P_DscSumm		- сумма скидки
+  P_DscBarcode		- штрихкод скидки
+  P_DscIsGlobal		- признак "глобальности" скидки (дисконтная система)
+  P_DscIsAuto		- признак "автоматической скидки" (срабатывание в зависимости от суммы чека)
+  P_SetDiscount		- установить скидку на позицию
+    fSumm		- сумма скидки
+  P_SetDiscountFixed	- установить "фиксированную" скидку на позицию. На позиции с такой скидкой не размазывается округление, 
+			  скидка не сбрасывается клавишей "-". Для отмены скидки нужно вызвать данный метод с fSumm=0
+    fSumm		- сумма скидки
+  P_SetDiscountEx	- установить скидку на позицию (пакетный режим). Для ускорения применения скидок на несколько позиций подряд
+    iIndex		- индекс позиции в чеке (свойство P_Index можно не устанавливать)
+    fSumm		- сумма скидки
+    bRefresh		- признак обновления состояния чека: для всех позиций, кроме последней, передавать False, у последней True
+
+  Пример обхода всех позиций всех документов
+
+  uses zkassa, chequelist;
+  var i, j: integer;
+  begin
+    for i := 0 to chequelist.count - 1 do
+      for j := 0 to chequelist[i].count - 1 do
+        begin
+          chequelist[i].p_index := j;
+          msgbox(format('ID базы: %d'#10'Товар: %s', [chequelist[i].BaseID, chequelist[i].p_name]), 'Товары', 0);
+        end;
+  end;
+
+========================================================================================================================
+
+
+Класс ScriptRes
+
+Свойства
+--------------------
+  Code			- код возврата/ошибки: CODE = 0 - нет ошибки, выполнение продолжается
+                                               CODE < 0 - ошибка, вывод сообщения DESC, выполнение прерывается
+                                               CODE > 0 - ошибка, но сообщение не выводится, выполнение прерывается
+  Desc			- описание ошибки
+    Пример:
+    ScriptRes.Code := -1;
+    ScriptRes.Desc := 'Это сообщение будет выведено на экран';
+
+Методы             
+--------------------
+  Clear			- очистить код ошибки (нет ошибки)
+
+========================================================================================================================
+
+
+Класс Barcode
+
+Свойства
+--------------------
+  Text			- текст отсканированного штрихкода
+  Kind RW		- тип штрихкода: bkUnknown (неизвестно), bkGoods (товар), bkLPGoods (весовой товар),
+			  bkLocalDiscount (локальная скидка), bkGlobalDiscount (глобальная скидка)
+  Percent RW		- процент скидки (если KIND = bkLocalDiscount или bkGlobalDiscount)
+  CardSumm		- сумма накоплений по дисконтной карте (если KIND = bkGlobalDiscount)
+
+Методы             
+--------------------
+  RecalcDiscount	- пересчет скидки по очереди чеков в случае изменения процента скидки (PERCENT)
+    Пример:
+      var s: string;
+      begin
+        s := Barcode.Text + #10;
+        case Barcode.Kind of
+          bkLocalDiscount: s := s + 'локальная скидка ' + FloatToStr(Barcode.Percent) + '%';
+          bkGlobalDiscount: s := s + 'глобальная скидка ' + FloatToStr(Barcode.Percent) + '%; ' + FloatToStr(Barcode.CardSumm);
+          bkLPGoods: s := s + 'весовой товар';
+          bkGoods: s := s + 'товар';
+        else
+          s := s + 'непонятно, что за штрихкод';
+        end; 
+        ShowMessage(s);
+
+        if (Barcode.Kind = bkLocalDiscount) or (Barcode.Kind = bkGlobalDiscount) then
+          begin
+            Barcode.Percent := -20;
+            Barcode.RecalcDiscount;
+          end;
+      end;
+
+  ApplyDiscount		- применить дисконтную карту к одной или всем позициям очереди чеков
+    sDiscountBarcode	- штрихкод дисконтной карты
+    iPartID		- PART_ID позиции, к которой применяется карта (0 - применить ко всем позициям)
+
+    Пример:
+      ChequeList.Items[0].P_Index := 0;
+      Barcode.ApplyDiscount('000000000314', ChequeList.Items[0].P_ID);
+
+========================================================================================================================
+
+
+Классы TErrFinder (коллекция), TErrItem (элемент коллекции)
+-----------------------------------------------------------
+  Класс TErrFinder предназначен для поиска ошибок в кассовых документах
+  Находит следующие типы ошибок:
+
+  0 - Пропуск номера чека
+  1 - Сумма чека не равна вычисляемой сумме
+  2 - Сумма чека не равна сумме платежей
+  3 - Сумма чека не равна сумме позиций
+  4 - Сумма скидки чека не равна сумме скидки позиций
+  5 - Сумма чеков не сходится с выручкой
+  6 - Сумма платежей не сходится с выручкой
+  7(отключено) - Сумма наличных продаж/возвратов + сумма внесений/изъятий не сходятся с наличностью
+  8 - Сумма продаж не сходится со сменным итогом
+
+  Методы:
+  FindErrs		- метод поиска ошибок по серийному номеру ККМ и номеру смены
+    sSerialNumber	- серийный номер ККМ
+    iSessionNumber	- номер смены
+
+  Класс TErrItem предназначен для доступа к элементам класса TErrFinder - найденным ошибкам
+  Свойства:
+    Number		- порядковый номер ошибки в коллекции
+    Rank		- ранг ошибки: 0 - ошибка по итогам смены, 1 - ошибка в суммах чека, 2 - пропуск номера
+    ItemType		- тип ошибки (см.выше 0..8)
+    DocID		- doc_id документа с ошибкой
+    ChequeNumber	- номер чека с ошибкой
+    DocDate		- дата проведения документа с ошибкой
+    IntValue1		- первое сравниваемое значение (integer)
+    IntValue2		- второе сравниваемое значение (integer)
+    CurrValue1		- первое сравниваемое значение (currency)
+    CurrValue2		- второе сравниваемое значение (currency)
+    Desc		- описание ошибки
+    AsString		- подробное описание ошибки (для вывода на экран такими методами, как MsgBox, ShowMessage)
+
+    Пример:
+    uses Classes, Zkassa;
+    var 
+      ef: TErrFinder;
+      i: integer;
+    begin       
+      ef := TErrFinder.Create;
+      try 
+        if ef.FindErrs('3761', 274) = 0 then
+          ShowMessage('Странно, ошибок нет...')
+        else
+          for i := 0 to ef.Count - 1 do ShowMessage(ef[i].AsString);
+      finally
+        ef.Free;
+      end;
+    end;
+
+========================================================================================================================
+Прочие процедуры, константы и переменные
+
+  Application		- объект Application
+    Пример: Application.MessageBox('Текст', 'Заголовок', 0);
+  CurrFDB		- ссылка на текущую базу данных (FIBPlus)
+  CurrFRT		- ссылка на постоянную читающую транзакцию текущей базы (FIBPlus)
+  CurrDB		- ссылка на текущую базу данных (IBX)
+  CurrRT		- ссылка на постоянную читающую транзакцию текущей базы (IBX)
+  Cheque		- ссылка на текущий датасет чека (TDataset)
+  Base			- ссылка на текущий датасет базы (TDataset)
+    Пример:
+    uses zkassa, DB;
+    begin
+      TagSetContent(fmMain.ewbFooter, 'partid_val', IntToStr(Base.FieldByName('part_id').AsInteger));
+    end;
+
+  UserID		- ID текущего пользователя
+  SessionID		- ID текущей смены
+  CreateFRT		- функция создает читающую транзакцию (FIBPlus)
+  CreateFWT		- функция создает пишущую транзакцию (FIBPlus)
+  CreateRT		- функция создает читающую транзакцию (IBX)
+  CreateWT		- функция создает пишущую транзакцию (IBX)
+    Пример (FIBPlus):                                  Пример (IBX):
+    uses zkassa, fibplus;                              uses zkassa;             
+    var fit: TpFIBTransaction;                         var it: TIBTransaction;  
+    begin                                              begin                    
+      fit := CreateFWT(CurrFDB);                         it := CreateWT(CurrDB);
+      fit.StartTransaction;                              it.StartTransaction;   
+      ...                                                ...                    
+      fit.Commit;                                        it.Commit;             
+      fit.Free;                                          it.Free;               
+    end;                                               end;                     
+
+  myFormatString	- функция форматирования строки
+  Параметры:
+    sText		- строка слева/центр
+    sTextRight		- строка справа
+    sPattern		- символ заполнения пространства м/у лев. и прав. строками
+    iLen		- длина выходной строки
+    iFormatType		- тип форматирования: 0 - по центру (только лев.стр.), 1 - по лев. и прав. краям
+    bCutLeft		- обрезать слева, если больше, чем требуемая длина (иначе справа)
+    Пример: myFormatString('ДОБРО ПОЖАЛОВАТЬ', '', '-', 20, 0, True); //результат: '--ДОБРО ПОЖАЛОВАТЬ--'
+            myFormatString('123', '456', '.', 20, 1, True);           //результат: '123..............456'
+  MsgBox		- обертка над Application.MessageBox
+    Пример: if MsgBox('Продолжить?', 'Расчет', MB_OKCANCEL + MB_ICONQUESTION) = ID_CANCEL then Exit;
+
+  SetLine		- вывод информации на дисплей покупателя. При вызове данного метода все "отложенные"
+			  выводы информации на дисплей удаляются
+  Параметры:
+    iBaseID		- ID предприятия, на чей дисплей выводить информацию (дисплей должен быть настроен)
+    sLine1		- 1-я строка информации (если sLine1 = #9, информация в строку 1 дисплея не выводится)
+    sLine2		- 2-я строка информации (если sLine2 = #9, информация в строку 2 дисплея не выводится)
+    iTimeout		- таймаут для создания "отложенного" вывода, после которого снова вызывается функция SetLine
+			  с новыми значениями строк (например, для очистки табло). Если iTimeout = 0, повторного 
+			  вызова не происходит
+    sLine21		- 1-я строка информации при повторном вызове
+    sLine22		- 2-я строка информации при повторном вызове
+    Пример: SetLine(0, 'Привет,', 'мир!', 5000, '', ''); //выводит сообщение, через 5 секунд очищает табло
+            SetLine(0, '', ''); //очищает табло
+
+  SetLineDelayed	- "отложенный" вывод информации на дисплей покупателя
+    iBaseID		- ID предприятия, на чей дисплей выводить информацию
+    sLine1		- 1-я строка информации (если sLine1 = #9, информация в строку 1 дисплея не выводится)
+    sLine2		- 2-я строка информации (если sLine2 = #9, информация в строку 2 дисплея не выводится)
+    iTimeout		- таймаут вывода информации на дисплей покупателя
+
+  KillAllTimers		- удалить все "отложенные" выводы на дисплей покупателя
+
+  GetWeight		- получить вес товара (при наличии весов)
+    iPartID		- ID товара
+    Пример: MsgBox(Format('Вес товара = %.3f', [GetWeight(iPartID)]), 'Вес товара', 0);
+
+  TagGetContent		- получить содержимое тега по ID
+    wb			- контрол WebBrowser (инфо о чеке - fmMain.ewbInfo, подстрочник - fmMain.ewbFooter)
+    sTagID		- ID тега
+    Пример: MsgBox(TagGetContent(fmMain.ewbInfo, 'fr_total'), 'Содержимое fr_total', 0); //получить значение блока FR_TOTAL 
+
+  TagSetContent		- установить содержимое тега по ID
+    wb			- контрол WebBrowser (инфо о чеке - fmMain.ewbInfo, подстрочник - fmMain.ewbFooter)
+    sTagID		- ID тега
+    sContent		- новое содержимое тега
+    Пример: TagSetContent(fmMain.ewbInfo, 'fr_total', 'Чеков: ' + IntToStr(FR_CountCheques)); //установить значение блока FR_TOTAL 
+
+  TagGetAttribute	- получить содержимое аттрибута тега по ID
+    wb			- контрол WebBrowser (инфо о чеке - fmMain.ewbInfo, подстрочник - fmMain.ewbFooter)
+    sTagID		- ID тега
+    sAttr		- имя аттрибута
+    Пример: MsgBox(TagGetAttribute(fmMain.ewbInfo, '_pict', 'src'), 'Адрес картинки тега IMG', 0); //получить значение аттрибута SRC
+
+  TagSetAttribute	- установить содержимое аттрибута тега по ID
+    wb			- контрол WebBrowser (инфо о чеке - fmMain.ewbInfo, подстрочник - fmMain.ewbFooter)
+    sTagID		- ID тега
+    sAttr		- имя аттрибута
+    sContent		- новое содержимое аттрибута
+    Пример: TagSetAttribute(fmMain.ewbInfo, '_pict', 'src', 'c:\picts\pict_123.bmp'); //установить значение аттрибута SRC 
+
+  !!! ------------------- !!!
+  ПРИМЕЧАНИЕ: в функциях TagSetContent, TagSetAttribute можно использовать макроподстановки вида ::<макроимя>[:<формат>], где:
+  макроимя - может быть именем любого поля текущего SQL-запроса остатков, например SNAME, PRICE и т.д. (регистр не важен)
+  формат - форматная строка, аналог параметра Format функции Format в Delphi (без лидирующего символа %)
+  
+  Пример: возьмем пример из описания функции TagSetAttribute (см. чуть выше):
+
+  TagSetAttribute(fmMain.ewbInfo, '_pict', 'src', 'c:\picts\pict_123.bmp');
+
+  Если в папке 'c:\picts\' содержатся файлы с изображениями товаров, и имена файлов картинок содержат PART_ID товара, т.е. имя 
+  файла имеет вид 'pict_<PART_ID>.bmp', то данный пример можно переписать с использованием макроподстановок следующим образом:
+
+  TagSetAttribute(fmMain.ewbInfo, '_pict', 'src', 'c:\picts\pict_::PART_ID.bmp');
+
+  PS: Макроподстановки также можно использовать в значениях блоков в HTML-дизайнере (дерево блоков справа), 
+  либо напрямую в тесте HTML-скрипта
+  !!! ------------------- !!!
+
+  TagVisible		- установить видимость блока контрола WebBrowser
+    wb			- контрол WebBrowser
+    sTagID		- ID блока, у которого меняется видимость
+    bVisible		- признак видимости
+    Пример: TagVisible(fmMain.ewbInfo, 'fr_model', False); //скрыть блок FR_MODEL (информация о модели ККМ)
+
+  SetDocsAgent		- установить контрагента активной очереди чеков
+    iAgentID		- ID агента активной очереди чеков
+
+  BarcodeText		- свойство для чтения, возвращающее значение введенного штрихкода
+			  ПОМЕЧЕНО К УДАЛЕНИЮ, РЕКОМЕНДУЕТСЯ ВМЕСТО ЭТОГО ИСПОЛЬЗОВАТЬ КЛАСС Barcode
+    Пример: ShowMessage('Введен штрихкод: ' + BarcodeText);
+
+  DoReport		- работа с отчетами (просмотр/редактирование/печать)
+    iReportID		- ID отчета
+    sParam		- доп.параметры отчета (макроподстановка)
+    ReportMode		- тип вывода отчета: rmView - просмотр, rmDesign - редактирование, rmPrint - печать
+    sPrinter		- имя принтера для печати ('' - принтер по умолчанию)
+    Пример: DoReport(12, 'compname=NICKY', rmPrint, '\\buhi\HP LaserJet5');
+
+  ManualDiscount	- вызов формы выбора скидки/суммовой скидки
+  IsRegistered		- св-во, указывающее на наличие регистрации базы автоматизации
+
+  SendKey		- посылает нажатие клавиши
+    iKeyCode		- код клавиши
+    bCtrl		- состояние клавиши Ctrl (True - нажата)
+    bAlt		- аналогично Alt
+    bShift		- аналогично Shift
+    Пример: SendKey(VK_F5, False, True, False); //посылает нажатие сочетания Alt-F5
+
+  PayByCard		- оплата банковской картой, возвращаемое значение: 0-ошибка, 1-успешно
+    fSumm		- сумма оплаты
+    Пример: PayByCard(10.50); //провести списание по карте суммы 10.50
+
+  GetTrans		- получить транзакцию для работы в ее рамках (нельзя стартовать, закрывать и откатывать такую транзакцию!)
+			  ВНИМАНИЕ! Транзакции типа TpFIBTransaction, т.е. из состава компонентов FibPlus, а не IBX! Для работы 
+			  требуется подключить модуть FIBPlus
+    iTransType		- тип запрашиваемой транзакции
+    Поддерживаемые типы транзакций:
+    0 (TRANS_CLOSECHEQUE) - транзакция при закрытии чека
+
+  Пример (после печати чека):
+    uses zkassa, fibplus, classes, chequelist;
+    var fiq: tpfibquery;
+    begin                    
+      fiq := tpfibquery.create(nil);
+      fiq.Transaction := GetTrans(0);
+      fiq.SQL.Text := 'update docs set device_num = ''трали-вали'' where id = ' + IntToStr(chequelist.Active.ID);
+      fiq.ExecQuery;
+      fiq.Free;
+    end;
+
+  OpenDefByID		- открыть отложенный чек по ID документа
+    iDocID		- ID документа
+
+  CloseAndOpen		- отменить открытые документы и открыть документ по ID
+    iDocID		- ID документа
+
+  Add2Cheque		- добавить позицию в чек по PartID 
+    iPartID		- ID позиции
+    fQuant		- добавляемое количество
+
+  Пример:
+    uses zkassa;
+    var i: integer;
+    begin
+      for i := 0 to 10 do 
+        try
+          Add2Cheque(127 + i, i + 1);
+        except
+        end;
+    end;
+
+  Add2Log		- пишет информацию в лог-файл
+    sLogName		- имя файла без пути и расширения. Текст будет записан в файл <Путь к программе zkassa.exe><имя файла sLogName>.log
+    sText		- информационный текст
+
+  Пример:
+    uses zkassa;
+    begin
+      Add2Log('mylog', 'Очень важное сообщение');
+    end;
+
+  GetCompName		- функция получения сетевого имени компьютера
+  
+  Пример:
+  uses zkassa;
+  begin
+    MsgBox(GetCompName, 'Computer name', 0);
+  end;
+
+  TermOperType		- свойство только для чтения, хранит тип последней операции по терминалу (3 - продажа, 9 - возврат, 12 - Х-отчет, 13 - Z-отчет)
+  TermText		- свойство только для чтения, хранит текст ответа банка (теперь не нужно читать текст ответа из файла)
+
+  GetKey		- читает настройки ini-файла
+    iIni		- константа, указывает какой файл настроек читать: компьютера (0, INI_COMP) или пользователя (1, INI_USER)
+    sSection		- секция ini-файла
+    sKey		- ключ ini-файла
+
+  SetKey		- изменяет настройки ini-файла. Без прав администратора можно менять только ключи секции $TMS_SCRIPT_SECTION.
+			  С правами администратора можно менять любые ключи (начиная с версии 2.2.1.77 права администратора не требуются)
+    iIni		- константа, указывает какой файл настроек читать: компьютера (0, INI_COMP) или пользователя (1, INI_USER)
+    sSection		- секция ini-файла. Если не указана, по умолчанию берется секция $TMS_SCRIPT_SECTION. Если указана и не равна
+			  $TMS_SCRIPT_SECTION, проверяются права администратора: если проверка не проходит, берется секция 
+			  $TMS_SCRIPT_SECTION
+    sKey		- ключ ini-файла
+    sValue		- значение ключа
+
+  Пример:
+  uses zkassa, strutils;
+  begin
+    MsgBox(IfThen(GetKey(INI_COMP, 'EGAIS', 'SendInfo') = '1', 'Отправлять', 'Не отправлять') + ' данные ЕГАИС', 'ЕГАИС', 0); //читаем настройки
+    SetKey(INI_USER, '', 'SomeKey', 'Привет'); //изменяем настройки
+  end;
+
+  PartInGroup		- признак принадлежности партии указанной группе
+    iPartID		- PartID товара
+    iGroupID		- ID группы
+
+  Пример (скрипт "Перед добавлением позиции базы"):
+  uses zkassa, chequelist, scriptres;
+  begin
+   if (ChequeList.ActiveQuant > 0) and (PartInGroup(ChequeList.ActivePID, 4) = 1) then
+     begin
+       ScriptRes.Code := -1;
+       ScriptRes.Desc := 'Запрет продажи данной группы';
+     end;
+  end;
+
+
+--------------------
+GLOBAL
+--------------------
+  Global		- объект-глобальное хранилище элементов. Доступ к элементам объекта осуществляется по имени
+  IsExists		- метод возвращает 1, если элемент с именем PName существует, иначе 0
+    PName		- имя элемента для поиска
+  DeleteItems		- метод удаляет элементы хранилища по маске имени
+    PNameMask		- маска имени для удаления
+  Предопределённые глобальные элементы (начинаются на '__', просьба не называть собственные глобальные элементы на '__'):
+  Такие элементы можно ТОЛЬКО ЧИТАТЬ, установка блокируется программой
+  __timer		- таймер главного окна (Global['__timer'] == fmMain.tmScript.Tag)
+  __activeform		- имя активной формы
+  __activepartid	- PartID текущей позиции базы
+
+  Пример:
+  Global['db'] := CurrDB; //добавим ссылку на текущую базу данных в глобальное хранилище
+  ShowMessage(Global['db'].DatabaseName); //получим данные из хранилища
+  if Global.IsExists('myVar10') = 1 then ShowMessage('Элемент myVar10 существует'); //проверим существование элемента
+  Global.DeleteItems('myVar*'); //удалим все элементы с именами, начинающимися на 'myVar'
+
+
+! Примечание: в скрипте "После прорисовки ячейки сетки" также доступны следующие глобальные элементы:
+  cell_gridname - (string) имя контрола (сетки) в нижнем регистре (dxbase - база, dxcheque - чек, dxaccompany - сопутка)
+  cell_node - (TdxTreeListNode) текущая нода (строка) сетки
+  cell_column - (TdxTreeListColumn) текущая колонка сетки
+  cell_selected - (boolean) признак выделенности ноды
+  cell_focused - (boolean) признак нахождения фокуса на ноде
+  cell_text - (string) текст ячейки
+  cell_color - (TColor) цвет ячейки
+  cell_font - (TFont) шрифт ячейки
+
+  Пример скрипта:
+
+  uses dxTL, dxDBTL, dxDBCtrl, dxDBGrid, Graphics;
+  begin
+    if Pos('SNAME', TdxDBTreeListColumn(Global['cell_column']).FieldName) > 0 then
+      begin
+        Global['cell_text'] := 'Трали-вали!';
+        if Odd(Global['cell_node'].Values[TdxDBGrid(Global['cell_node'].Owner).ColumnByFieldName('part_id').Index]) then
+          Global['cell_color'] := clGreen
+        else
+          Global['cell_color'] := clRed;
+
+        Global['cell_font'].Style := Global['cell_font'].Style + SetOf([fsItalic]);
+      end;
+  end;
+--------------------  
+
+  Константы, использующиеся при вызове MsgBox
+  MB_OK			- кнопка OK
+  MB_OKCANCEL		- кнопки OK, CANCEL
+  MB_ABORTRETRYIGNORE	- кнопки ABORT, RETRY, IGNORE
+  MB_YESNOCANCEL	- кнопки YES, NO, CANCEL
+  MB_YESNO		- кнопки YES, NO
+  MB_RETRYCANCEL	- кнопки RETRY, CANCEL
+  MB_ICONERROR		- иконка ERROR (ошибка)
+  MB_ICONQUESTION	- иконка QUESTION (вопрос)
+  MB_ICONWARNING	- иконка WARNING (внимание)
+  MB_ICONINFORMATION	- иконка INFORMATION (информация)
+  MB_DEFBUTTON1		- кнопка по умолчанию 1
+  MB_DEFBUTTON2		- кнопка по умолчанию 2
+  MB_DEFBUTTON3		- кнопка по умолчанию 3
+  MB_DEFBUTTON4		- кнопка по умолчанию 4
+  ID_OK			- код возврата OK
+  ID_CANCEL		- код возврата CANCEL
+  ID_ABORT		- код возврата ABORT
+  ID_RETRY		- код возврата RETRY
+  ID_IGNORE		- код возврата IGNORE
+  ID_YES		- код возврата YES
+  ID_NO			- код возврата NO
+  ID_CLOSE		- код возврата CLOSE
