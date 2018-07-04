@@ -1,0 +1,39 @@
+Катрен xml тюмень
+NaklImport|##CSVDelimiter||-1|
+NaklImport|##CodePage|1|-1|
+NaklImport|##ConType|xml|-1|
+NaklImport|##ConnectionString|XML :: Файлы формата *.xml|-1|
+NaklImport|##ConstructFileName|Катрен ;pFileName;|-1|
+NaklImport|##DataSource|C:\Standart-N\enakl\enakls\Катрен|-1|
+NaklImport|##Dataset|349473-16.xml|-1|
+NaklImport|##ExclFileMask||-1|
+NaklImport|##ForcedCodePage|0|-1|
+NaklImport|##OkPath|c:\standart-n\enakl\enakl_ok|-1|
+NaklImport|##RezCopyPath|c:\standart-n\enakl\enakl_back|-1|
+NaklImport|##SertDelimiter||-1|
+NaklImport|BARCODE|//ТоварнаяПозиция//ЕАН13|6|
+NaklImport|DATESERT|||
+NaklImport|DOCDATE|//ЗаголовокДокумента//ДатаДок|0|
+NaklImport|DOCNUM|//ЗаголовокДокумента//НомерДок|1|
+NaklImport|GNVLS|//ТоварнаяПозиция//ЖНВЛС|7|
+NaklImport|GODENDO|//Серия//СрокГодностиТовара|4|
+NaklImport|IZG|//ТоварнаяПозиция//Изготовитель|8|
+NaklImport|KEMVSERT|//Серия//ОрганСертиф|17|
+NaklImport|NDSO|//ТоварнаяПозиция//СтавкаНДС|18|
+NaklImport|NGTD|//ТоварнаяПозиция//ГТД|5|
+NaklImport|ORIG_CODE|//ТоварнаяПозиция//КодТовара|9|
+NaklImport|ORIG_TOVAR|||
+NaklImport|PART|||
+NaklImport|PRICE|||
+NaklImport|PRICE_O|//ТоварнаяПозиция//СуммаОптВклНДС|15|
+NaklImport|PRICE_R|//ТоварнаяПозиция//ЦенаГР|13|
+NaklImport|PRICE_Z|//ТоварнаяПозиция//ЦенаИзг|14|
+NaklImport|QUANT|//ТоварнаяПозиция//Количество|10|
+NaklImport|REGN|||
+NaklImport|SDSERT|||
+NaklImport|SER|//Серия//СерияТовара|3|
+NaklImport|SERT|//Серия//НомерСертиф|2|
+NaklImport|STRANA|//ТоварнаяПозиция//СтранаИзготовителя|11|
+NaklImport|SUM_NDSO|//ТоварнаяПозиция//СуммаНДС|16|
+NaklImport|SUM_NDSR|||
+NaklImport|TOVAR|//ТоварнаяПозиция//Товар|12|
