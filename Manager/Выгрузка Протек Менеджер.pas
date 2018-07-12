@@ -367,7 +367,7 @@ Result:='select
           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
           cast(p.godendo as date)as BestBefore,
           p.seria as Series,
-          p.barcode as Barcode
+          w.barcode as Barcode
 
             from doc_detail dd
 
@@ -384,6 +384,26 @@ Result:='select
 end;		   
 //----------------------------------------------------------------------------------------------------------------------------
 
+Function GoodSQL:string;
+begin
+Result:='select
+p.id as code,
+vname.svalue as Name,
+vorig_izg.svalue as Producer,
+vcountry.svalue as Country,
+w.barcode as barcode1,
+p.barcode as barcode2,
+p.barcode1 as barcode3,
+'''' as GuidEs,
+(select docs.agent_id from docs where docs.id=p.doc_id) as CodeSup1,
+'''' as CodeSup2,
+'''' as CodeGoodsSup1,
+'''' as CodeGoodsSup2
+from parts p
+ join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id';
 
 begin
 InitVar;
