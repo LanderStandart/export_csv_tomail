@@ -305,7 +305,7 @@ Result:='select
   inner join vals vname on w.name_id=vname.id
   inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
   inner join vals vcountry on w.country_id=vcountry.id
-  where  dd.doc_commitdate between +date_start+' and '+date_end+' order by d.docdate';
+  where  dd.doc_commitdate between' +date_start+' and '+date_end+' order by d.docdate';
 end;  
 //----------------------------------------------------------------------------------------------------------------------------
 Function BuySQL:string; //SQL выборка закупок
@@ -387,7 +387,6 @@ end;
 
 begin
 InitVar;
-SQL:='select ''UserNum1'' as UserNum,''Name1''as Name,''FullName1''as FullName,''DateDeleted1''as DateDeleted from rdb$database';
 
 GetStringCSV(UserMap,UserSQL,'User');
  frmManagerXP2.logit(path);
