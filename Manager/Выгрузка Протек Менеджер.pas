@@ -1,3 +1,9 @@
+//-------------------------------------------------------
+// TMS выгрузки для партнера ПРОАПТЕКА (Протек)
+//(с) 15.07.2018 Дмитрий Дрыняев Стандарт-Н
+// для клиента Вита-Мед
+//-------------------------------------------------------
+
  uses
   unDM, cfIBUtils, unFrameCustomDict, need, cfUtils,
   inifiles, unMain,  unFRFramePreview,
@@ -6,20 +12,269 @@
   dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
   AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,sysUtils;
 const
- path=extractfiledrive(application.ExeName)+'\Standart-N\partner\';
- devide='|';
+ path=extractfiledrive(application.ExeName)+'\Standart-N\partner\'; //путь для выгрузки файлов
+ devide='|'; // Разделитель данных
 var
- Sl,SaleMap,BuyMap,BaseMap,SuppMap,DepMap,GoodMap,StoreMap,DiscMap,SaleDiscMap,UserMap:TStringList;
- t,SQL,f:String;
- i:Intefer;
- q: TIBQuery;
+ MP,Sl,SaleMap,BuyMap,BaseMap,SuppMap,DepMap,GoodMap,StoreMap,DiscMap,SaleDiscMap,UserMap,ListMap,FileMap,SQLMap:TStringList;
+ t,SQL,f,DepartmentCode:String;
+ i,j:Intefer;                               
+ q: TIBQuery;                                                       
  date_start,date_end:date;
 
-procedure InitVar;
-                                                   
+
+//---------------------------------------------
+//Формируем SQL запросы для требуемых выгрузок
+//---------------------------------------------
+Function UserSQL:string; //SQL выборка остатков
+begin
+Result:='select u.id as UserNum, u.username as Name,u.username as FullName,'''' as DateDeleted  from users u';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+Function SaleSQL:string; //SQL выборка продаж
 Begin
-date_start:=date-1;
-date_end:=1;
+Result:='select  d.id as IdLotMovement,
+           '''+DepartmentCode+''' as DepartmentCode,
+           d.agent_id as IDDepartment,
+           iif(d.doc_type=6,d.agent_id,'''') as IDDepartmentTo,
+           dd.part_id as GoodsCode,
+           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
+           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
+           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
+           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
+           d.docnum as SaleStuNum,
+           d.docdate as SaleStuDate,
+           iif(d.doc_type =3, d.id,'''') as ChequeID,
+           iif(d.doc_type =3,d.docnum,'''') as ChequeNum,
+           iif(d.doc_type =3,d.commitdate,'''') as ChequeDateModified,
+           iif((d.doc_type =3 and d.summ1<>0 and d.summ2=0),''CASH'',iif((d.doc_type =3 and d.summ1=0 and d.summ2<>0),''P_CARD'',iif(d.doc_type =3,''MIXED'','''')))as ChequeType,
+           iif (d.doc_type=3,''SUB'',iif(d.doc_type=9,''RETURN'','''')) as ChequePaymentType,
+           iif(d.doc_type =3,d.creater,'''') as ChequeUserNum,
+           iif(d.doc_type =3,''Cheque'',iif(d.doc_type=11,''Invoice_Out'',iif(d.doc_type=4,''ActReturnToContractor'',iif(d.doc_type=6,''MoveSub'',''''))))as SaleDocType,
+           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
+          cast(p.nds as numeric (3,0)) as VatWholeBuy,
+          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
+          cast(dd.price as numeric(9,2)) as PriceRetail,
+          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
+          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
+          iif(d.doc_type =3,dd.discount,'''') as Discount,
+          cast(p.godendo as date)as BestBefore,
+          p.seria as Series,
+          ''PROC'' as DocState,
+          '''+DepartmentCode+''' as Idstore,
+          iif(d.doc_type=6,d.agent_id,'''') as IDStoreTO
+
+            from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,11,4,6)
+  inner join agents a on a.id = d.agent_id
+
+  left join parts p on dd.part_id=p.id
+  join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id
+  where  dd.doc_commitdate between ''' +DateToStr(date_start)+''' and '''+DateToStr(date_end)+''' order by d.docdate';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+Function BaseSQL:string; //SQL выборка остатков
+begin
+Result:='select
+           current_date as StockBalanceDate,
+           '''+DepartmentCode+''' as DepartmentCode,
+           '''+DepartmentCode+''' as IDDepartment,
+           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
+           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
+           dd.part_id as GoodsCode,
+           cast(trunc(sum(dd.quant),0) as numeric (4,0) )as Quantity,
+          cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
+          '''' as PriceWholebuyWithoutVat,
+          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
+          cast(dd.price as numeric(9,2)) as PriceRetail,
+          '''' as PriceRetailWithoutVat,
+          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
+          '''+DepartmentCode+''' as Idstore,
+          cast(trunc(sum(dd.quant),0) as numeric (4,0)) as QuantitySum,
+          (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
+          cast(p.godendo as date)as BestBefore,
+          p.seria as Series,
+          w.barcode as Barcode
+
+            from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id
+
+  left join parts p on dd.part_id=p.id
+  join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id
+  where  dd.doc_commitdate <= '''+DateToStr(date_end)+'''
+  group by dd.doc_commitdate,DepartmentCode,IDDepartment,InvoiceNum,InvoiceDate,GoodsCode,PriceWholeBuy,PvatWholeBuy,
+           PriceRetail, PVatWholeRetail,Idstore,SupplierCode,BestBefore,Series,Barcode,dd.sum_ndsr,p.godendo,dd.price,p.price_o,p.sum_ndso,p.doc_id';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+Function BuySQL:string; //SQL выборка закупок
+begin
+Result:='select
+           d.id as IdLotMovement,
+           '''+DepartmentCode+''' as DepartmentCode,
+           d.agent_id as IDDepartment,
+           iif(d.doc_type=2,d.agent_id,'''') as IDDepartmentFrom,
+           dd.part_id as GoodsCode,
+           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
+           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
+           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
+           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
+           d.docnum as PurchaseStuinvoiceNum,
+           d.docdate as PurchaseStuInvoiceDate,
+           iif(d.doc_type= 1,''PurchaseInvoice'',iif(d.doc_type=20,''ImportRemains'',iif(d.doc_type=9,''ActReturnBuyer'',iif(d.doc_type=2,''MoveAdd'',''''))))as SaleDocType,
+           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
+          cast(p.nds as numeric (3,0)) as VatWholeBuy,
+          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
+          cast(dd.price as numeric(9,2)) as PriceRetail,
+          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
+          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
+          cast(p.godendo as date)as BestBefore,
+          p.seria as Series,
+          ''PROC'' as DocState,
+          '''+DepartmentCode+''' as Idstore,
+          iif(d.doc_type=2,d.agent_id,'''') as IDStoreFrom
+
+            from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (9,11,4,6)
+  inner join agents a on a.id = d.agent_id
+
+  left join parts p on dd.part_id=p.id
+  join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id
+ where  dd.doc_commitdate between ''' +DateToStr(date_start)+''' and '''+DateTOStr(date_end)+''' order by d.docdate';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+
+Function SuppSQL:string; //SQL выборка поставщиков
+begin
+Result:='select
+ docs.agent_id as Code,
+ agents.caption as Name,
+ agents.fullname as FullName,
+ agents.inn as Tin,
+ agents.kpp as Trrc,
+ agents.phonenumbers as Phone,
+ (select * from pr_getaddress(agents.addr_id)) as adress
+ from docs
+inner join agents on agents.id = docs.agent_id
+where docs.doc_type in (1,4)
+
+group by docs.agent_id,agents.caption, agents.fullname,tin,Trrc,Phone,agents.addr_id';
+end;
+//--------------------------------------------------------------------------------------------------------------------
+
+Function GoodSQL:string; //SQL выборка товаров
+begin
+Result:='select
+p.id as Code,
+vname.svalue as Name,
+vorig_izg.svalue as Producer,
+vcountry.svalue as Country,
+w.barcode as barcode1,
+p.barcode as barcode2,
+p.barcode1 as barcode3,
+'''' as GuidEs,
+(select docs.agent_id from docs where docs.id=p.doc_id) as CodeSup1,
+'''' as CodeSup2,
+'''' as CodeGoodsSup1,
+'''' as CodeGoodsSup2
+from parts p
+ join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+Function DepSQL:string;
+begin
+Result:='select
+(select p.param_value  from params p where p.param_id=''ORG_NAME_SHORT'')as DepartmentName,
+  '''+DepartmentCode+''' as DepartmentCode,
+(select p.param_value  from params p where p.param_id=''ORG_ADRESS'') as DepartmentAddress,
+'''' as InstallPointCode,
+''Стандарт-Н'' as InventoryControl,
+''Стандарт-Н'' as PriceCompare,
+(select p.param_value  from params p where p.param_id=''ORG_NAME_SHORT'')as CompanyName,
+(select p.param_value  from params p where p.param_id=''ORG_PARENT_ADRES'')as AddressJur,
+(select p.param_value  from params p where p.param_id=''ORG_INN'')as Tin,
+(select p.param_value  from params p where p.param_id=''ORG_KPP'')as Trrc,
+(select p.param_value  from params p where p.param_id=''ORG_PHONE'')as PHONE,
+(select p.param_value  from params p where p.param_id=''ORG_DIRECTOR'')as ManagerName,
+'''+DepartmentCode+''' as IDDepartment
+from rdb$database';
+end;
+//----------------------------------------------------------------------------------------------------------------------------
+Function StoreSQL:string; //SQL выборка складов
+begin
+Result:='Select
+  '''+DepartmentCode+''' as IdStore,
+  (select p.param_value  from params p where p.param_id=''ORG_NAME_SHORT'')as StoreName,
+  '''+DepartmentCode+''' as IdDepartment,
+  ''основной''as StoreTypeName
+  from rdb$database';
+End;
+//--------------------------------------------------------------------------------------------------------------------
+Function SaleDiscSQL:string; //SQL выборка продаж со скидкой
+begin
+Result:='select  d.id as IdLotMovement,
+        '''' as IDDiscount,
+        abs(dd.discount) as BonusPercent,
+        cast(dd.sum_dsc as numeric(9,2)) as AmountDiscount
+
+            from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,11,4,6)
+
+  where dd.discount<0 and
+   dd.doc_commitdate between ''' +DateToStr(date_start)+''' and '''+DateTOStr(date_end)+''' order by d.docdate';
+end;
+//--------------------------------------------------------------------------------------------------------------------
+
+
+//Инициация переменных
+procedure InitVar;
+Begin
+date_start:=date-1; //Дата начала выборки
+date_end:=date;     //Дата окончания выборки
+DepartmentCode:='1'; // Код профиля Аптеки
+
+
+ //Перечень файлов выгрузки список файлов которые будут выгружены
+ FileMap:=TStringList.Create;
+ FileMap.Add('Users');
+ FileMap.Add('Sales');
+ FileMap.Add('Purchases');
+ FileMap.Add('Balances');
+ FileMap.Add('Suppliers');
+ FileMap.Add('Departments');
+ FileMap.Add('Goods');
+ FileMap.Add('Store');
+// FileMap.Add('Discount');
+ FileMap.Add('Discount_Sale');
+
+ //Перечень SQL  выгрузки
+ SQLMap:=TStringList.Create;
+ SQLMap.Add(UserSQL);
+ SQLMap.Add(SaleSQL);
+ SQLMap.Add(BuySQL);
+ SQLMap.Add(BaseSQL);
+ SQLMap.Add(SuppSQL);
+ SQLMap.Add(DepSQL);
+ SQLMap.Add(GoodSQL);
+ SQLMap.Add(StoreSQL);
+ //SQLMap.Add('DiscSQL');
+ SQLMap.Add(SaleDiscSQL);
+
+
 
 //Поля выгрузки файла продаж  sales.csv
  SaleMap:=TStringList.Create;
@@ -42,7 +297,7 @@ date_end:=1;
  SaleMap.Add('ChequePaymentType');
  SaleMap.Add('ChequeUserNum');
  SaleMap.Add('SaleDocType');
- SaleMap.Add('PriceWholebuy');
+ SaleMap.Add('PriceWholeBuy');
  SaleMap.Add('PVatWholeBuy');
  SaleMap.Add('VatWholeBuy');
  SaleMap.Add('PriceRetail');
@@ -69,7 +324,7 @@ date_end:=1;
  BuyMap.Add('PurchaseStuInvoiceNum');
  BuyMap.Add('PurchaseStuInvoiceDate');
  BuyMap.Add('PurchaseDocType');
- BuyMap.Add('PriceWholebuy');
+ BuyMap.Add('PriceWholeBuy');
  BuyMap.Add('PVatWholeBuy');
  BuyMap.Add('VatWholeBuy');
  BuyMap.Add('PriceRetail');
@@ -90,7 +345,7 @@ date_end:=1;
  BaseMap.Add('InvoiceDate');
  BaseMap.Add('GoodsCode');
  BaseMap.Add('Quantity');
- BaseMap.Add('PriceWholebuy');
+ BaseMap.Add('PriceWholeBuy');
  BaseMap.Add('PVatWholeBuy');
  BaseMap.Add('PriceWholebuyWithoutVat');
  BaseMap.Add('PriceRetail');
@@ -107,12 +362,12 @@ date_end:=1;
  DepMap:=TStringList.Create;
  DepMap.Add('DepartmentName');
  DepMap.Add('DepartmentCode');
- DepMap.Add('DepartmentAdress');
+ DepMap.Add('DepartmentAddress');
  DepMap.Add('InstallPointCode');
  DepMap.Add('InventoryControl');
  DepMap.Add('PriceCompare');
  DepMap.Add('CompanyName');
- DepMap.Add('AdressJur');
+ DepMap.Add('AddressJur');
  DepMap.Add('Tin');
  DepMap.Add('Trrc');
  DepMap.Add('Phone');
@@ -133,6 +388,16 @@ date_end:=1;
  GoodMap.Add('CodeSup2');
  GoodMap.Add('CodeGoodsSup1');
  GoodMap.Add('CodeGoodsSup2');
+
+  //Поля выгрузки файла справочника поставщиков  supplier.csv
+ SuppMap:=TStringList.Create;
+ SuppMap.Add('Name');
+ SuppMap.Add('FullName');
+ SuppMap.Add('Code');
+ SuppMap.Add('Adress');
+ SuppMap.Add('Tin');
+ SuppMap.Add('Trrc');
+ SuppMap.Add('Phone');
 
   //Поля выгрузки файла справочник складов  Store.csv
  StoreMap:=TStringList.Create;
@@ -162,9 +427,23 @@ date_end:=1;
  UserMap.Add('Name');
  UserMap.Add('FullName');
  UserMap.Add('DateDeleted');
+
+//Перечень профилей  выгрузки
+ ListMap:=TStringList.Create;
+ ListMap.Add(UserMap);
+ ListMap.Add(SaleMap);
+ ListMap.Add(BuyMap);
+ ListMap.Add(BaseMap);
+ ListMap.Add(SuppMap);
+ ListMap.Add(DepMap);
+ ListMap.Add(GoodMap);
+ ListMap.Add(StoreMap);
+// ListMap.Add('DiscMap');
+ ListMap.Add(SaleDiscMap);
+
 end;
  //----------------------------------------------------------------------------------------------------------------------------
-function filename:String;
+function filename:String; // Формируем название файла =текущее дата время
 var
 t,y,m,d:String;
 begin
@@ -179,7 +458,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------------
 //проверяем наличие файла в директории
-Function CheckFiles (FileName1:String):String;
+Function CheckFiles (FileName1:String):String; // подготовка файла для импорта
 var
 fn:string
 begin
@@ -192,11 +471,11 @@ begin
      end
 
 end;
+
+
 //----------------------------------------------------------------------------------------------------------------------------
-
-
 //Архивируем файл
-Procedure ZIP (f:string);
+Procedure ZIP (f:string); //процедура архивирование файла
 var
 fz:string;
 begin
@@ -208,7 +487,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------------
 
 //получаем данные из запроса
-Function GetSQLResult(SQL:String):TIBQuery;
+Function GetSQLResult(SQL:String):TIBQuery; //процедура возвращает результат переданного запроса
 var
 q2:TIBQuery;
 begin
@@ -216,6 +495,7 @@ try
  q2:=dm.TempQuery(nil);
  q2.Active:=false;
  q2.SQL.Text:=SQL;
+ //frmManagerXP2.logit(SQL);
  q2.Active:=true;
     except
       frmManagerXP2.logit('неверный запрос');
@@ -225,190 +505,53 @@ try
 end;
 //----------------------------------------------------------------------------------------------------------------------------
 
-Procedure GetStringCSV(Map:TStringList;S,FileN:String);
+Procedure GetStringCSV(Map:Tstringlist;S,FileN:String); // процедура формирует файлы выгрузки
 begin
+
   f:=CheckFiles(FileN);
- t:='';                                                
+ t:='';
 
  q:=GetSQLResult(S);
+ //Создаем шапку файла
  for i := 0 to Map.Count-1 do
  t:=t+Map.Strings[i]+devide;
 
  sl.Add(t);
  t:='';
+//заполняем файл данными
 while not q.eof do
  begin
      for i := 0 to Map.Count-1 do
          begin
              t:=t+q.fieldbyname(Map.Strings[i]).AsString+devide;
          end;
- sl.Add(t); 
+ sl.Add(t);
  t:='';
  q.Next;
  end;
 
 try
+ //сохраняем файл
   sl.SaveToFile(f);
   sl.Free;
-  except                                                  
+  except
      frmManagerXP2.logit('неверный путь');
   end;
  frmManagerXP2.logit(FileN+'.csv - выгружен');
 end;
-//----------------------------------------------------------------------------------------------------------------------------
-Function UserSQL:string;  //SQL выборка первостольников
-begin
-Result:='select u.id as UserNum, u.username as Name,u.username as FullName,'''' as DateDeleted  from users u';
-end;  
-//----------------------------------------------------------------------------------------------------------------------------
-Function SaleSQL:string; //SQL выборка продаж
-begin
-Result:='select
-           d.id as IdLotMovement,
-           ''1'' as DepartmentCode,
-           d.agent_id as IDDepartment,
-           iif(d.doc_type=6,d.agent_id,'''') as IDDepartmentTo,
-           dd.part_id as GoodsCode,
-           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
-           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
-           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
-           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
-           d.docnum as SaleStuNum,
-           d.docdate as SaleStuDate,
-           iif(d.doc_type =3, d.id,'''') as ChequeID,
-           iif(d.doc_type =3,d.docnum,'''') as ChequeNum,
-           iif(d.doc_type =3,d.commitdate,'''') as ChequeDateModified,
-           iif((d.doc_type =3 and d.summ1<>0 and d.summ2=0),''CASH'',iif((d.doc_type =3 and d.summ1=0 and d.summ2<>0),''P_CARD'',iif(d.doc_type =3,''MIXED'','''')))as ChequeType,
-           iif (d.doc_type=3,''SUB'',iif(d.doc_type=9,''RETURN'','''')) as ChequePaymentType,
-           iif(d.doc_type =3,d.creater,'''') as ChequeUserNum,
-           iif(d.doc_type =3,''Cheque'',iif(d.doc_type=11,''Invoice_Out'',iif(d.doc_type=4,''ActReturnToContractor'',iif(d.doc_type=6,''MoveSub'',''''))))as SaleDocType,
-           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
-          cast(p.nds as numeric (3,0)) as VatWholeBuy,
-          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
-          cast(dd.price as numeric(9,2)) as PriceRetail,
-          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
-          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
-          iif(d.doc_type =3,dd.discount,'''') as Discount,
-          cast(p.godendo as date)as BestBefore,
-          p.seria as Series,
-          ''PROC'' as DocState,
-          ''1'' as Idstore,
-          iif(d.doc_type=6,d.agent_id,'''') as IDStoreTO
 
-            from doc_detail dd
 
-  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,11,4,6)
-  inner join agents a on a.id = d.agent_id
-
-  left join parts p on dd.part_id=p.id
-  join WARES w on p.ware_id=w.id
-  inner join vals vname on w.name_id=vname.id
-  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-  inner join vals vcountry on w.country_id=vcountry.id
-  where  dd.doc_commitdate between' +date_start+' and '+date_end+' order by d.docdate';
-end;  
-//----------------------------------------------------------------------------------------------------------------------------
-Function BuySQL:string; //SQL выборка закупок
-begin
-Result:='select
-           d.id as IdLotMovement,
-           ''1'' as DepartmentCode,
-           d.agent_id as IDDepartment,
-           iif(d.doc_type=2,d.agent_id,'''') as IDDepartmentFrom,
-           dd.part_id as GoodsCode,
-           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
-           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
-           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
-           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
-           d.docnum as PurchaseStuinvoiceNum,
-           d.docdate as PurchaseStuInvoiceDate,
-           iif(d.doc_type= 1,''PurchaseInvoice'',iif(d.doc_type=20,''ImportRemains'',iif(d.doc_type=9,''ActReturnBuyer'',iif(d.doc_type=2,''MoveAdd'',''''))))as SaleDocType,
-           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
-          cast(p.nds as numeric (3,0)) as VatWholeBuy,
-          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
-          cast(dd.price as numeric(9,2)) as PriceRetail,
-          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
-          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
-          cast(p.godendo as date)as BestBefore,
-          p.seria as Series,
-          ''PROC'' as DocState,
-          ''1'' as Idstore,
-          iif(d.doc_type=2,d.agent_id,'''') as IDStoreFrom
-
-            from doc_detail dd
-
-  inner join docs d on d.id = dd.doc_id  and d.doc_type in (9,11,4,6)
-  inner join agents a on a.id = d.agent_id
-
-  left join parts p on dd.part_id=p.id
-  join WARES w on p.ware_id=w.id
-  inner join vals vname on w.name_id=vname.id
-  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-  inner join vals vcountry on w.country_id=vcountry.id
- where  dd.doc_commitdate between' +date_start+' and '+date_end+' order by d.docdate';
-end;  
-//----------------------------------------------------------------------------------------------------------------------------
-Function BaseSQL:string; //SQL выборка остатков
-begin
-Result:='select
-           current_date as StockBalanceDate,
-           ''1'' as DepartmentCode,
-           ''1'' as IDDepartment,
-           (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
-           cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
-           dd.part_id as GoodsCode,
-           cast(trunc(sum(dd.quant),0) as numeric (4,0) )as Quantity,
-          cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
-          cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,
-          cast(dd.price as numeric(9,2)) as PriceRetail,
-          cast(abs(dd.sum_ndsr)as numeric(9,2)) as PVatWholeRetail,
-          ''1'' as Idstore,
-          cast(trunc(sum(dd.quant),0) as numeric (4,0)) as QuantitySum,
-          (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
-          cast(p.godendo as date)as BestBefore,
-          p.seria as Series,
-          w.barcode as Barcode
-
-            from doc_detail dd
-
-  inner join docs d on d.id = dd.doc_id
-
-  left join parts p on dd.part_id=p.id
-  join WARES w on p.ware_id=w.id
-  inner join vals vname on w.name_id=vname.id
-  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-  inner join vals vcountry on w.country_id=vcountry.id
-  where  dd.doc_commitdate <= '+date_end+' 
-  group by dd.doc_commitdate,DepartmentCode,IDDepartment,InvoiceNum,InvoiceDate,GoodsCode,PriceWholeBuy,PvatWholeBuy,
-           PriceRetail, PVatWholeRetail,Idstore,SupplierCode,BestBefore,Series,Barcode,dd.sum_ndsr,p.godendo,dd.price,p.price_o,p.sum_ndso,p.doc_id';
-end;		   
 //----------------------------------------------------------------------------------------------------------------------------
 
-Function GoodSQL:string;
-begin
-Result:='select
-p.id as code,
-vname.svalue as Name,
-vorig_izg.svalue as Producer,
-vcountry.svalue as Country,
-w.barcode as barcode1,
-p.barcode as barcode2,
-p.barcode1 as barcode3,
-'''' as GuidEs,
-(select docs.agent_id from docs where docs.id=p.doc_id) as CodeSup1,
-'''' as CodeSup2,
-'''' as CodeGoodsSup1,
-'''' as CodeGoodsSup2
-from parts p
- join WARES w on p.ware_id=w.id
-  inner join vals vname on w.name_id=vname.id
-  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-  inner join vals vcountry on w.country_id=vcountry.id';
+
 
 begin
 InitVar;
 
-GetStringCSV(UserMap,UserSQL,'User');
- frmManagerXP2.logit(path);
+ for j := 0 to ListMap.Count-1 do
+  Begin
+        GetStringCSV(ListMap.Strings[j],SQLMap.Strings[j],FileMap.strings[j]);
+   end;
+
 //Zip(path);
-end;                                                             
+end;
