@@ -11,14 +11,14 @@
   AdvGlowButton, DB, IBDatabase, IBQuery, ExtCtrls, StdCtrls,
   dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
   AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,sysUtils;
-const
+const                                                                                                                                 
  path=extractfiledrive(application.ExeName)+'\Standart-N\partner\'; //путь для выгрузки файлов
- devide='|'; // Разделитель данных
+ devide='|'; // Разделитель данных 
 var
  MP,Sl,SaleMap,BuyMap,BaseMap,SuppMap,DepMap,GoodMap,StoreMap,DiscMap,SaleDiscMap,UserMap,ListMap,FileMap,SQLMap:TStringList;
  t,SQL,f,DepartmentCode:String;
- i,j:Intefer;                               
- q: TIBQuery;                                                       
+ i,j:Intefer;
+ q: TIBQuery;
  date_start,date_end:date;
 
 
@@ -225,7 +225,7 @@ End;
 //--------------------------------------------------------------------------------------------------------------------
 Function SaleDiscSQL:string; //SQL выборка продаж со скидкой
 begin
-Result:='select  d.id as IdLotMovement,
+Result:='select  d.id as IdDocumentItem,
         '''' as IDDiscount,
         abs(dd.discount) as BonusPercent,
         cast(dd.sum_dsc as numeric(9,2)) as AmountDiscount
@@ -238,8 +238,18 @@ Result:='select  d.id as IdLotMovement,
    dd.doc_commitdate between ''' +DateToStr(date_start)+''' and '''+DateTOStr(date_end)+''' order by d.docdate';
 end;
 //--------------------------------------------------------------------------------------------------------------------
+Function DiscSQL:String; // SQL выборка дисконтных карт
+begin
+Result:='Select '''' as IdDiscountProgram,
+ ''''as DiscountProgramName,
+ ''''as DiscountProgramPercent,
+ '''' as DiscountType,
+ '''' as DiscountCardBarcode
+ from rdb$database';
+end;
 
 
+//--------------------------------------------------------------------------------------------------------------------
 //Инициация переменных
 procedure InitVar;
 Begin
@@ -258,7 +268,7 @@ DepartmentCode:='1'; // Код профиля Аптеки
  FileMap.Add('Departments');
  FileMap.Add('Goods');
  FileMap.Add('Store');
-// FileMap.Add('Discount');
+ FileMap.Add('Discount');
  FileMap.Add('Discount_Sale');
 
  //Перечень SQL  выгрузки
@@ -271,7 +281,7 @@ DepartmentCode:='1'; // Код профиля Аптеки
  SQLMap.Add(DepSQL);
  SQLMap.Add(GoodSQL);
  SQLMap.Add(StoreSQL);
- //SQLMap.Add('DiscSQL');
+ SQLMap.Add(DiscSQL);
  SQLMap.Add(SaleDiscSQL);
 
 
@@ -438,7 +448,7 @@ DepartmentCode:='1'; // Код профиля Аптеки
  ListMap.Add(DepMap);
  ListMap.Add(GoodMap);
  ListMap.Add(StoreMap);
-// ListMap.Add('DiscMap');
+ ListMap.Add(DiscMap);
  ListMap.Add(SaleDiscMap);
 
 end;
@@ -464,7 +474,7 @@ fn:string
 begin
      fn:=Filename;
      sl:= TStringList.Create;
-     result:=path+fn+FileName1+'.csv';
+     result:=path+fn+'-'+FileName1+'.csv';
      if FileExists(result) then
      begin
        deletefile(result);
