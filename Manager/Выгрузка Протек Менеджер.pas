@@ -6,14 +6,14 @@
 
  uses
   unDM, cfIBUtils, unFrameCustomDict, need, cfUtils,
-  inifiles, unMain,  unFRFramePreview,
+  inifiles, unMain,  unFRFramePreview,system, 
   Classes, Graphics, Controls, Forms, Dialogs, AdvPanel,
   AdvGlowButton, DB, IBDatabase, IBQuery, ExtCtrls, StdCtrls,
   dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
   AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,sysUtils;
-const                                                                                                                                 
+const
  path=extractfiledrive(application.ExeName)+'\Standart-N\partner\'; //путь для выгрузки файлов
- devide='|'; // Разделитель данных 
+ devide='|'; // Разделитель данных
 var
  MP,Sl,SaleMap,BuyMap,BaseMap,SuppMap,DepMap,GoodMap,StoreMap,DiscMap,SaleDiscMap,UserMap,ListMap,FileMap,SQLMap:TStringList;
  t,SQL,f,DepartmentCode:String;
@@ -483,6 +483,7 @@ begin
 end;
 
 
+
 //----------------------------------------------------------------------------------------------------------------------------
 //Архивируем файл
 Procedure ZIP (f:string); //процедура архивирование файла
@@ -515,25 +516,28 @@ try
 end;
 //----------------------------------------------------------------------------------------------------------------------------
 
-Procedure GetStringCSV(Map:Tstringlist;S,FileN:String); // процедура формирует файлы выгрузки
+Procedure GetStringCSV(Map:TstringlistUTF8;S,FileN:String); // процедура формирует файлы выгрузки 
+var outstring:string;
 begin
 
   f:=CheckFiles(FileN);
  t:='';
 
  q:=GetSQLResult(S);
- //Создаем шапку файла
+ //Создаем шапку файла                                               
  for i := 0 to Map.Count-1 do
  t:=t+Map.Strings[i]+devide;
-
+                                                              
  sl.Add(t);
  t:='';
 //заполняем файл данными
 while not q.eof do
  begin
      for i := 0 to Map.Count-1 do
-         begin
-             t:=t+q.fieldbyname(Map.Strings[i]).AsString+devide;
+         begin  
+            outstring:=UTF8Encode(q.fieldbyname(Map.Strings[i]).AsString);         
+            if Length(outstring)<1 then t:=t+'-'+devide
+            else   t:=t+(outstring)+devide;
          end;
  sl.Add(t);
  t:='';
