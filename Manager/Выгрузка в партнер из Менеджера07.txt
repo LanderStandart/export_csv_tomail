@@ -37,14 +37,14 @@ var
 fz:string;
 begin
 fz:=' a -tzip -sdel '+f+'.zip '+ f ;
-shellExecuteA(0,'open','C:\Program Files (x86)\7-Zip\7z.exe',fz,'',5);
+shellExecuteA(0,'open','C:\Program Files\7-Zip\7z.exe',fz,'',5);
 
 end;
 
 //Посылаем по ФТП
 Procedure FTP (f:string);
 const
-login='partner'+codeClient;
+login='partner13415';
 pass='*shjre-CKFFP-ybsnw-7ORDY';
 url='partner.melzdrav.ru';
 files=extractfiledrive(application.ExeName)+path;
@@ -94,7 +94,7 @@ end;
 
 Procedure ExtractBase(i:integer); //Выгрузка остатков
  Begin
-   { SQL:='select
+    SQL:='select
                left(w.docnum,iif(position('' '',w.docnum)=0,char_length(w.docnum), position('' '',w.docnum)))as docnum,
                cast(w.docdate as date)as docdate,w.docagent,
     (select a.inn from  agents a inner join docs d on d.agent_id=a.id and d.id=w.doc_id)as INN,
@@ -104,10 +104,10 @@ Procedure ExtractBase(i:integer); //Выгрузка остатков
            where quant > 0.01
                group by w.sname, w.part_id, w.quant, w.price_o,w.price,w.bcode_izg,
                         w.izg_id, w.sizg, w.scountry, INN,w.doc_id,
-                        docnum,docdate,w.docagent,godendo_date,w.seria,w.barcode'; }
-       SQL:='select
+                        docnum,docdate,w.docagent,godendo_date,w.seria,w.barcode';
+  {   SQL:='select
 dd.part_id,
-''01.04.2018'' as docdate,
+'''+DatetoStr(date_end)+''' as docdate,
 (select (select a.caption from agents a where a.id=pr.agent_id) from pr_getmotherpart(dd.part_id) pr)as docagent,
 left(d.docnum,iif(position('' '',d.docnum)=0,char_length(d.docnum), position('' '',d.docnum)))as docnum,
  (select a.inn from  agents a where d.agent_id=a.id)as INN,
@@ -123,14 +123,14 @@ join vals v_strana on v_strana.id=w.country_id
 join vals v_sname on v_sname.id=w.name_id
 
 
-where dd.doc_commitdate<=''01.04.2018''
+where dd.doc_commitdate<='''+DateToStr(date_end)+'''
 group by sname,dd.part_id,docnum,docdate,docagent,agent_id,w.izg_id,sizg,scountry,w.barcode,p.price_o,p.price,godendo_date,p.seria,p.barcode
-having abs(sum(dd.quant))>0.001';
+having abs(sum(dd.quant))>0.001'; }
 
     //frmManagerXP2.logit(SQL);
     q:=GetSQLResult(SQL);
 
-   f:=CheckFiles(codeClient,'.ost');
+   f:=CheckFiles('13415','.ost');
     frmManagerXP2.logit(f);
     frmManagerXP2.logit('Выгружаем остатки');
 
@@ -147,7 +147,7 @@ having abs(sum(dd.quant))>0.001';
          t:=
          '0;'+                                                            //1
          q.fieldbyname('Docnum').AsString+';'                             //2
-         +StringReplace(q.fieldbyname('docdate').AsString,'.','',1) +';'  //3
+         +StringReplace(DateToStr(date_end),'.','',1) +';'  //3
          +q.fieldbyname('docagent').AsString+';'                          //4
          +q.fieldbyname('INN').AsString+';'                               //5
          +';'                                                             //6
@@ -160,7 +160,7 @@ having abs(sum(dd.quant))>0.001';
          +q.fieldbyname('PART_ID').AsString+';'                           //14
          +StringReplace(q.fieldbyname('SNAME').AsString,';',' ',1)+';'    //15
          +q.fieldbyname('IZG_ID').AsString+';'                            //16
-         +q.fieldbyname('SIZG').AsString+';'                              //17
+         +StringReplace(q.fieldbyname('SIZG').AsString,'"','',1)+';'                              //17
          +q.fieldbyname('scountry').AsString+';'                          //18
           +q.fieldbyname('bcode_izg').AsString+';'
          +FloatToStr(FormatFloat('0.##',q.fieldbyname('price_o').AsFloat))+';'//19
@@ -203,8 +203,8 @@ Begin
           (select first 1 u.username from users u where u.id=d.owner)as FIO_Chek,
            iif ((abs (dd.discount)>0),1,0) as disk_T,
           cast( dd.sum_dsc as numeric(9,2)) as Disk_Sum,
-          dd.summa_o as Sum_Zak,
-          dd.summa as Sum_Rozn,
+         abs(dd.summa_o) as Sum_Zak,
+         abs(dd.summa) as Sum_Rozn,
           0 as pp_teg,
           dd.part_id as Drug_code,
           vname.svalue as Drug_name,
@@ -212,16 +212,16 @@ Begin
           vorig_izg.svalue as Drug_Producer_Name,
           w.barcode as bcodeizg,
           vcountry.svalue as Drug_Producer_country,
-          p.price_o as Cena_Zak,
-          dd.price as Cena_Rozn,
-          dd.quant,
+         abs(p.price_o) as Cena_Zak,
+         abs(dd.price) as Cena_Rozn,
+         abs(dd.quant)as Quant,
           p.seria,
           cast(p.godendo as date)as godendo ,
           p.barcode
 
             from doc_detail dd
 
-  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,9)
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,9,1,10)
   inner join agents a on a.id = d.agent_id
 
   left join parts p on dd.part_id=p.id
@@ -229,10 +229,10 @@ Begin
   inner join vals vname on w.name_id=vname.id
   inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
   inner join vals vcountry on w.country_id=vcountry.id
-  where  dd.doc_commitdate between '''+date_start+''' and '''+date_end+''' order by d.docdate';
+  where  dd.doc_commitdate between '''+DateToStr(date_start)+''' and '''+DateToSTR(date_end)+''' order by d.docdate';
 frmManagerXP2.logit(SQL);
 q:=GetSQLResult(SQL);
-f:=CheckFiles(codeClient,'.mov');
+f:=CheckFiles('13415','.mov');
    frmManagerXP2.logit(f);
    frmManagerXP2.logit('Выгружаем Движение');
 
@@ -297,8 +297,8 @@ End;
 
 begin
  //Базовые переменные - периуд отчета.
-  date_start:=DateToStr(date-1);
-  date_end:='01.04.2018';//DatetoStr(date);
+  date_start:=date-1;//STRtoDate('30.06.2018');//
+  date_end:=date;//StrtoDate('01.07.2018');//date;
   frmManagerXP2.logit(date_start);
   frmManagerXP2.logit('Начали -'+TimetoStr( time));
 
@@ -308,9 +308,9 @@ begin
  // q1:=GetSQLResult(SQL);
  // while not q1.eof do
  //     begin
-       ExtractBase('1');
+  //     ExtractBase('1');
  //      q1.Next;
-  //    end;
+  //    end;                                                              
 
 
  //выгрузка движение
@@ -324,8 +324,14 @@ begin
        q1.Next;
       end; }
  //ExtractMove(1);
-
+//while date_end<>date do
+// begin
+   ExtractBase('1');
+   ExtractMove(1);
     ftp('*.zip');
+ //  date_end:=date_end+1;
+ //  date_start:=date_start+1;
+ //end;                               
 
 
 
