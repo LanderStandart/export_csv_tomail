@@ -1,0 +1,39 @@
+uses
+  Graphics, Controls, Forms, Dialogs, StdCtrls,
+  ComCtrls, ExtCtrls, ibquery, DB, ChequeList, FR, 
+  ScriptRes, Barcode,ZKassa, StrUtils, Windows, Classes,
+  StrUtils, System,SysUtils,
+  IBDataBase, Buttons;
+
+var iq: tibquery;
+    i,j: Integer;
+    price_o,price_o1:float;
+
+procedure SetDsc;
+begin
+   iq := tibquery.create(nil);                    
+   iq.transaction := CreateRT(CurrDB);
+   iq.transaction.starttransaction;
+
+  for i := 0 to chequelist.count - 1 do
+    for j := 0 to chequelist[i].count - 1 do
+    begin
+      chequelist[i].p_index := j;
+      iq.active := False;
+      iq.sql.text := 'select price_o from parts where id='+
+      inttostr(chequelist[i].P_id);
+      iq.active := True;
+       price_o:=(iq.FieldByName('price_o').asFloat)+(iq.FieldByName('price_o').asFloat) *(chequelist[i].P_DSCPrc/100) ;
+       price_o:= chequelist[i].P_Price -price_o;
+       showmessage(chequelist[i].P_DSCPrc);
+
+     //   chequelist[i].P_SetDiscount(-chequelist[i].P_Price-((iq.FieldByName('price_o').asFloat)+((iq.FieldByName('price_o').asFloat) * 0.03)));
+      chequelist[i].P_SetDiscount(-price_o);
+    end;
+   iq.Free;
+
+end;
+
+begin
+ if barcode.Text = '1000000000030' then SetDsc;
+end;

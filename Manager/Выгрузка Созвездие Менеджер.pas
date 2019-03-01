@@ -18,7 +18,7 @@ var
  MP,Sl,GoodMap,MoveMap,BaseMap,ListMap,FileMap,SQLMap:TStringList;
  t,SQL,f,DepartmentCode,Filename,headerFile,footerFile,headerPart,FooterPart,nomenclature_codes,
  headerMove,FooterMove,headerBase,FooterBase,dev:String;
- i,j:Intefer;
+ i,j:Intefer;                              
  q: TIBQuery;
  date_start,date_end:date;
 
@@ -58,8 +58,8 @@ vcountry.svalue as map_producer_country_name,
 d.agent_id as map_supplier_code,
 a.inn as map_supplier_tin,
 a.caption as supplier_name,
-extract(year from d.docdate)||''-''||iif(extract(month from d.docdate)>10,extract(month from d.docdate),''0''||extract(month from d.docdate))||''-''
-||iif(extract(day from d.docdate)>10,extract(day from d.docdate),''0''||extract(day from d.docdate))||''T00:00:00'' as batch_doc_date,
+extract(year from d.docdate)||''-''||iif(extract(month from d.docdate)>9,extract(month from d.docdate),''0''||extract(month from d.docdate))||''-''
+||iif(extract(day from d.docdate)>9,extract(day from d.docdate),''0''||extract(day from d.docdate))||''T00:00:00'' as batch_doc_date,
 d.docnum as batch_doc_number,
 cast (p.price_o as numeric(10,2)) as purchase_price_nds,
 cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as purchase_nds,
@@ -76,7 +76,8 @@ from parts p
   inner join agents a on a.id=d.agent_id
   inner join vals vname on w.name_id=vname.id
   inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-  inner join vals vcountry on w.country_id=vcountry.id';
+  inner join vals vcountry on w.country_id=vcountry.id
+where  dd.doc_commitdate between '''+DateToStr(date_start)+''' and '''+DateToSTR(date_end)+'''';
 end;
 
 Function MoveSQL:string; //SQL выборка Движения
@@ -85,8 +86,8 @@ result:='select  '+dev+'
            '''+DepartmentCode+''' as map_pharmacy_id,
            d.id as distribution_id,
            p.id as batch_id,
-           extract(year from d.docdate)||''-''||iif(extract(month from d.docdate)>10,extract(month from d.docdate),''0''||extract(month from d.docdate))||''-''
-           ||iif(extract(day from d.docdate)>10,extract(day from d.docdate),''0''||extract(day from d.docdate))||''T00:00:00'' as  doc_date,
+           extract(year from d.docdate)||''-''||iif(extract(month from d.docdate)>9,extract(month from d.docdate),''0''||extract(month from d.docdate))||''-''
+           ||iif(extract(day from d.docdate)>9,extract(day from d.docdate),''0''||extract(day from d.docdate))||''T00:00:00'' as  doc_date,
            case d.doc_type
             when 1 then 3
             when 2 then 6
@@ -109,23 +110,27 @@ result:='select  '+dev+'
            abs(dd.quant) as quantity,
          cast(abs(dd.summa_o)as numeric(10,2)) as purchase_sum_nds,
          cast(abs(dd.summa)+abs(dd.sum_dsc) as numeric(10,2)) as retail_sum_nds,
-         cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum
+         cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum,
+         u.d$uuid as cashier_id,
+         u.username as cashier_full_name,
+         u.inn as cashier_tin,
+         ''0'' as resale_sign
             from doc_detail dd
 
   inner join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,20)
 
   left join parts p on dd.part_id=p.id
-
+  left join users u on u.id=d.owner
   where  dd.doc_commitdate between '''+DateToStr(date_start)+''' and '''+DateToSTR(date_end)+''' order by d.docdate';
-end;
+end;                    
 
 Function BaseSQL:string; //SQL выборка остатков
 begin
 result:='select '+dev+'
 '''+DepartmentCode+''' as map_pharmacy_id,
 dd.part_id as batch_id,
-extract(year from current_date)||''-''||iif(extract(month from current_date)>10,extract(month from current_date),''0''||extract(month from current_date))||''-''
-||iif(extract(day from current_date)>10,extract(day from current_date),''0''||extract(day from current_date))||''T00:00:00'' as "date",
+extract(year from current_date)||''-''||iif(extract(month from current_date)>9,extract(month from current_date),''0''||extract(month from current_date))||''-''
+||iif(extract(day from current_date)>9,extract(day from current_date),''0''||extract(day from current_date))||''T00:00:00'' as "date",
 (select cast(sum(dd1.quant) as numeric(9,4)) from doc_detail dd1 where dd1.doc_commitdate<=current_date-93 and dd1.part_id=dd.part_id)as opening_balance,
 cast(sum(dd.quant)as numeric(9,4)) as closing_balance,
 cast(sum(abs(dd.summa_o))as numeric(9,2))as output_purchasing_price_balance,
@@ -138,7 +143,8 @@ cast(sum(abs(dd.summa))as numeric(9,2))as output_retail_price_balance,
 join parts p on p.id=dd.part_id
 
 
-where dd.doc_commitdate<='''+DateToStr(date_end)+'''
+where
+dd.doc_commitdate between '''+DateToStr(date_start)+''' and '''+DateToSTR(date_end)+'''
 group by batch_id,"date"
 having abs(sum(dd.quant))>0.001
 ';
@@ -165,8 +171,8 @@ end;
 //Инициация переменных
 procedure InitVar;
 Begin
-date_start:=StrToDate('01.01.2018');//date-1; //Дата начала выборки
-date_end:=StrToDate('10.06.2018');//date;     //Дата окончания выборки
+date_start:=StrToDate('01.11.2018');//date-1; //Дата начала выборки
+date_end:=StrToDate('10.12.2018');//date;     //Дата окончания выборки
 DepartmentCode:='1'; // Код профиля Аптеки
 
  //Перечень SQL  выгрузки
@@ -218,6 +224,10 @@ DepartmentCode:='1'; // Код профиля Аптеки
  MoveMap.Add('purchase_sum_nds');
  MoveMap.Add('retail_sum_nds');
  MoveMap.Add('discount_sum');
+ MoveMap.Add('cashier_id');
+ MoveMap.Add('cashier_full_name');
+ MoveMap.Add('cashier_tin');
+ MoveMap.Add('resale_sign');
 
   //Поля выгрузки файла остатков
  BaseMap:=TStringList.Create;
@@ -228,7 +238,7 @@ DepartmentCode:='1'; // Код профиля Аптеки
  BaseMap.Add('closing_balance');
  BaseMap.Add('input_purchasing_price_balance');
  BaseMap.Add('output_purchasing_price_balance');
-  BaseMap.Add('input_retail_price_balance');
+ BaseMap.Add('input_retail_price_balance');
  BaseMap.Add('output_retail_price_balance');
 
 
@@ -290,10 +300,10 @@ try
  q2:=dm.TempQuery(nil);
  q2.Active:=false;
  q2.SQL.Text:=SQL;
- //frmManagerXP2.logit(SQL);
+ frmManagerXP2.logit(SQL);
  q2.Active:=true;
     except
-      frmManagerXP2.logit('неверный запрос');
+      frmManagerXP2.logit('неверный запрос - '+SQL);
       q2.Transaction.Rollback;
     end;
  result:=q2;
@@ -371,7 +381,7 @@ begin
 //заполняем файл данными
 while not q.eof do
  begin
-  t:=t+'<'+tag+'>';
+  t:=t+'<'+tag+'>';              
      for i := 0 to Map.Count-1 do
          begin
              subheader:='';
@@ -386,11 +396,11 @@ while not q.eof do
          end;
  t:=t+'</'+tag+'>';
  sl.Add(t);
- frmManagerXP2.LogIt(t);
+ //frmManagerXP2.LogIt(t);
  t:='';
  q.Next;
  end;
-t:=footerFile;
+t:=footer;
 sl.Add(t);
 
 
@@ -411,6 +421,8 @@ XMLTemplate;
  t:='';
  t:=headerBase;
  GetStringXML(BaseMap,SQLMap.Strings[2],'_client_id_bat',footerBase,'remnant');
+ t:=footerFile;
+ sl.Add(t);
 
  try
  //сохраняем файл

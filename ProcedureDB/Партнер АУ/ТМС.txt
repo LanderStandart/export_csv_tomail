@@ -1,0 +1,301 @@
+uses
+  unDM, cfIBUtils, unFrameCustomDict, need, cfUtils,
+  inifiles, unMain,  unFRFramePreview,
+  Classes, Graphics, Controls, Forms, Dialogs, AdvPanel,
+  AdvGlowButton, DB, IBDatabase, IBQuery, ExtCtrls, StdCtrls,
+  dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
+  AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,unDM,sysUtils;
+const
+ //???? ???????? ?? ????????
+ pathU='\Standart-N\partner\AU\';
+ pathF='\Standart-N\partner\pharmacia\';
+
+ //?????? ???????? ?? ???
+ loginU='partner15264';
+ passU='xadoi-IWPSC-KAZ2M-jxswl';
+
+ loginF='partner15100';
+ passF='qqyav-AO1D-zfsor-afjvx-2jyu';
+
+ url='partner.melzdrav.ru';
+
+
+
+var q,q1,q3: TIBQuery;
+    sl,sl1: TStringList;
+    SQL,t,t1,f,f1,org_name,org_inn,codeClient,path1: String;
+    date_start,date_end:date;
+    today:Tdatetime;
+    fsLog:  TFileStream;
+
+
+procedure LogIt(s: string);
+begin
+  s:=formatdatetime('dd.mm.yyyy hh:nn:ss',now)+#9+s+#13#10;
+  cfStreamWrite(fsLog,s);
+// fsLog.Write(s,length(s));
+end;
+
+
+function filename:String;
+var
+t,y,m,d:String;
+begin
+ d:=Copy(DatetoStr(date_end),0,2);
+ m:=Copy(DatetoStr(date_end),4,2);
+ y:=Copy(Datetostr(date_end),7,4);
+ t:=StringReplace(time,':','',1);
+ if Length(t)<6 then t:='0'+t;
+ result:=y+m+d+t;
+end;
+
+//?????????? ????
+Procedure ZIP (f:string);
+var
+fz:string;
+begin
+fz:=' a -tzip -sdel '+f+'.zip '+ f ;
+LogIt(fz);
+shellExecuteA(0,'open','C:\Program Files\7-Zip\7z.exe',fz,'',5);
+
+end;
+
+//???????? ?? ???
+Procedure FTP (f,login,pass,path:string);
+const
+files=extractfiledrive(application.ExeName)+path;
+
+begin
+  t:='-F -DD -u '+login+' -p '+pass+' '+url+' \ '+files+f;
+  frmSpacePro.logit(t);
+  frmSpacePro.logit(files);
+  LogIt(t);
+     ShellExecuteA(0, 'open',files+'ncftpput.exe', t, '', 5);
+
+
+end;
+
+
+
+//????????? ??????? ????? ? ??????????
+Function CheckFiles (codeClient,FileName1,pathz:String):String;
+var
+fn:string
+begin
+     fn:=Filename;
+     sl:= TStringList.Create;
+     sl1:= TStringList.Create;
+     result:=extractfiledrive(application.ExeName)+pathz+codeClient+'$'+fn+FileName1;
+     if FileExists(result) then
+     begin
+       deletefile(result);
+     end
+
+end;
+
+//???????? ?????? ?? ???????
+Function GetSQLResult(SQL:String):TIBQuery;
+var
+q2:TIBQuery;
+begin
+try
+ LogIt(SQL);
+ q2:=dm.TempQuery(nil);
+ q2.Active:=false;
+ q2.SQL.Text:=SQL;
+ q2.Active:=true;
+    except
+      frmSpacePro.logit('Неверный запрос');
+      q2.Transaction.Rollback;
+    end;
+ result:=q2;
+end;
+
+Procedure ExtractBase(i,partner_id:integer;path:String); //???????? ????????
+ Begin
+   SQL:='select * from pr_load_partner('''+DateToStr(date_start)+''','+IntToStr(i)+') where Docnum is not null ';
+
+   // frmSpacePro.logit(SQL);
+    q:=GetSQLResult(SQL);
+
+   f:=CheckFiles(InttoStr(partner_id),'.ost',path);
+    logit(f);
+    frmSpacePro.logit('Выгрузка остатков');
+
+ 
+      while not q.eof do
+      begin
+         t:=
+          '0;'+                                                            //1
+         q.fieldbyname('Docnum').AsString+';'                             //2
+         +StringReplace(DateToStr(date_end),'.','',1) +';'  //3
+         +q.fieldbyname('docagent').AsString+';'                          //4
+         +q.fieldbyname('INN').AsString+';'                               //5
+         +';'                                                             //6
+         +';'                                                             //7
+         +';'                                                             //8
+         +';'                                                             //9
+          +';' +';'                                                       //10-11
+         +';'                                                             //12
+         +';'                                                             //13
+         +q.fieldbyname('PART_ID').AsString+';'                           //14
+         +StringReplace(StringReplace(q.fieldbyname('SNAME').AsString,';',' ',1),#13#10,'',1)+';'    //15
+         +q.fieldbyname('IZG_ID').AsString+';'                            //16
+         +StringReplace(q.fieldbyname('SIZG').AsString,'"','',1)+';'                              //17
+         +q.fieldbyname('scountry').AsString+';'                          //18
+          +StringReplace(StringReplace(q.fieldbyname('bcode_izg').AsString,#13#10,'',1),';','',1)+';'
+         +q.fieldbyname('price_o').AsString+';'
+         +q.fieldbyname('price').AsString+';'
+         +q.fieldbyname('quant').AsString+';'
+         +q.fieldbyname('seria').AsString+';'
+         +StringReplace(q.fieldbyname('godendo_date').AsString,'.','',1)+';'
+         +q.fieldbyname('barcode').AsString+';';
+         sl.Add(t);
+       // frmSpacePro.logit(t);
+         q.next;
+      end;
+
+      try
+      sl.SaveToFile(f);
+      Logit('SavetoFile-'+f);
+      sl.Free;
+       sleep(1000);
+      zip(f);
+
+
+
+      except
+     frmSpacePro.logit('неверный путь');
+    end;
+
+  //  frmSpacePro.logit('??????? ?????????');
+end;
+
+Procedure ExtractMove(i,partner_id:integer;pathe:string);//???????? ????????
+Begin
+ SQL:='select * from pr_load_move_partner('''+DateToStr(date_start)+''','''+DateToStr(date_end)+''','+IntToStr(i)+') where d_type is not null';
+//frmSpacePro.logit(SQL);
+q:=GetSQLResult(SQL);
+f:=CheckFiles(InttoStr(partner_id),'.mov',pathe);
+   logit(f);
+   frmSpacePro.logit('Выгружаем движени');
+
+
+
+      while not q.eof do
+      begin
+
+         t:=
+      +q.fieldbyname('d_type').AsString+';'
+         +q.fieldbyname('docnum').AsString+';'
+         +StringReplace(q.fieldbyname('docdate').AsString,'.','',1) +';'
+         +q.fieldbyname('Supplier').AsString+';'
+         +q.fieldbyname('Supplier_INN').AsString+';'
+         +q.fieldbyname('device_num').AsString+';'
+         +q.fieldbyname('N_Chek').AsString+';'
+         +q.fieldbyname('FIO_Chek').AsString+';'
+         +q.fieldbyname('disk_T').AsString+';'
+         +q.fieldbyname('Disk_Sum').AsString+';'
+         +q.fieldbyname('Sum_Zak').AsString+';'
+         +q.fieldbyname('Sum_Rozn').AsString+';'
+         +q.fieldbyname('pp_teg').AsString+';'
+         +q.fieldbyname('Drug_code').AsString+';'
+         +StringReplace(StringReplace(q.fieldbyname('Drug_name').AsString,';',' ',1),#13#10,'',1)+';'
+         +q.fieldbyname('izg_id').AsString+';'
+          +StringReplace(q.fieldbyname('DRUG_PRODUCER_NAME').AsString,';',' ',1)+';'
+        //
+         +q.fieldbyname('Drug_Producer_country').AsString+';'
+         +StringReplace(q.fieldbyname('bcodeizg').AsString,#13#10,'',1)+';'
+         +q.fieldbyname('Cena_Zak').AsString+';'
+         +q.fieldbyname('Cena_Rozn').AsString+';'
+         +q.fieldbyname('quant').AsString+';'
+         +q.fieldbyname('seria').AsString+';'
+         +StringReplace(q.fieldbyname('godendo_date').AsString,'.','',1) +';'
+         +q.fieldbyname('barcode').AsString+';'
+         ;
+         sl.Add(t);
+         q.next;
+      end;
+
+
+     try
+      sl.SaveToFile(f);
+       Logit('SavetoFile-'+f);
+      sleep(1000);
+      Zip(f);
+
+
+      except
+     frmSpacePro.logit('Неверный путь');
+    end;
+
+
+End;
+Procedure InitVar;
+begin
+ //??????? ?????????? - ?????? ??????.
+  date_start:=date-1;//DateToStr(date-1);  //
+  date_end:=date;//strtoDate('02.10.2018');//DatetoStr(date);//
+end;
+
+begin
+
+InitVar;
+
+
+  try
+  //if not fileexists(extractfilepath(application.ExeName)+'Partner.log') then
+    //TFileStream.Create(extractfilepath(application.ExeName)+'Partner.log',fmCreate).Free;
+    fsLog:=TFileStream.Create(extractfilepath(application.ExeName)+'Partner.log',fmOpenReadWrite);
+
+
+
+//  logit(DatetoStr(date_start));
+  logit('?????? -'+TimetoStr( time));
+
+
+ //????????? ??????? ?? ??????
+  SQL:='select  id,partner_id,BASE_AGENT_ID from g$profiles where partner_id is not null order by partner_id';
+  q1:=GetSQLResult(SQL);
+  while not q1.eof do
+      begin
+       if  (q1.fieldbyname('BASE_AGENT_ID').AsInteger)=1 then path1:=pathU; else path1:=pathF;
+       LogIt(q1.fieldbyname('id').AsString);         logit(path1);
+       ExtractBase(q1.fieldbyname('id').AsInteger,q1.fieldbyname('partner_id').AsInteger,path1);
+       q1.Next;
+      end;
+
+ //???????? ????????
+
+
+  SQL:='select id,partner_id,BASE_AGENT_ID from g$profiles where partner_id is not null  order by partner_id ';
+  q3:=GetSQLResult(SQL);
+  while not q3.eof do
+      begin
+      logit(q3.fieldbyname('id').AsString);
+      InitVar;
+       if  (q3.fieldbyname('BASE_AGENT_ID').AsInteger)=1 then path1:=pathU; else path1:=pathF;
+       logit(path1+' -- '+q3.fieldbyname('BASE_AGENT_ID').AsString);
+      // while date_end<>date do
+      //     begin
+
+               ExtractMove(q3.fieldbyname('id').AsInteger,q3.fieldbyname('partner_id').AsInteger,path1);
+        //       date_end:=date_end+1;
+        //       date_start:=date_start+1;
+        //   end;
+      q3.Next;
+     end;
+
+
+ ftp('*.zip',loginU,passU,pathU);
+ ftp('*.zip',loginF,passF,pathF);
+
+
+
+    logit('Готово -'+TimetoStr( time));
+    q.Free;
+
+   finally
+     fsLog.Free;
+   end;
+end;

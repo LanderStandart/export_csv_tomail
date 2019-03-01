@@ -37,20 +37,16 @@
 [Languages]
  Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
- 
-
 [Files]
 ;Apache
 Source: "E:\WEB\64\Apache\httpd-2.4.33-win64-VC11\*.*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs; Check: iswin64
 Source: "E:\WEB\32\Apache\httpd-2.4.33-win32-VC11\*.*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs 32bit; Check: not IsWin64
-
 ;Apache config
 Source: "E:\WEB\httpd.conf"; DestDir: "{app}\Apache\conf"; Flags: overwritereadonly ignoreversion
 ;PHP
 Source: "E:\WEB\64\php\php-5.6.34-Win32-VC11-x64\*.*"; DestDir: "{app}\php"; Flags: recursesubdirs createallsubdirs; Check: iswin64
 Source: "E:\WEB\32\php\php-5.6.34-Win32-VC11-x86\*.*"; DestDir: "{app}\php"; Flags: recursesubdirs createallsubdirs; Check: not IsWin64
-
-;php config
+;Php config
 Source: "E:\WEB\php.ini"; DestDir: "{app}\php"; Flags: ignoreversion overwritereadonly
 ;Library for Firebird
 Source: "e:\WEB\fbclient.dll"; DestDir: "{win}"; Flags: onlyifdoesntexist uninsneveruninstall
@@ -60,49 +56,55 @@ Source: "e:\WEB\fbclient.dll"; DestDir: "{app}\Apache\bin"; Flags: onlyifdoesnte
 Source: "e:\WEB\gds32.dll"; DestDir: "{win}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "e:\WEB\gds32.dll"; DestDir: "{sys}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "e:\WEB\gds32.dll"; DestDir: "{app}\Apache\bin"; Flags: onlyifdoesntexist uninsneveruninstall
-;service QUEUE
+;Service QUEUE
 Source: "E:\WEB\QueueService\*.*"; DestDir: "c:\Standart-n\QueueService"
-;scripts
+;Scripts
 Source: "E:\WEB\Sinhro\*.*"; DestDir: "{app}\www\sinhro"; Flags: recursesubdirs createallsubdirs
 ;Database
-Source: "E:\WEB\ZTRADE_G.FDB"; DestDir: "{code:Getparam}"; Flags: onlyifdoesntexist; Tasks: InstallDB
+Source: "E:\WEB\ZTRADE_G.FDB"; DestDir: "{code:Getparam}"; Flags: onlyifdoesntexist; Components: InstallDB
 ;Visual C++
-Source: "E:\WEB\64\VC11\vcredist_x64.exe"; DestDir: "{app}"; Flags: deleteafterinstall; Tasks: VC11; Check: iswin64
-Source: "E:\WEB\32\VC11\vcredist_x86.exe"; DestDir: "{app}"; Flags: deleteafterinstall; Tasks: VC11; Check: not IsWin64
+Source: "E:\WEB\64\VC11\vcredist_x64.exe"; DestDir: "{app}"; Flags: deleteafterinstall; Components: VC11; Check: iswin64
+Source: "E:\WEB\32\VC11\vcredist_x86.exe"; DestDir: "{app}"; Flags: deleteafterinstall; Components: VC11; Check: not IsWin64
 Source: "..\..\WEB\Перезапуск Сервиса Queue.xml"; DestDir: "{tmp}"
+;OpenVPN
+Source: "..\..\WEB\32\OpenVPN\openvpn-install-2.3.18-I602-i686.exe"; DestDir: "{app}\tmp"; Flags: 32bit deleteafterinstall; Components: OpenVPN ; Check: not IsWin64
+Source: "..\..\WEB\64\OpenVPN\openvpn-install-2.3.18-I602-x86_64.exe"; DestDir: "{app}\tmp"; Flags: 64bit deleteafterinstall; Components: OpenVPN  ; Check: iswin64
 
 [Dirs]
 Name:"{app}\logs"
 Name:"{app}\tmp"
 
 [Run]
-Filename: "{app}\vcredist_x64.exe"; Flags: 64bit; Check: iswin64 ;Tasks:VC11;
-Filename: "{app}\vcredist_x86.exe"; Flags: 32bit; Check: not iswin64; Tasks:VC11;
+Filename: "{app}\vcredist_x64.exe"; Flags: 64bit; Components: VC11;  Check: IsWin64
+Filename: "{app}\vcredist_x86.exe"; Flags: 32bit; Components: VC11;  Check: not iswin64
 Filename: "{app}\Apache\bin\httpd.exe"; Parameters: "-k install"; Flags: nowait
 Filename: "{app}\Apache\bin\ApacheMonitor.exe"; Flags: nowait
 Filename: "c:\Standart-n\QueueService\SNDQS.exe"; Parameters: "/install"; Flags: nowait
+Filename: "{app}\tmp\openvpn-install-2.3.18-I602-x86_64.exe"; Flags: 64bit; Components: OpenVPN;  Check: IsWin64
+Filename: "{app}\tmp\openvpn-install-2.3.18-I602-i686.exe"; Flags: 32bit; Components: OpenVPN;  Check: not iswin64
 
 [UninstallDelete]
 Type: files; Name: "{app}\Apache\bin\fbclient.dll"
 Type: files; Name: "{app}\Apache\bin\gds32.dll"
 
-[Tasks]
-Name: "InstallDB"; Description: "Установка БД"; Flags: unchecked
-Name: "VC11"; Description: "Установка VC11"; Flags: checkedonce
+[Components]
+Name: "installDB"; Description: "Установка БД"
+Name: "VC11"; Description: "Установка VC11"
+Name: "OpenVPN"; Description: "Установка OpenVPN"
 
 [Code]
 var
   ConfigPage: TWizardPage;
   IPEdit: TNewEdit;
-  PathBDEdit: TNewEdit;
-  IP, Pathbd,cmdString: string;
+  PathBDEdit,PathBDEdit1: TNewEdit;
+  IP, PathBD,cmdString: string;
   ResultCode:Integer;
 // обработчик нажатия кнопки Next на нашей страничке
 function OnConfigPage_NextButtonClick(Sender: TWizardPage): Boolean;
   
 begin
-  IP := IPEdit.Text; // здесь лежит введенный логин
-  if IsTaskSelected('InstallDB') then PathBD := PathBDEdit.Text; // здесь лежит введенный пасс
+  IP := '127.0.0.1'; // здесь лежит введенный логин
+  if IsComponentSelected('InstallDB') then   PathBD := PathBDEdit.Text; // здесь лежит введенный пасс
 
   // здесь можно с ними что-то сделать
 
@@ -120,23 +122,7 @@ begin
 
 
   // Path to Database
-  if IsTaskSelected('InstallDB') then
-  begin
-  PathBDLabel := TLabel.Create(WizardForm);
-  PathBDLabel.Parent := ConfigPage.Surface;
-  PathBDLabel.Left := 0;
-  PathBDLabel.Top := IPEdit.Top + IPEdit.Height + 6;
-  PathBDLabel.Caption := 'Путь установки БД Ztrade_g:';
-
-  PathBDEdit := TNewEdit.Create(WizardForm);
-  PathBDEdit.Parent := ConfigPage.Surface;
-  PathBDEdit.Left := 0;
-  PathBDEdit.Top := PathBDLabel.Top + PathBDLabel.Height + 6;
-  PathBDEdit.Width := 200;
-  PathBDEdit.Text:='C:\Standart-N\base_g';
-
-  end;
-
+ 
   // IP
   IPLabel := TLabel.Create(WizardForm);
   IPLabel.Parent := ConfigPage.Surface;
@@ -149,8 +135,24 @@ begin
   IPEdit.Left := 0;
   IPEdit.Top := IPLabel.Top + IPLabel.Height + 6;
   IPEdit.Width := 200;
+       
+ if IsComponentSelected('InstallDB') then
+  begin
+  PathBDLabel := TLabel.Create(WizardForm);
+  PathBDLabel.Parent := ConfigPage.Surface;
+  PathBDLabel.Left := 0;
+  PathBDLabel.Top := 45;
+  PathBDLabel.Caption := 'Путь установки БД Ztrade_g:';
+  
 
+  PathBDEdit := TNewEdit.Create(WizardForm);
+  PathBDEdit.Parent := ConfigPage.Surface;
+  PathBDEdit.Left := 0;
+  PathBDEdit.Top := PathBDLabel.Top + PathBDLabel.Height + 6;
+  PathBDEdit.Width := 200;
+  PathBDEdit.Text:='C:\Standart-N\base_g';
 
+  end;
   
 end;
 
@@ -288,7 +290,7 @@ CngFile(f,i,d,CurStep);
 d:='url=http:localhost/sinhro/engine/d_queue_do.php';
 i:=ExpandConstant('{code:GetIP}');
 //StringChangeEx(i,'\','/',True)
-i:='url=http:'+i+':8080/sinhro/engine/d_queue_do.php';
+i:='url=http://'+i+':8080/sinhro/engine/d_queue_do.php';
 CngFile(f,i,d,CurStep);//----------------------------------------------------------------------------------
 //declare.php
 

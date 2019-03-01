@@ -1,0 +1,22 @@
+uses zkassa, strutils;
+Var
+str:string;
+posstr:integer;
+begin
+ str:=GetKey(INI_USER,'Main', 'FieldsForFind');
+ posstr:=POS(';mnn',str);
+ if posstr<>0 then
+  begin
+    MsgBox('Поиск по МНН отключен','Изменение поиска',0);
+    Delete(str,posstr,5);
+    SetKey(INI_USER,'Main', 'FieldsForFind',str);
+  end
+  else
+   begin
+   str:=str+';mnn;';
+   SetKey(INI_USER,'Main', 'FieldsForFind',str);
+   MsgBox('Поиск по МНН включен','Изменение поиска',0);
+   end;
+ //MsgBox(GetKey(INI_USER,'Main', 'FieldsForFind'),'Изменение поиска',0);
+
+end;                        
