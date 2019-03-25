@@ -20,3 +20,7 @@ begin
  //MsgBox(GetKey(INI_USER,'Main', 'FieldsForFind'),'Изменение поиска',0);
 
 end;                        
+
+
+http://178.89.245.69:8080/sinhro/engine/queue_look_lander.php
+ИП Селиванова
