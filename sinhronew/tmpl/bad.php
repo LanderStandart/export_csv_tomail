@@ -1,0 +1,2 @@
+<tr style="text-align: center;"><td></td><td>Сервер синхронизации не отвечает, свяжитесь с клиентом уточните статус сервера !!!</td></tr>
+<tr style="text-align: center;"><td style="width=2rem;text-align: center;"></td><td ><img src='./images/errserv.jpg' style="width:5rem;"></td></tr>
