@@ -12,21 +12,23 @@
   dxExEdtr, dxCntner, dxTL, dxDBCtrl, dxDBTL, Buttons, ComCtrls,
   AdvOfficePager,dateUtils, ImgList, ShellApi,Windows,sysUtils;
 const
- path=extractfiledrive(application.ExeName)+'\Standart-N\partner\'; //путь для выгрузки файлов
+ path=extractfiledrive(application.ExeName)+'\Standart-N\sozvezdie\'; //путь для выгрузки файлов
  devide='|'; // Разделитель данных
  dev='';//first 100 можно вписать такое значение и будет уменьшина выборка
- DepartmentCode='1'; // Код профиля Аптеки                                   
+ DepartmentCode='2'; // Код профиля Аптеки
  ClientID='987';//Код клиента созвездия
 var
  MP,sl,GoodMap,MoveMap,BaseMap,ListMap,FileMap,SQLMap:TStringList;
- t,SQL,f,Filename,tg,nomenclature_codes,s,s1:String;
+ t,SQL,f,Filename,tg,nomenclature_codes,s,s1,dateS:String;
  i,j:Intefer;
- q: TIBQuery;
+ q,qwork: TIBQuery;
  date_start,date_end,date_stop:date;
-                                                                 
+ outFile:TextFile;
 
 
 
+
+         
 
 
 
@@ -35,9 +37,9 @@ var
 procedure InitVar;
 Begin
 
-date_start:=StrToDate('01.11.2018');//date-1; //Дата начала выборки
-date_end:=StrToDate('02.11.2018');//date;     //Дата окончания выборки
-date_stop:=StrToDate('01.12.2018');
+date_start:=StrToDate('01.08.2016');//date-1; //Дата начала выборки
+date_end:=StrToDate('02.08.2016');//date;
+date_stop:=date+1;//StrToDate('01.12.2018');   //Дата окончания выборки
 
 
  //Поля выгрузки файла справочник товаров  goods.csv
@@ -131,7 +133,8 @@ end;
 //проверяем наличие файла в директории
 Function CheckFiles (FileName1,path,date_end:String):String; // подготовка файла для импорта
 var
-fn:string
+fn:string;
+
 begin
      fn:=filename(date_end);
      frmManagerXP2.LogIt(fn);
@@ -144,15 +147,22 @@ begin
        deletefile(result);
      end
 
+ assignFile(outfile,result);
+ rewrite(outfile);
 end;
+
+
+
 
 Function XMLre(xmltext):String;
 begin
+xmltext:=StringReplace(xmltext,'&','&amp;',1);
  xmltext:=StringReplace(xmltext,'<','&lt;',1);
  xmltext:=StringReplace(xmltext,'>','&gt;',1);
- xmltext:=StringReplace(xmltext,'&','&amp;',1);
+
  xmltext:=StringReplace(xmltext,'''','&apos;',1);
  xmltext:=StringReplace(xmltext,'"','&quot;',1);
+
  result:=xmltext;
 end;
  //----------------------------------------------------------------------------------------------------------------------------
@@ -191,6 +201,7 @@ try
  q2.SQL.Text:=SQL;
  frmManagerXP2.logit(SQL);
  q2.Active:=true;
+
     except
       frmManagerXP2.logit('неверный запрос - '+SQL);
       q2.Transaction.Rollback;
@@ -228,36 +239,31 @@ begin
     frmManagerXP2.LogIt(s);
     q:=GetSQLResult(S);
 
+
     //t:=XMLTemplates(tag,clientID,DepartmentCode,0);
 //заполняем файл данными
     while not q.eof do
      begin
-         t:=t+'<'+tag+'>';
-         for i := 0 to Map.Count-1 do
-             begin
-                 subheader:='';
-                 subfooter:='';
-                str:=q.fieldbyname(Map.Strings[i]).AsString;
-               // frmManagerXP2.Logit(str);
-                if Map.Strings[i]='nomenclature_codes' then
-                    begin
-                    subheader := '<code owner="map">';subfooter:='</code>';
-                    end;
-                if Map.Strings[i]='dates' then
-                    header := 'date';
-                else header:=Map.Strings[i];
-                if val(str)=0 then str:=StringReplace(str,',','.',1);//если значение дробное число меняем "." на ","
-                t:=t+'<'+Map.Strings[i]+'>'+subheader+XMLre(str)+subfooter+'</'+Map.Strings[i]+'>'+#13#10;
-             end;
-         t:=t+'</'+tag+'>';
-         sl.Add(t);
+         t:='';
+         t:=t+Trim(q.fieldbyname('XML').AsString);
+
+         write(outfile,t);
          t:='';
          q.Next;
      end;
+
      q.Free;
 end;
 
-
+procedure ExecPR (se:string);
+begin                        
+    qwork:=dm.TempQuery(nil);
+    qwork.Active:=false;
+    qwork.SQL.Text:=Se;
+ //frmManagerXP2.logit(SQL);
+    qwork.Active:=true;
+    qwork.Transaction.Commit;
+end;
 
 
 begin
@@ -269,56 +275,81 @@ InitVar;
  t:='';
 
  t:=XMLTemplates('',clientID,DepartmentCode,0);
- sl.Add(t);
+ write(outfile,t); //sl.Add(t);
      //date_end:=date_stop;
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_BATCH('''+DepartmentCode+''','''+DatetoStr(date_start)+''','''+DatetoStr(date_end)+''',1)';
+     s:='execute procedure PR_SOZVEZDIE_ACTION_BATCH('''+DepartmentCode+''','''+DatetoStr(date_start)+':00:00:00'','''+DatetoStr(date_start)+':23:59:59'',1)';
+     frmManagerXP2.LogIt(s);
+     ExecPR(s);
+
+     date_start:=date_start+1;
+    DATEs:=':00:00:00';
+    s:='execute procedure PR_SOZVEZDIE_ACTION_BATCH('''+DepartmentCode+''','''+DatetoStr(date_start)+':00:00:00'','''+DatetoStr(date_stop-1)+':23:59:59'',0)';
+     frmManagerXP2.LogIt(s);
+     ExecPR(s);
+   s:='select XML from SOZVEZDIE_ACTION_BATCH1';
      t:=XMLTemplates('batch',clientID,DepartmentCode,0);
-     GetStringXML(GoodMap,S,'_987_bat','batch');
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_BATCH('''+DepartmentCode+''','''+DatetoStr(date_start+1)+''','''+DatetoStr(date_stop-1)+''',0)';
+     write(outfile,t);
      GetStringXML(GoodMap,S,'_987_bat','batch');
      t:=XMLTemplates('batch',clientID,DepartmentCode,1);
-     sl.Add(t);
+     write(outfile,t); //sl.Add(t);
+
+     t:='';
 
    InitVar;
      //date_end:=date_stop;
-     t:=''
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_MOVE('''+DepartmentCode+''','''+DatetoStr(date_start)+''','''+DatetoStr(date_end)+''','''+DatetoStr(date_stop)+''',1)';
+     DATEs:=':00:00:00';
+     s:='execute procedure PR_SOZVEZDIE_ACTION_MOVE('''+DepartmentCode+''','''+DatetoStr(date_start)+DateS+''','''+DatetoStr(date_start)+':00:01:59'','''+DatetoStr(date_stop)+':23:59:59'',1)';
+     frmManagerXP2.LogIt(s);
+     ExecPR(s);
+     DATEs:=':00:01:00';
+      s:='execute procedure PR_SOZVEZDIE_ACTION_MOVE('''+DepartmentCode+''','''+DatetoStr(date_start)+DateS+''','''+DatetoStr(date_stop-1)+':23:59:59'','''+DatetoStr(date_stop-1)+':23:59:59'',0)';
+     frmManagerXP2.LogIt(s);
+     ExecPR(s);
+     t:='';
+
+     s:='SELECT XML FROM SOZVEZDIE_ACTION_MOVE';
      t:=XMLTemplates('distribution',clientID,DepartmentCode,0);
+     write(outfile,t);
      GetStringXML(MoveMap,S,'_987_bat','distribution');
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_MOVE('''+DepartmentCode+''','''+DatetoStr(date_start)+''','''+DatetoStr(date_stop-1)+''','''+DatetoStr(date_stop-1)+''',0)';
-     GetStringXML(MoveMap,S,'_987_bat','distribution');
+
+
      t:=XMLTemplates('distribution',clientID,DepartmentCode,1);
-     sl.Add(t);
+     write(outfile,t);
+     //sl.Add(t);
      t:='';
     InitVar;
-
+                                   
+    s:='execute procedure PR_SOZVEZDIE_ACTION_remhant('''+DepartmentCode+''','''+DatetoStr(date_start)+':00:00:00'','''+DatetoStr(date_start)+':23:59:59'',1)';
+    frmManagerXP2.LogIt(s);
+    ExecPR(s);
+    t:='' ;
     t:=XMLTemplates('remnant',clientID,DepartmentCode,0);
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_REMHANT('''+DepartmentCode+''','''+DatetoStr(date_start)+''','''+DatetoStr(date_end)+''',1)';
-     GetStringXML(BaseMap,S,'_987_bat','remnant');
-         date_start:=date_start+1;
-         date_end:=date_end+1;
-    while date_end<>date_stop do
+    write(outfile,t);
+  //   s:='SELECT distinct XML FROM SOZVEZDIE_ACTION_REMHANT';
+  //   GetStringXML(BaseMap,S,'_987_bat','remnant');
+        date_start:=date_start+1;
 
-    begin
+    s:='execute procedure PR_SOZVEZDIE_ACTION_remhant('''+DepartmentCode+''','''+DatetoStr(date_start)+':00:00:00'','''+DatetoStr(date_start)+':23:59:59'',0)';
+     frmManagerXP2.LogIt(s);
+     ExecPR(s);
      s:='';
-     s:='SELECT * FROM PR_SOZVEZDIE_ACTION_REMHANT('''+DepartmentCode+''','''+DatetoStr(date_start)+''','''+DatetoStr(date_end)+''',0)';
+     frmManagerXP2.LogIt(dateTostr(date_start));
+     s:='SELECT XML FROM SOZVEZDIE_ACTION_REMHANT';
      GetStringXML(BaseMap,S,'_987_bat','remnant');
-     date_end:=date_end+1;
-     date_start:=date_start+1;
-     //frmManagerXP2.logit(s);
-    end;
+
    t:=XMLTemplates('remnant',clientID,DepartmentCode,1);
    t:=t+XMLTemplates('',clientID,DepartmentCode,1);
-   sl.Add(t);
+   write(outfile,t);
+//   sl.Add(t);
 
  try
  //сохраняем файл
-  sl.SaveToFile(f);
-  //sl.Free;
+ // sl.SaveToFile(f);
+  sl.Free;
   except
      frmManagerXP2.logit('неверный путь');
   end;
  frmManagerXP2.logit('.xml - выгружен');
-
+ CloseFile(outfile);
 //Zip(f,path,filename);
 end;
