@@ -26,7 +26,7 @@ var q,q1,q3,qWork: TIBQuery;
 
  procedure ExecPR (se:string);
 begin
-    qwork:=dm.TempQuery(nil);
+    qwork:=dm.TempQuery(nil);             
     qwork.Active:=false;
     qwork.SQL.Text:=Se;
  //frmManagerXP2.logit(SQL);
@@ -110,7 +110,7 @@ end;
 
 Procedure ExtractBase(partner_id:integer;path:String;maxdate:Datetime); //Выгрузка остатков
  Begin
-   SQL:='select * from partner_load where doc_commitdate ='''+DateToStr(maxdate)+'''';
+   SQL:='select * from partner_load where cast(doc_commitdate as date) ='''+DateToStr(maxdate)+'''';
 
     frmSpacePro.logit(SQL);
     q:=GetSQLResult(SQL);
@@ -174,7 +174,7 @@ end;
 
 Procedure ExtractMove(partner_id:integer;pathe:string;startdate:DateTime);//Выгрузка движения
 Begin
- SQL:='select * from partner_load_move where doc_commitdate between '''+DateToStr(startdate)+''' and '''+DateToStr(incday(startdate,1))+'''';
+ SQL:='select * from partner_load_move where cast(doc_commitdate as date) between '''+DateToStr(startdate)+''' and '''+DateToStr(incday(startdate,1))+'''';
  frmSpacePro.logit(SQL);
 q:=GetSQLResult(SQL);
 f:=CheckFiles(InttoStr(partner_id),'.mov',pathe);
@@ -237,59 +237,43 @@ f:=CheckFiles(InttoStr(partner_id),'.mov',pathe);
       except
      frmManagerXP2.logit('неверный путь');
     end;
-                    
+
 
 End;
 
 
 begin
 
+  date_end:=date+1;
 
-  date_start:=StrToDate('09.09.2018');//DateToStr(date-1);  //
-  date_end:=strtoDate('11.09.2018');//DatetoStr(date);//
-  SQL:='select cast( coalesce(max(plm.doc_commitdate),''30.12.1999'')as dm_datetime) as maxdate from partner_load plm';
+
+SQL:='execute procedure pr_load_partner';
+frmManagerXP2.LogIt(SQL);
+ExecPR(SQL);
+SQL:='execute procedure pr_load_move_partner';
+ExecPR(SQL);
+frmManagerXP2.LogIt(SQL);
+ SQL:='select cast( coalesce(max(plm.q_date),''30.12.1999'')as dm_datetime) as maxdate from partner_load plm';
   q:=GetSQLResult(SQL);
   maxdate:=q.fieldbyname('maxdate').AsDateTime;
-  if (maxdate='30.12.1999') then maxdate:=date_start;
+  //if (maxdate='30.12.1999') then maxdate:=date_start;
+  date_start:=maxdate;
   frmManagerXP2.LogIt(maxdate);
   q.Transaction.Commit;
 
-SQL:='execute procedure pr_load_partner('''+DateToStr(maxdate)+''','''+DateToStr(date_end)+''') ';
-frmManagerXP2.LogIt(SQL);
-ExecPR(SQL);
-SQL:='execute procedure pr_load_move_partner('''+DateToStr(date_start)+''','''+DateToStr(date_end)+''')';
-ExecPR(SQL);
-frmManagerXP2.LogIt(SQL);
-
 
   try
-  //if not fileexists(extractfilepath(application.ExeName)+'Partner.log') then
-  //TFileStream.Create(extractfilepath(application.ExeName)+'Partner.log',fmCreate).Free;
-  // fsLog:=TFileStream.Create(extractfilepath(application.ExeName)+'partner.txt',fmOpenReadWrite);
- //  logit(DatetoStr(date_start));
- // logit('Начали -'+TimetoStr( time));
+
 
  frmManagerXp2.LogIt(maxdate);
  //Выгружаем остатки по точкам
- while (maxdate<>date_end) do
+ while (maxdate<=date) do
  begin
   ExtractBase(partner_id,path,maxdate);
   ExtractMove(partner_id,path,maxdate);
   frmManagerXp2.LogIt(maxdate);
   maxdate:=IncDay(maxdate,1);
  end;
- //выгрузка движение
-
-
-
-  //    InitVar;
-  //     while date_end<>date do
-    //      begin
-
-  //
-    //           date_end:=date_end+1;
-    //           date_start:=date_start+1;
-     //     end;
 
 
  //ftp('*.zip',login,pass,path);
@@ -297,7 +281,7 @@ frmManagerXP2.LogIt(SQL);
 
 
 
-  //  logit('Готово -'+TimetoStr( time));
+  // logit('Готово -'+TimetoStr( time));
     q.Free;
 
    finally

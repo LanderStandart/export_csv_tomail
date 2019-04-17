@@ -1,8 +1,6 @@
 SET TERM ^ ;
 
-create or alter procedure PR_LOAD_MOVE_PARTNER (
-    DATESTART DM_DATETIME,
-    DATEEND DM_DATETIME)
+create or alter procedure PR_LOAD_MOVE_PARTNER
 returns (
     DRUG_NAME DM_TEXT,
     DRUG_CODE integer,
@@ -33,13 +31,30 @@ as
 declare variable DOC_ID integer;
 declare variable MAXDATE DM_DATETIME;
 declare variable MINDATE DM_DATETIME;
+declare variable REP_DATE DM_DATETIME;
+declare variable DATEEND DM_DATETIME;
 begin
+
+--определяем дату за которую формируем отчет
+if (current_time>'23:00:00') then rep_date=current_timestamp; else rep_date=dateadd(day,-1,current_timestamp);--если отчет формируется раньше 23-00 то выгружаем данные за вчера
+rep_date=cast(cast(rep_date as date)||' 00:00:01' as dm_datetime);--начало периода
+
+dateend=cast(cast(rep_date as date)||' 23:59:59' as dm_datetime);--конец периода
+
 maxdate=(select max(plm.doc_commitdate)from partner_load_move plm );--Дата последней выгрузки
 mindate=(select min(plm.doc_commitdate)from partner_load_move plm );--Дата самых старых данных в выгрузке
-if (maxdate is null) then maxdate=:datestart; --если данных нет в таблице то выгружаем с указанной даты
-if (:datestart<>maxdate) then datestart=maxdate; -- Если дата выгрузки больше или меньше даты последней выгрузки, выгружаем с даты последних данных
+--если данных нет в таблице то выгружаем c начала квартала
+if (maxdate is null) then
+    begin    --определяем текущий квартал
+     if (extract(month from rep_date) in (1,2,3)) then rep_date='01.01.'||extract(year from rep_date)||' 00:00:01';
+     if (extract(month from rep_date) in (4,5,6)) then rep_date='01.04.'||extract(year from rep_date)||' 00:00:01';
+     if (extract(month from rep_date) in (7,8,9)) then rep_date='01.07.'||extract(year from rep_date)||' 00:00:01';
+     if (extract(month from rep_date) in (10,11,12)) then rep_date='01.10.'||extract(year from rep_date)||' 00:00:01';
+    end
 
-if (mindate<:datestart-93) then delete from partner_load_move where doc_commitdate<:datestart-93;-- Удаляет даные относящиеся к предыдущему периоду выгрузки (прошлый квартал)
+if (rep_date<>maxdate) then rep_date=maxdate; -- Если дата выгрузки больше или меньше даты последней выгрузки, выгружаем с даты последних данных
+
+if (mindate<:dateend-93) then delete from partner_load_move where doc_commitdate<:dateend-93;-- Удаляет даные относящиеся к предыдущему периоду выгрузки (прошлый квартал)
 
  for select
          dd.part_id as Drug_code,
@@ -54,7 +69,7 @@ if (mindate<:datestart-93) then delete from partner_load_move where doc_commitda
 
         from doc_detail dd
 
-     where dd.doc_id is not null and dd.doc_commitdate between :DATESTART and :DATEEND
+     where dd.doc_id is not null and dd.doc_commitdate between :rep_date and :DATEEND
      group by dd.part_id, dd.doc_id,dd.discount,dd.sum_dsc,dd.summa_o,dd.summa,dd.price
      into :drug_code, :doc_id, :quant,  :disk_T, :disk_sum, :Sum_Zak, :Sum_Rozn, :Cena_Rozn do
  begin
@@ -64,7 +79,7 @@ if (mindate<:datestart-93) then delete from partner_load_move where doc_commitda
     select
          iif (d.doc_type=1,10,iif(d.doc_type=3,20,d.doc_type))as d_type,
          left(d.docnum,iif(position(' ',d.docnum)=0,char_length(d.docnum), position(' ',d.docnum)))as docnum,
-         cast(d.docdate as date)as docdate,
+         (select s from utpr_datetostr(d.docdate))as docdate,
          a.caption as Supplier,
          a.inn as Supplier_INN,
          d.device_num, 
@@ -78,7 +93,7 @@ if (mindate<:datestart-93) then delete from partner_load_move where doc_commitda
          vcountry.svalue as Drug_Producer_country,
           p.price_o as Cena_Zak,
           p.seria,
-          iif (p.godendo is not null, cast(p.godendo as date),'01.01.1990') as godendo_date,
+          (select s from utpr_datetostr(iif (p.godendo is not null, cast(p.godendo as date),cast('01.01.1900' as date)))) as godendo_date,
           p.barcode,
           :drug_code,
                       :quant,  :disk_T, :disk_sum, :Sum_Zak, :Sum_Rozn, :Cena_Rozn ,d.docdate
@@ -111,6 +126,7 @@ SET TERM ; ^
 
 GRANT SELECT,INSERT,DELETE ON PARTNER_LOAD_MOVE TO PROCEDURE PR_LOAD_MOVE_PARTNER;
 GRANT SELECT ON DOC_DETAIL TO PROCEDURE PR_LOAD_MOVE_PARTNER;
+GRANT EXECUTE ON PROCEDURE UTPR_DATETOSTR TO PROCEDURE PR_LOAD_MOVE_PARTNER;
 GRANT SELECT ON USERS TO PROCEDURE PR_LOAD_MOVE_PARTNER;
 GRANT SELECT ON DOCS TO PROCEDURE PR_LOAD_MOVE_PARTNER;
 GRANT SELECT ON PARTS TO PROCEDURE PR_LOAD_MOVE_PARTNER;
