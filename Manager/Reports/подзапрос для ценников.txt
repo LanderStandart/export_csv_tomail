@@ -1,0 +1,6 @@
+name=detail1_1
+columncount=1
+:part_id=part_id
+:id=id
+[sqltext]
+:sqltext: and dd.id=:id  and dd.Part_id=:part_id
