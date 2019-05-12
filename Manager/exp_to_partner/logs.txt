@@ -1,7 +1,0 @@
-Create Table,Triggers,Procedure 
-create_TMS.sql
-PARTNER_LOAD.sql
-PARTNER_LOAD_MOVE.sql
-PR_LOAD_MOVE_PARTNER.sql
-PR_LOAD_PARTNER.sql
-TMS PARTNER.sql
