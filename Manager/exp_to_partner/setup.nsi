@@ -22,12 +22,13 @@ Name "TMS - Выгрузка в Партнер"
 
 
 !insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_COMPONENTS 
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_UNPAGE_FINISH 
 !insertmacro MUI_LANGUAGE "Russian"
 ; The name of the installer
 
-
+Var DBpath
 
 
 
@@ -42,7 +43,7 @@ RequestExecutionLevel user
 
 ;--------------------------------
 !define PATH "c:\Standart-n\exp_to_partner"
-!define DBpath "localhost:C:\Standart-N\base\ztrade.fdb"
+
 ; ; Pages
 
 ; Page directory
@@ -51,32 +52,70 @@ RequestExecutionLevel user
 ; ;--------------------------------
 
 ; The stuff to install
-Section "" ;No components page, name is not important
+Section
+	SetOutPath $INSTDIR
+	File IBEScript.exe
+
+SectionEnd
+
+
+
+
+Section /o "для Аптеки" ALONE ;No components page, name is not important
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
-  
+  StrCpy $DBpath "localhost:C:\Standart-N\base\ztrade.fdb"
   ; Put file there
-  File create_TMS.sql
-  File IBEScript.exe
+  File create_TMS.sql 
   File PARTNER_LOAD.sql
   File PARTNER_LOAD_BEGIN.sql
   File PARTNER_LOAD_MOVE.sql
   File PR_LOAD_MOVE_PARTNER.sql
   File PR_LOAD_PARTNER.sql
+  File create_params.sql
   File TMS_PARTNER.hex
   File TMS_PARTNER_SETUP.hex
 
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\create_TMS.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_BEGIN.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_MOVE.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_MOVE_PARTNER.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D${DBpath} -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_PARTNER.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_TMS.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_BEGIN.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_MOVE.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_MOVE_PARTNER.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_PARTNER.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_params.sql'
  
 
   
-SectionEnd ; end the section
+SectionEnd ;
+
+Section /o "для сетей" MULTI ;No components page, name is not important
+
+  ; Set output path to the installation directory.
+  SetOutPath $INSTDIR
+ StrCpy $DBpath "localhost:C:\Standart-N\base\ztrade.fdb" 
+  ; Put file there
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\create_TMS.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\PARTNER_LOAD.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\PARTNER_LOAD_BEGIN.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\PARTNER_LOAD_MOVE.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\PR_LOAD_MOVE_PARTNER.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\PR_LOAD_PARTNER.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\create_params.sql
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\999803.hex
+  File e:\TMS\MANAGER\exp_to_partner\multi_profile\999804.hex
+
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_TMS.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_BEGIN.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_MOVE.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_MOVE_PARTNER.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_PARTNER.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_params.sql'
+ 
+
+  
+SectionEnd 
 
 
 
