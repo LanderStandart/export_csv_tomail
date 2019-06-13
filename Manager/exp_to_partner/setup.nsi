@@ -65,9 +65,10 @@ Section /o "для Аптеки" ALONE ;No components page, name is not important
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
-  StrCpy $DBpath "localhost:C:\Standart-N\base\ztrade.fdb"
+  StrCpy $DBpath "Localhost:C:\Standart-N\base\ztrade.fdb"
   ; Put file there
   File create_TMS.sql 
+  File create_G$PROFILES.sql
   File PARTNER_LOAD.sql
   File PARTNER_LOAD_BEGIN.sql
   File PARTNER_LOAD_MOVE.sql
@@ -76,14 +77,18 @@ Section /o "для Аптеки" ALONE ;No components page, name is not important
   File create_params.sql
   File TMS_PARTNER.hex
   File TMS_PARTNER_SETUP.hex
-
+  File DELETE.sql
+	
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_params.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_TMS.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_G$PROFILES.sql'
+  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\DELETE.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_BEGIN.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PARTNER_LOAD_MOVE.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_MOVE_PARTNER.sql'
   nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\PR_LOAD_PARTNER.sql'
-  nsExec::ExecTOLog '"${PATH}\IBEScript.exe" -N -D$DBpath -USYSDBA -Pmasterkey ${PATH}\create_params.sql'
+
  
 
   
@@ -93,7 +98,7 @@ Section /o "для сетей" MULTI ;No components page, name is not important
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
- StrCpy $DBpath "localhost:C:\Standart-N\base\ztrade.fdb" 
+ StrCpy $DBpath "localhost:d:\Standart-N\base_s\ztrade_s.fdb" 
   ; Put file there
   File e:\TMS\MANAGER\exp_to_partner\multi_profile\create_TMS.sql
   File e:\TMS\MANAGER\exp_to_partner\multi_profile\PARTNER_LOAD.sql
