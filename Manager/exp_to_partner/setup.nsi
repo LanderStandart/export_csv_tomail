@@ -65,7 +65,7 @@ Section /o "для Аптеки" ALONE ;No components page, name is not important
 
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
-  StrCpy $DBpath "Localhost:C:\Standart-N\base\ztrade.fdb"
+  StrCpy $DBpath "SERVER:C:\Standart-N\base\ztrade.fdb"
   ; Put file there
   File create_TMS.sql 
   File create_G$PROFILES.sql
