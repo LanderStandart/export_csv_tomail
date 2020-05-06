@@ -1,0 +1,600 @@
+
+INSERT INTO SP$WDICTS (ID, PARENT_ID, CAPTION, DESCRIPTION, SID, STATUS, INSERTDT, INI, BMP, SORTING, FRAMECLASS, D$UUID, D$SRVUPDDT) 
+VALUES (1001000, 0, 'Матрицы автозаказа', 'Матрицы автозаказа', 'ASSORTS', 2, '18-MAR-2018 10:41:33.115', NULL, NULL, 1001000, NULL, '1E7E66C0-2264-4DBF-8B11-74C1D6215C92', '1-JAN-2000 00:00:00');
+
+INI
+[insertsql]
+insert into ASSORT_GROUPS(ID, ASSORT_ID, GROUP_TYPE, USER_ID, GROUP_ID) values (:ID, 0, 1, :USER_ID:, :GROUP_ID)
+
+[deletesql_selected]
+delete from ASSORT_GROUPS where GROUP_ID in (:SELECTED_IDS:)
+
+[deletesql]
+delete from ASSORT_GROUPS where GROUP_ID=:GROUP_ID
+
+[refreshsql]
+select GROUP_ID from ASSORT_GROUPS where GROUP_ID=:GROUP_ID
+
+[selectsqlwithdeleted]
+
+[selectsql]
+select distinct GROUP_ID from ASSORT_GROUPS order by GROUP_ID
+
+[form_show]
+position=8
+left=0
+Top=0
+Width=600
+Height=400
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[form_get]
+position=8
+left=0
+Top=0
+Width=600
+Height=400
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[main]
+sourcetablename=ASSORT_GROUPS
+returnfieldname=GROUP_ID
+captionfieldname=GROUP_ID
+keyfieldname=GROUP_ID
+ViewID=ASSORTS
+RootGroupTableName=
+ShowCaption=Матрицы автозаказа
+GetCaption=Матрицы автозаказа
+GroupSelect=0
+foldergroup=
+initfolder_id=
+dataset=1
+InitTMSGroup_id=0
+folders_visible=0
+Canfloating=0
+hidetoppanel=0
+ActivateDictAction=0
+ImmediateAction=1
+dontrefreshafterupdate=0
+folderscaption=Каталоги
+
+[cfSelect]
+selectfieldexpression=GROUP_ID
+AllwaysPartial=1
+
+[childs]
+bottomdock_units=0
+bottomdock_size=0
+rightdock_units=1
+rightdock_size=95
+
+[child_0]
+caption=
+wdict=ASSORT_GROUPS
+oninit=tek_id=group_id
+afterscroll=tek_id=group_id
+onselectedchange=tek_id=group_id
+defaultdocksite=right
+ShortCut=
+afterupd=
+afterdatasetopen=
+
+[block_hl]
+fieldname=
+column=
+color1=128
+color2=32768
+
+[addfields]
+GROUP_ID=select coalesce(max(GROUP_ID),0)+1 from ASSORT_GROUPS
+id=select gen_id(GEN_ASSORT_GROUPS_ID,1) from rdb$database
+
+
+INSERT INTO SP$WDICTS (ID, PARENT_ID, CAPTION, DESCRIPTION, SID, STATUS, INSERTDT, INI, BMP, SORTING, FRAMECLASS, D$UUID, D$SRVUPDDT) VALUES (1001001, 0, 'Ассортименты для групп', 'Ассортименты для групп', 'ASSORT_GROUPS', -1, '18-MAR-2018 10:41:33.115', NULL, NULL, 1001001, NULL, 'A5EEDA6F-E9A8-411F-B466-C58564035F73', '1-JAN-2000 00:00:00');
+
+INI
+[insertsql]
+insert into ASSORT_GROUPS(ID, ASSORT_ID, GROUP_ID, GROUP_TYPE, USER_ID) values (:ID, :ASSORT_ID, :tek_id, 1, :USER_ID:)
+
+[deletesql_selected]
+delete from ASSORT_GROUPS where ID in (:SELECTED_IDS:)
+
+[deletesql]
+delete from ASSORT_GROUPS where ID=:ID
+
+[refreshsql]
+select * from VW_ASSORT_GROUPS where GROUP_ID=:tek_id
+
+[selectsqlwithdeleted]
+select * from VW_ASSORT_GROUPS where GROUP_ID=:tek_id order by id
+
+[selectsql]
+select * from VW_ASSORT_GROUPS where GROUP_ID=:tek_id order by id
+
+[main]
+sourcetablename=ASSORT_GROUPS
+returnfieldname=ID
+captionfieldname=
+keyfieldname=ID
+ViewID=ASSORT_GROUPS
+RootGroupTableName=
+ShowCaption=
+GetCaption=
+GroupSelect=0
+foldergroup=
+initfolder_id=
+dataset=0
+InitTMSGroup_id=
+folders_visible=0
+Canfloating=0
+hidetoppanel=0
+ActivateDictAction=2
+folderscaption=
+
+[cfSelect]
+selectfieldexpression=caption
+AllwaysPartial=1
+
+[childs]
+bottomdock_units=0
+bottomdock_size=350
+rightdock_units=0
+rightdock_size=800
+
+[child_0]
+caption=
+wdict=ASSORT_DETAIL
+oninit=tek_id=ASSORT_ID
+afterscroll=tek_id=ASSORT_ID
+onselectedchange=tek_id=ASSORT_ID
+defaultdocksite=right
+ShortCut=
+afterupd=
+afterdatasetopen=
+
+[scripts]
+
+[form_show]
+position=1
+left=0
+Top=0
+Width=0
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[form_get]
+position=1
+left=0
+Top=0
+Width=0
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[block_hl]
+fieldname=
+column=
+color1=128
+color2=32768
+
+[addfields]
+id=select gen_id(GEN_ASSORT_GROUPS_ID,1) from rdb$database
+ASSORT_ID=WDICTS.ASSORTS2
+
+
+ТМС ИНИЦИАЛИЗАЦИИ 298 
+
+Unit1
+uses                                       
+  Classes, Graphics, Controls, Forms, Dialogs, ComCtrls,
+  ToolWin, ImgList, dxExEdtr, dxCntner, dxTL, dxDBCtrl, unframeCustomDict,
+  DB, IBQuery, IBDatabase, unDM, DBTables, cfdxUtils, Menus,
+  unViewUtils, Buttons, ExtCtrls, StdCtrls, cfSelectEdit, DB,
+  gb_table, Mask,  unFrameCustomDict, unMain,SysUtils, Windows, cfFileUtils, cfUtils,
+  Messages, ShellAPI,AdvGlowButton,Unit2;
+
+var
+    pn: TPanel;
+    b: TButtom;
+    fm: TForm2;
+
+procedure UpLoadFile;
+begin
+    fm:=TForm2.create(nil);
+    fm.Caption:= 'Матрица №'+gSender.qList.fieldByName('ASSORT_ID').AsString;
+    fm.showmodal;
+end;
+
+procedure ActionOnActivate;
+var x: Integer;
+    f: TDrameCustomDict;
+begin
+  for x := 0 to gsender.ComponentCount-1 do
+  begin
+    try
+      f:=TFrameCustomDict(gsender.Components[x]);
+      f.qlist.active:=false;
+      f.qlist.active:=true;
+    except
+    end;
+  end;
+end
+
+begin
+
+  pn:=gsender.FindComponent('pnTop');
+  b:=TAdvGlowButton.create(gsender);
+  b.caption:='Загрузить матрицу';
+  b.left:=600;
+  b.width:=300;
+  b.Height:=pn.Height;
+  b.parent:=pn;
+  b.Transparent:=true;
+  b.OnClick:='UpLoadFile';
+
+//  gsender.ActionOnActivate:='ActionOnActivate';
+  TWinControl(gsender.Owner.FindComponent('pnDockRight')).Visible:=true;
+  gsender.DragMode:=dmManual;
+  gsender.DragKind:=dkDrag;
+
+
+
+end;
+
+Unit 2
+
+{$FORM TForm2, Unit2.sfm}
+
+uses
+  Classes, Graphics, Controls, Forms, Dialogs, StdCtrls;
+
+
+procedure Button1Click(Sender: TObject);
+var
+     Opendialog1: TOpenDialog1;
+     sl: TStringList;
+     i, iIndex,err: integer;
+     q_work: TIBquery;
+     trn : TIBTransaction
+     db: TIbDatabase;
+     s, NAME_ID, SNAME, SREP, NAME_ID_ANALOG, SNAME_ANALOG, SREP_ANALOG, PRIOR, test, Quant: string;
+begin
+   err:=0;
+   q_work:=TIBQuery.create(nil);
+   trn:=TIBTransaction.create(nil);
+   db:=dm.FindComponent('db');
+   q_work.Database:=db;
+   trn.DefaultDatabase:=db;
+   if not q_work.Transaction.Active then
+     q_work.Transaction.StartTransaction;
+
+   Opendialog1 := TOpenDialog.Create(nil);
+   OpenDialog1.Filter := 'Текстовые файлы(*.csv)|*.csv';
+   if OpenDialog1.Execute then
+   begin
+
+    sl:=TStringList.Create;
+    sl.LoadFromFile(OpenDialog1.FileName);
+
+    if CheckBox1.Checked Then test:='1' Else test:='0';
+
+    //если реальная загрузка данных
+    if Not CheckBox1.Checked Then
+    begin
+        if MessageDlg('Матрица №'+gSender.qList.fieldByName('ASSORT_ID').AsString+' будет очищена перед загрузкой. Продолжить?', mtInformation, mbOKCancel, 0)=mrOK Then
+          begin
+             q_work.Active:=false;
+             q_work.SQL.Text:='delete from ASSORT_DETAIL where ASSORT_ID ='+gSender.qList.fieldByName('ASSORT_ID').AsString;
+             q_work.Active:=True;
+             q_work.Transaction.Commit;
+             frmspacepro.LogIt('очистка матрицы завершена. начало загрузки данных ...');
+          end
+        else
+          begin
+            showmessage('Очистка и загрузка данных отменена пользователем');
+            exit;
+          end
+    end
+
+      for  i:=1 to sl.count-1 do
+      begin
+           s:=sl.Strings[i];
+           s:=s+';';
+           //1 столбец Код наименования (NAME_ID);
+           NAME_ID:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(NAME_ID)+2,length(s)-length(NAME_ID)-1);
+
+           //2 столбец Наименование;
+           SNAME:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(SNAME)+2,length(s)-length(SNAME)-1);
+
+           //3 столбец Представительство;
+           SREP:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(SREP)+2,length(s)-length(SREP)-1);
+
+           //4 столбец Мин кол-во заказа;
+           QUANT:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(QUANT)+2,length(s)-length(QUANT)-1);
+           QUANT:=StringReplace(Trim(QUANT),',','.',1);
+
+           //5 столбец Код аналога (NAME_ID);
+           NAME_ID_ANALOG:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(NAME_ID_ANALOG)+2,length(s)-length(NAME_ID_ANALOG)-1);
+
+           //6 столбец Наимен аналога;
+           SNAME_ANALOG:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(SNAME_ANALOG)+2,length(s)-length(SNAME_ANALOG)-1);
+
+           //7 столбец Представительство;
+           SREP_ANALOG:=(copy(s,1,pos(';',s)-1));
+           s:=copy(s,length(SREP_ANALOG)+2,length(s)-length(SREP_ANALOG)-1);
+
+           //8 столбец Приоритет аналога
+           PRIOR:=(copy(s,1,pos(';',s)-1));
+           if trim(PRIOR) = '' Then PRIOR:='1';
+
+           q_work.Active:=false;
+           q_work.SQL.Text:='select * from PR_LOAD_UPDATE_ASSORT_DETAIL ('+gSender.qList.fieldByName('ASSORT_ID').AsString+',0,'''+NAME_ID+''','''+SREP+''','''+NAME_ID_ANALOG+''','''+SREP_ANALOG+''','+PRIOR+','+QUANT+','+test+');';
+           //frmspacepro.LogIt(q_work.SQL.Text);
+           q_work.Active:=True;
+            //Не найдено представительство для основного товара
+            if q_work.fieldByName('ERROR').AsString = '1' Then frmspacepro.LogIt('Не найдено представительство "'+SREP+'" для основного товара "'+SNAME+'"');
+            //Не найдено представительство для аналога
+            if q_work.fieldByName('ERROR').AsString = '2' Then frmspacepro.LogIt('Не найдено представительство "'+SREP_ANALOG+'" для аналога "'+SNAME_ANALOG+'"');
+
+            if q_work.fieldByName('ERROR').AsString <> '0' Then
+            begin
+             frmspacepro.LogIt(q_work.SQL.Text);
+             frmspacepro.LogIt('');
+             err:=err+1;
+            end
+      end;
+      showmessage('Готово. Ошибок '+ inttostr(err));
+   end;
+   q_work.Transaction.Commit;
+   q_work.free;
+
+end;
+
+
+procedure Button2Click(Sender: TObject);
+var
+     q_work: TIBquery;
+     trn : TIBTransaction
+     db: TIbDatabase;
+begin
+   q_work:=TIBQuery.create(nil);
+   trn:=TIBTransaction.create(nil);
+   db:=dm.FindComponent('db');
+   q_work.Database:=db;
+   trn.DefaultDatabase:=db;
+   if not q_work.Transaction.Active then
+     q_work.Transaction.StartTransaction;
+
+
+    if MessageDlg('Будут удалены все аналоги. Продолжить?', mtInformation, mbOKCancel, 0)=mrOK Then
+      begin
+         q_work.Active:=false;
+         q_work.SQL.Text:='delete from WARES_ANALOG';
+         q_work.Active:=True;
+         q_work.Transaction.Commit;
+         showmessage('Все аналоги удалены');
+      end
+    else
+     showmessage('Отменено пользователем');
+
+   q_work.free;
+end;
+
+begin
+end;
+
+
+
+INSERT INTO SP$WDICTS (ID, PARENT_ID, CAPTION, DESCRIPTION, SID, STATUS, INSERTDT, INI, BMP, SORTING, FRAMECLASS, D$UUID, D$SRVUPDDT) VALUES (1001002, 0, 'Ассортиментные позиции', 'Ассортиментные позиции', 'ASSORT_DETAIL', -1, '18-MAR-2018 10:41:33.115', NULL, NULL, 1001002, NULL, '4057A092-0FF8-4858-9B9E-142ABDA90D9C', '1-JAN-2000 00:00:00');
+
+INI
+[insertsql]
+select ID from PR_NEW_ASSORT_DETAIL (:NAME_ID, :tek_id, :USER_ID:)
+
+[deletesql_selected]
+delete from ASSORT_DETAIL where ID in (:SELECTED_IDS:)
+
+[deletesql]
+delete from ASSORT_DETAIL where ID=:ID
+
+[refreshsql]
+select * from VW_ASSORT_DETAIL where ID=:id
+
+[selectsqlwithdeleted]
+select * from VW_ASSORT_DETAIL where ASSORT_ID=:tek_id order by id
+
+[selectsql]
+select * from VW_ASSORT_DETAIL where ASSORT_ID=:tek_id order by id
+
+[main]
+sourcetablename=VW_ASSORT_DETAIL
+returnfieldname=ID
+captionfieldname=
+keyfieldname=ID
+ViewID=VW_ASSORT_DETAIL
+RootGroupTableName=
+ShowCaption=
+GetCaption=
+GroupSelect=0
+foldergroup=
+initfolder_id=
+dataset=0
+InitTMSGroup_id=298
+folders_visible=0
+Canfloating=0
+hidetoppanel=0
+ActivateDictAction=2
+folderscaption=
+
+[cfSelect]
+selectfieldexpression=SNAME
+AllwaysPartial=1
+
+[childs]
+bottomdock_units=0
+bottomdock_size=350
+rightdock_units=1
+rightdock_size=50
+
+
+[child_0]
+caption=
+wdict=WARES_ANALOG
+oninit=TEK_NAME_ID=NAME_ID, TEK_REP_ID=REP_ID
+afterscroll=TEK_NAME_ID=NAME_ID, TEK_REP_ID=REP_ID
+onselectedchange=TEK_NAME_ID=NAME_ID, TEK_REP_ID=REP_ID
+defaultdocksite=right
+ShortCut=
+afterupd=
+afterdatasetopen=
+
+[scripts]
+
+[form_show]
+position=1
+left=0
+Top=0
+Width=0
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[form_get]
+position=1
+left=0
+Top=0
+Width=0
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[block_hl]
+fieldname=
+column=
+color1=128
+color2=32768
+
+[editfields]
+QUANT=Default
+
+[addfields]
+NAME_ID=WDICTS.WARES
+
+
+INSERT INTO SP$WDICTS (ID, PARENT_ID, CAPTION, DESCRIPTION, SID, STATUS, INSERTDT, INI, BMP, SORTING, FRAMECLASS, D$UUID, D$SRVUPDDT) VALUES (1001005, 0, 'Аналоги товаров', 'Аналоги товаров', 'WARES_ANALOG', -1, '22-JUN-2018 16:53:46.692', NULL, NULL, 1001005, NULL, '536CEA43-108F-4A37-BD7C-0804848E4056', '1-JAN-2000 00:00:00');
+
+INI
+[insertsql]
+select ID from PR_NEW_WARES_ANALOG (:TEK_NAME_ID, :TEK_REP_ID, :ware_id_analog)
+
+[deletesql_selected]
+delete from WARES_ANALOG where id in (:SELECTED_IDS:)
+
+[deletesql]
+delete from WARES_ANALOG where id=:id
+
+[refreshsql]
+select * from VW_WARES_ANALOG where WARE_ID in (select id from wares where name_id=:TEK_NAME_ID and REP_ID = :TEK_REP_ID)
+
+[selectsqlwithdeleted]
+select * from VW_WARES_ANALOG where WARE_ID in (select id from wares where name_id=:TEK_NAME_ID and REP_ID = :TEK_REP_ID) order by id
+
+[selectsql]
+select * from VW_WARES_ANALOG where WARE_ID in (select id from wares where name_id=:TEK_NAME_ID and REP_ID = :TEK_REP_ID) order by id
+
+[main]
+sourcetablename=VW_WARES_ANALOG
+returnfieldname=id
+captionfieldname=
+keyfieldname=id
+ViewID=VW_WARES_ANALOG
+RootGroupTableName=
+ShowCaption=
+GetCaption=
+GroupSelect=0
+foldergroup=
+initfolder_id=
+dataset=0
+InitTMSGroup_id=298
+folders_visible=0
+Canfloating=0
+hidetoppanel=0
+ActivateDictAction=2
+folderscaption=
+ImmediateAction=1
+dontrefreshafterupdate=0
+
+[cfSelect]
+selectfieldexpression=SNAME||sname_analog
+AllwaysPartial=1
+
+[childs]
+bottomdock_units=0
+bottomdock_size=350
+rightdock_units=1
+rightdock_size=50
+
+[scripts]
+
+[form_show]
+position=8
+left=0
+Top=0
+Width=300
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[form_get]
+position=1
+left=0
+Top=0
+Width=0
+Height=0
+MaxWidth=0
+MaxHeight=0
+MinWidth=0
+MinHeight=0
+
+[block_hl]
+fieldname=
+column=
+color1=128
+color2=32768
+
+[editfields]
+ware_id_analog=WDICTS.WARES
+prior=default
+
+[addfields]
+ware_id_analog=WDICTS.WARES
+
+
+
+INSERT INTO SP$GROUPS (ID, SID, PARENT_ID, CAPTION, GROUPTABLE, STATUS, INSERTDT, SYSTEMFLAG, DESCRIPTION, IMAGEINDEX, DATA, COLOR, SORTING, BASE_AGENT_ID, PACKET, D$UUID, D$SRVUPDDT) VALUES (298, '298', -400, 'инит ассортимента', 'TMS', 0, '14-MAR-2018 16:40:07.539', 0, NULL, -1, NULL, NULL, NULL, 0, 0, 'A66D3229-56FC-4527-845B-39E781F89E98', '1-JAN-2000 00:00:00');
+
+
+
