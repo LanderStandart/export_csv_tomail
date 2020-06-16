@@ -1,0 +1,311 @@
+uses
+  Classes, Graphics, Controls, Forms, Dialogs,
+  undm, IBQuery,DB, IBDatabase,ADODB, SysUtils,
+  unMain,ShellApi,cfutils,Windows,StdCtrls, ComCtrls, ExtCtrls,DB,IBDatabase;
+
+var q: TIBQuery;
+    ac: TAdoConnection;
+    AdoWork: Tadoquery;
+    t,comments,gd,sname, path_tmp,path, INN,org_code,def_region: String;
+    FileName : String;
+    sl: TStringList;        
+    FT : TextFile;
+    date1,date2:string;
+
+begin
+  path_tmp:='C:\Standart-N\ASNA\'; //Временная папка для файлов
+  date1:=DateToStr(Date-30);//'01.02.2019';//
+  date2:=DateToStr(Date);//'28.02.2019';//
+  INN:='110340005529'; //ИНН организации
+  org_code:='Org_AGTF'; //Код юр. лица АСНА
+  def_region:='0';
+
+  q:=dm.TempQuery(nil);
+  q.Active:=false;
+
+//1) ---------------- Структура файла «Справочник товаров» Имя файла «goods.dbf»   -------------------------------------------
+  if 1=1 Then
+  Begin
+  //20180410 A.K. добавляем в ASNA_GOODS все товары, которых там до сих пор нет (триггер WARES_BU0_MGN_NAME_ASNA)
+  q.SQL.text:='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null';
+  q.Active:=true;
+
+  q.Active:=false;
+//  q.SQL.text:='select id, sname as name, SIZG as PRODUCER, SCOUNTRY as COUNTRY, barcode as EAN from vw_wares where sname is not null and sname <> '''' order by SNAME';
+  q.SQL.text:='select id, MGN_NAME as name, PRODUCER, COUNTRY, EAN from ASNA_GOODS where ACTUAL = 1 order by MGN_NAME';
+  q.Active:=true;
+
+  ac:=TAdoConnection.Create(application);
+  AdoWork:=Tadoquery.create(application);
+  ac.ConnectionString:='Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=dBASE IV;User ID=Admin;Password=;Data Source='+path_tmp;
+  ac.LoginPrompt:=false;
+  AdoWork.Connection:=ac;
+  if FileExists(path_tmp+'goods.dbf') then
+  begin
+    deletefile(path_tmp+'goods.dbf');
+  end
+  AdoWork.Active:=false;
+  t:='CREATE TABLE goods (ID CHAR(250),NAME CHAR(250),PRODUCER CHAR(250), COUNTRY CHAR(250), EAN CHAR(250))';
+//  frmSpacePro.Logit(t);
+  AdoWork.SQL.Text:=t;
+  AdoWork.ExecSQL;
+
+  while not q.Eof do
+  begin
+    frmSpacePro.LogIt(q.FieldByName('NAME').AsString);
+    t:='insert into goods (ID,NAME,PRODUCER,COUNTRY,EAN) values ('''+
+        Trim(stringreplace(q.FieldByName('ID').AsString,'''','.',1))+''','''+
+        stringreplace(q.FieldByName('NAME').AsString,'''','.',1)+''','''+
+        stringreplace(q.FieldByName('PRODUCER').AsString,'''','.',1)+''','''+
+        stringreplace(q.FieldByName('COUNTRY').AsString,'''','.',1)+''','''+
+        stringreplace(q.FieldByName('EAN').AsString,'''','.',1)+''');';
+    frmSpacePro.LogIt(t);
+    AdoWork.SQL.Text:=t;
+    AdoWork.ExecSQL;
+    q.Next;
+  end;
+  q.Transaction.Commit;
+  end;
+//  FTP.Put(path_tmp+'goods.dbf', 'goods.dbf', TRUE);
+
+
+
+//2) ---------------- Структура файла «Контрагенты» Имя файла «vendor.dbf»»   -------------------------------------------
+  if 1=1 Then
+  Begin
+  q.Transaction.StartTransaction;
+  q.Active:=false;
+  q.SQL.text:='select ''1'' as id, ''Мелкооптовый покупатель'' as name, '''+INN+''' as inn from rdb$database
+                union
+                select ''2'' as id, ''Розничный покупатель (ККМ)'' as name, '''+INN+''' as inn from rdb$database
+                union
+                select ''3'' as id, ''Ввод остатков'' as name, '''+INN+''' as inn from rdb$database
+                union
+                select cast(a.id as varchar(255)) as ID, caption as name, coalesce(INN,'''') as INN from agents a inner join ASNA_G$PROFILES ga on ga.id = a.g$profile_id where ga.id is not null and a.id > 0
+                order by 2';
+  frmSpacePro.LogIt(q.SQL.text);
+  q.Active:=true;
+
+  ac:=TAdoConnection.Create(application);
+  AdoWork:=Tadoquery.create(application);
+  ac.ConnectionString:='Provider=Microsoft.Jet.OLEDB.4.0;Extended Properties=dBASE IV;User ID=Admin;Password=;Data Source='+path_tmp;
+  ac.LoginPrompt:=false;
+  AdoWork.Connection:=ac;
+  if FileExists(path_tmp+'vendor.dbf') then
+  begin
+    deletefile(path_tmp+'vendor.dbf');
+  end
+  AdoWork.Active:=false;
+  t:='CREATE TABLE vendor(ID CHAR(250),NAME CHAR(250),INN CHAR(250))';
+//  frmSpacePro.Logit(t);
+  AdoWork.SQL.Text:=t;
+  AdoWork.ExecSQL;
+
+  while not q.Eof do
+  begin
+    t:='insert into vendor(ID,NAME,INN) values ('''+
+        stringreplace(q.FieldByName('ID').AsString,'''','.',1)+''','''+
+        stringreplace(q.FieldByName('NAME').AsString,'''','.',1)+''','''+
+        stringreplace(q.FieldByName('INN').AsString,'''','.',1)+''');';
+    //frmSpacePro.LogIt(t);
+    AdoWork.SQL.Text:=t;
+    AdoWork.ExecSQL;
+    q.Next;
+  end;
+  q.Transaction.Commit;
+  q.Transaction.StartTransaction;
+  end;
+
+
+//3) ---------------- Структура файла «Данные о товародвижении» Имя файла «название юридического лица_название торгового объекта_дата и время формирования файла.TXT»»   -------------------------------------------
+  if 1=1 Then
+  begin
+  q.Active:=false;
+  q.SQL.text:='select '''+org_code+'''||''_''||ga.asna_code||''_''||replace(cast(current_date as varchar(255)),''-'','''')||''T''||replace(left(cast(current_time as varchar(255)),5),'':'','''')||''.txt'' as filename,
+       cast(dd.id as varchar(255))||''_''||cast(dd.g$profile_id as varchar(255)) as ID,
+       cast(d.id as varchar(255))||''_''||cast(d.g$profile_id as varchar(255)) as DOC_ID,
+       '''+org_code+''' as ur_l,
+       ga.asna_code,
+       case d.doc_type
+         when 11 then 1 --мелкооптовый отпуск
+         when 3  then 2 --продажа через ККМ
+         when 1  then 3 --приход товара
+         when 9  then 4 --возврат от покупателя
+         when 37 then 4 --возврат от покупателя
+         when 4  then 5 --возврат поставщику
+         when 2  then iif((char_length(a.email) between 1 and 3), 6, 8) --межскладская передача
+         when 17 then 7 --Списание
+         when 10 then 7 --Списание
+         when 5  then 7 --Списание
+         when 20 then 8  --Ввод остатков
+       end as doc_type,
+       case d.doc_type
+         when 11 then '''+INN+''' --мелкооптовый отпуск
+         when 3  then '''+INN+''' --продажа через ККМ
+         when 1  then coalesce(a.inn,'''') --приход товара
+         when 2  then iif((char_length(a.email) between 1 and 3),(select asna_code from ASNA_G$PROFILES where id = cast((select iif(((a2.email='''') or (char_length(a2.email) > 3) or (a2.email is null)),0,a2.email) from agents a2 where a2.id = d.agent_id) as dm_id)),ga.asna_code) --межскладская передача
+         when 17 then ga.asna_code --Списание
+         when 10 then ga.asna_code --Списание
+         when 5  then ga.asna_code --Списание
+         when 20 then ga.asna_code --Ввод остатков
+         else ''''
+       end as sagent,
+       left(cast(d.commitdate as varchar(255)),19) as doc_date,
+       case d.doc_type
+        when 3 then d.docnum||''Ч''||(select max(docnum) from docs d2 where d2.g$profile_id = d.g$profile_id and d2.status = 1 and d2.doc_type=13 and d2.vshift = d.vshift and d2.device_num = d.device_num)
+        else d.docnum
+       end as docnum,
+       dcard,
+       (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) as GOODS_ID,
+       abs(dd.quant) as quant,
+       (select inn from agents where id = p.agent_global_id ) as inn,
+       abs(Round((dd.quant*p.price_o*100/(100+dp.nds)),2)) as sum_b_nds,
+       abs(dd.summa_o) as summa_o,
+       abs(Round((dd.summa_o-dd.quant*p.price_o*100/(100+dp.nds)),2)) as sum_nds,
+       abs(dd.summa+dd.sum_dsc) as summa_b_dsc,
+       abs(dd.summa) as summa,
+       abs(dd.sum_dsc) as sum_dsc,
+       d.status,
+       coalesce(0,'+def_region+') as region
+ from doc_detail dd
+inner join docs d on dd.doc_id = d.id and dd.g$profile_id = d.g$profile_id
+inner join agents a on a.id=d.agent_id
+inner join ASNA_G$PROFILES ga on ga.id = d.g$profile_id
+inner join parts p on p.g$profile_id = dd.g$profile_id and dd.part_id = p.id
+inner join deps dp on p.dep = dp.id
+where ga.id is not null and d.status = 1 and d.doc_type in (11,2,3,1,37,9,4,17,10,5,20) and dd.doc_commitdate between '''+date1+''' and '''+date2+'''
+and (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) is not null
+and dd.quant <> 0
+order by 1 ';
+
+//--         when 2  then (select asna_code from ASNA_G$PROFILES where id = (select a2.email from agents a2 where a2.id = (select AGENT_ID from PR_GETMOTHERPART(dd.part_id, dd.g$profile_id)))) --межскладская передача
+
+  frmSpacePro.LogIt(q.SQL.text);
+  q.Active:=true;
+  filename:='';
+  while not q.Eof do
+  begin
+    If filename='' Then
+    begin
+         filename:= path_tmp+q.FieldByName('filename').AsString;
+         AssignFile(FT, FileName);
+         if FileExists(FileName) then
+            Append(FT)
+          else
+            Rewrite(FT);
+    end;
+
+    if filename = path_tmp+q.FieldByName('filename').AsString Then
+        begin
+         t:='"'+q.FieldByName('ID').AsString+'"|"'+q.FieldByName('DOC_ID').AsString+'"|"'+q.FieldByName('ur_l').AsString+'"|"'+q.FieldByName('asna_code').AsString+'"|'+
+         q.FieldByName('DOC_TYPE').AsString+'|"'+q.FieldByName('SAGENT').AsString+'"|'+q.FieldByName('DOC_DATE').AsString+'|"'+q.FieldByName('DOCNUM').AsString+'"|1|"'+
+         q.FieldByName('DCARD').AsString+'"|"1"|"'+q.FieldByName('DCARD').AsString+'"|"'+q.FieldByName('DCARD').AsString+'"|"'+Trim(q.FieldByName('GOODS_ID').AsString)+'"|""|'+
+         stringreplace(q.FieldByName('QUANT').AsString,',','.',1)+'|"'+q.FieldByName('INN').AsString+'"|'+q.FieldByName('region').AsString+'|'+stringreplace(q.FieldByName('sum_b_nds').AsString,',','.',1)+'|'+
+         stringreplace(q.FieldByName('summa_o').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('sum_nds').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('summa_b_dsc').AsString,',','.',1)+'|'+
+         stringreplace(q.FieldByName('summa').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('sum_dsc').AsString,',','.',1)+'|'+q.FieldByName('status').AsString+'|""|""|0';
+//         frmSpacePro.LogIt(t);
+         WriteLn(FT, t);
+        end
+    else
+        Begin
+          CloseFile(FT);
+          filename:= path_tmp+q.FieldByName('filename').AsString;
+          AssignFile(FT, FileName);
+          if FileExists(FileName) then
+            Append(FT)
+          else
+            Rewrite(FT);
+        end;
+    q.Next;
+  end;
+  CloseFile(FT);
+  q.Transaction.Commit;
+  end;
+
+
+//4) ---------------- Структура файла «Данные об остатках» Имя файла «название юридического лица_название торгового объекта_дата и время формирования файла_суфиксRST.TXT»»   -------------------------------------------
+  //Предподготовка к выгрузке остатков - расчет остатков на конец периода
+  q.Transaction.StartTransaction;
+  q.Active:=false;
+  q.SQL.Text:='delete from ASNA_WAREBASE';
+  frmSpacePro.LogIt(q.SQL.Text);
+  q.ExecSQL;
+  q.Transaction.Commit;
+
+  q.Transaction.StartTransaction;
+  q.Active:=false;
+  q.SQL.Text:='insert into ASNA_WAREBASE(part_id, G$PROFILE_ID,ddate) select id, G$PROFILE_ID, '''+date2+''' from parts p';  //where p.g$profile_id in (4,25,31,16,32,17)
+{  q.SQL.Text:='insert into ASNA_WAREBASE(part_id, G$PROFILE_ID,ddate)
+                  select p.id, p.G$PROFILE_ID, '''+date2+''' from parts p
+                    inner join  agents a on p.g$profile_id = cast(a.email as dm_id)
+                    inner join ASNA_G$PROFILES ag on ag.id = a.id
+                    left join wares w on w.id = p.ware_id
+               where a.id > 0';   }
+
+//  frmSpacePro.LogIt(q.SQL.text);
+  q.ExecSQL;
+  q.Transaction.Commit;
+
+  q.Transaction.StartTransaction;
+  q.Active:=false;
+  q.SQL.Text:='select '''+org_code+'''||''_''||ga.asna_code||''_''||replace(cast(current_date as varchar(255)),''-'','''')||''T''||replace(left(cast(current_time as varchar(255)),5),'':'','''')||''_RST.txt'' as filename,
+       '''+org_code+''' as ur_l,
+       ga.asna_code,
+       a.inn,
+       left(cast(cast(dateadd(0 day to w.ddate) as dm_datetime) as varchar(255)),19) as beg_date,
+       left(cast(d.commitdate as varchar(255)),19) as post_date,
+       (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) as GOODS_ID,
+       w.quant,
+       coalesce(abs(Round((w.quant*w.price_o*100/(100+w.nds)),2)),0) as sum_b_nds,
+       coalesce(abs(Round(w.quant*w.price_o,2)),0) as summa_o,
+       coalesce(abs(Round((w.quant*w.price_o-w.quant*w.price_o*100/(100+w.nds)),2)),0) as sum_nds,
+       coalesce(abs(round(w.quant*w.price,2)),0) as summa,
+       coalesce(0,'+def_region+') as region
+ from ASNA_WAREBASE w
+inner join docs d on w.doc_id = d.id and w.g$profile_id = d.g$profile_id
+inner join agents a on a.id=w.agent_id
+inner join ASNA_G$PROFILES ga on ga.id = w.g$profile_id
+where ga.id is not null and w.quant > 0.01 and (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) is not null
+order by 1'
+//and ga.ASNA_CODE in (''ASPK_5'',''ASPK_25'',''ASPK_26'')
+
+  frmSpacePro.LogIt(q.SQL.text);
+  q.Active:=true;
+  filename:='';
+  while not q.Eof do
+  begin
+    If filename='' Then
+    begin
+         filename:= path_tmp+q.FieldByName('filename').AsString;
+         AssignFile(FT, FileName);
+         if FileExists(FileName) then
+            Append(FT)
+          else
+            Rewrite(FT);
+    end;
+
+    if filename = path_tmp+q.FieldByName('filename').AsString Then
+        begin
+         t:='"'+q.FieldByName('ur_l').AsString+'"|"'+q.FieldByName('asna_code').AsString+'"|"'+q.FieldByName('INN').AsString+'"|'+q.FieldByName('region').AsString+'|'+
+         q.FieldByName('beg_date').AsString+'|'+q.FieldByName('post_date').AsString+'|"'+Trim(q.FieldByName('GOODS_ID').AsString)+'"|""|'+
+         stringreplace(q.FieldByName('QUANT').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('sum_b_nds').AsString,',','.',1)+'|'+
+         stringreplace(q.FieldByName('summa_o').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('sum_nds').AsString,',','.',1)+'|'+stringreplace(q.FieldByName('summa').AsString,',','.',1);
+         WriteLn(FT, t);
+        end
+    else
+        Begin
+          CloseFile(FT);
+          filename:= path_tmp+q.FieldByName('filename').AsString;
+          AssignFile(FT, FileName);
+          if FileExists(FileName) then
+            Append(FT)
+          else
+            Rewrite(FT);
+        end;
+    q.Next;
+  end;
+  CloseFile(FT);
+
+  q.Transaction.Commit;
+
+end;
