@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9ee8c4b6-04a5-4217-b2bd-fe12930a1b6f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../export_csv_tomail/config.ini" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../export_csv_tomail/declare.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../export_csv_tomail/export.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../export_csv_tomail/ftp.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/export.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../untitled/export" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
