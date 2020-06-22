@@ -15,7 +15,7 @@ conn = fdb.connect(host=host, database=database, user='sysdba', password='master
 
 curs = conn.cursor()
 head = [config.get('CSV_CONF', 'HEAD')]
-SQL_profile= "SELECT id,caption FROM G$PROFILES where id=4"
+SQL_profile= "SELECT id,caption FROM G$PROFILES"
 SQL_warebase = "SELECT sname, cast(quant as numeric(9,2)), price FROM warebase_g  w "
 
 #запрос к базе

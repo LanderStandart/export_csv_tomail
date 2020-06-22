@@ -1,0 +1,29 @@
+select
+count(v1.id) ||'- Dima'
+from VW_UCHET_PERSONAL v1
+where (((v1.user_id =61) and (coalesce(v1.peredano,'|'||'61'||'|') like '%|'||'61'||'|%'))
+or (v1.peredano like '%|'||'61'||'|%'))
+and v1.status_id = 1 and v1.obj_date between '01.12.2019' and current_time
+union
+select
+count(v1.id) ||'- Ostas'
+from VW_UCHET_PERSONAL v1
+where (((v1.user_id =66) and (coalesce(v1.peredano,'|'||'66'||'|') like '%|'||'66'||'|%'))
+or (v1.peredano like '%|'||'66'||'|%'))
+and v1.status_id = 1 and v1.obj_date between '01.12.2019' and current_time
+
+union
+select
+count(v1.id) ||'- Masha'
+from VW_UCHET_PERSONAL v1
+where (((v1.user_id =28) and (coalesce(v1.peredano,'|'||'28'||'|') like '%|'||'28'||'|%'))
+or (v1.peredano like '%|'||'28'||'|%'))
+and v1.status_id = 1 and v1.obj_date between '01.12.2019' and current_time
+
+union
+select
+count(v1.id) ||'- Andrew'
+from VW_UCHET_PERSONAL v1
+where (((v1.user_id =38) and (coalesce(v1.peredano,'|'||'38'||'|') like '%|'||'38'||'|%'))
+or (v1.peredano like '%|'||'38'||'|%'))
+and v1.status_id = 1 and v1.obj_date between '01.12.2019' and current_time
