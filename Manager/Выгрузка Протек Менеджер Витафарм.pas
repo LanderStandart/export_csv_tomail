@@ -129,7 +129,7 @@ Result:='select
            cast((select docs.docdate from docs where docs.id=p.doc_id)as date) as InvoiceDate,
            d.docnum as PurchaseStuinvoiceNum,
            d.docdate as PurchaseStuInvoiceDate,
-           iif(d.doc_type= 1,''PurchaseInvoice'',iif(d.doc_type=20,''ImportRemains'',iif(d.doc_type=9,''ActReturnBuyer'',iif(d.doc_type=2,''MoveAdd'',''''))))as SaleDocType,
+           iif(d.doc_type= 1,''PurchaseInvoice'',iif(d.doc_type=20,''ImportRemains'',iif(d.doc_type=9,''ActReturnBuyer'',iif(d.doc_type=2,''MoveAdd'',''''))))as PurchaseDocType,
            cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
           cast(p.nds as numeric (3,0)) as VatWholeBuy,
           cast(p.sum_ndso as numeric(9,2))as PvatWholeBuy,          
