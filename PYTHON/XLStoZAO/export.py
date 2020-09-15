@@ -24,6 +24,7 @@ def xls_to_zao(file):
 # столбцы  1- '№'  2- 'Наименование / Изготовитель' 3-'заказ'
 
     i = 0
+
     data=[]
     while i< len(excel_data_df):
     #print(excel_data_df['Наименование / Изготовитель'][i])
