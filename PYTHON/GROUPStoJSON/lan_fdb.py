@@ -39,6 +39,7 @@ def get_sql(curs,sql,where=None,commit=None):
     if commit is None:
         for i in query:
             result.append(list(i))
+
         return result
     else:
         conn.commit()
