@@ -1,6 +1,8 @@
 ﻿#  Autor by Lander (c) 2020. Created for Standart-N LLT
-
+import time
 import configparser
+from typing import Any, Union
+
 import MyUtils
 from  MyUtils import Db,Archiv,CSV_File
 
@@ -19,13 +21,10 @@ if int(config.get('PARAMS', 'FARMIT')):
 
 head = [config.get('CSV_CONF', 'HEAD')]
 SQL_profile= "SELECT first 2 id,caption,email FROM G$PROFILES where email is not null"
-SQL_warebase_ITEKA = "select w.sname,w.price, w.scountry, w.sizg, w.quant, w.ware_id from warebase w " \
-                     "inner join doc_detail dd on dd.part_id=w.part_id " \
-                     "inner join docs d on d.id=dd.doc_id and d.commitdate between '$datestart' and current_timestamp"
 
 
 if int(config.get('PARAMS', '103KZ')):
-    if int(config.get('PARAMS', 'ALONE')):
+    if int(config.get('BASE_CONF', 'ALONE')):
         # Выгружаем на FTP  apteka.103.kz
         Kz103().get_data()
     else:
@@ -34,7 +33,7 @@ if int(config.get('PARAMS', '103KZ')):
             Kz103 (i[0]).get_data()
 
 if int(config.get('PARAMS', '2GIS')):
-    if int(config.get('PARAMS', 'ALONE')):
+    if int(config.get('BASE_CONF', 'ALONE')):
         # Выгружаем на FTP  2Gis
         Kz2GIS().get_data()
     else:
@@ -45,7 +44,7 @@ if int(config.get('PARAMS', '2GIS')):
 
 # формируем выгрузку DAMUMED
 if int(config.get('PARAMS', 'DAMUMED')):
-    if int(config.get('PARAMS', 'ALONE')):
+    if int(config.get('BASE_CONF', 'ALONE')):
         print('Одиночная точка пока не реализована')
     else:
         profiles = DataB.get_sql(SQL_profile)
@@ -59,7 +58,14 @@ if  int(config.get('PARAMS', 'FARMIT')):
     print('Формируем: PharmIT')
     PharmIt().get_Data()
 
+print(config.items('PARAMS'))
+params = config.items('PARAMS')
 
+for i in params:
+    if int(i[1]) != 0:
+        print(i)
+
+s = config.get('SCRIPTS', 'FARMIT')
 
 
 

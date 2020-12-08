@@ -90,6 +90,20 @@ class FTP_work(Db):
             ftp.storlines("STOR " + self.file_name, f_obj)
         ftp.quit()
 
+class ExportData():
+    def __init__(self,firm):
+        self.firm = firm
+
+    def create(self):
+        if int(config.get('PARAMS', self.firm)):
+            if int(config.get('PARAMS', 'ALONE')):
+                # Выгружаем на FTP  2Gis
+                Kz2GIS().get_data()
+            else:
+                profiles = DataB.get_sql(SQL_profile)
+                for i in profiles:
+                    Kz2GIS(i[0]).get_data()
+
 def valid_xml(stroka):
     stroka = str(stroka)
     stroka = stroka.replace('<','&lt;')
