@@ -18,6 +18,7 @@ class Db:
 
 #Запрос к базе с условием
     def get_sql(self,sql,where=None):
+        result=None
         self.sql=sql
         self.where = where
         if self.where:
@@ -90,19 +91,23 @@ class FTP_work(Db):
             ftp.storlines("STOR " + self.file_name, f_obj)
         ftp.quit()
 
-class ExportData():
+class ExportData(Db):
     def __init__(self,firm):
         self.firm = firm
+        self.DB = Db()
 
     def create(self):
-        if int(config.get('PARAMS', self.firm)):
-            if int(config.get('PARAMS', 'ALONE')):
+        if int(self.DB.config.get('PARAMS', self.firm)):
+            if int(self.DB.config.get('BASE_CONF', 'ALONE')):
                 # Выгружаем на FTP  2Gis
-                Kz2GIS().get_data()
+                firm = self.firm
+                from firm.lower import self.firm
+                func = eval(self.firm)
+                func.get_data()
             else:
                 profiles = DataB.get_sql(SQL_profile)
                 for i in profiles:
-                    Kz2GIS(i[0]).get_data()
+                    self.firm(i[0]).get_data()
 
 def valid_xml(stroka):
     stroka = str(stroka)

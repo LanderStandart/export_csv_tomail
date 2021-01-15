@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/581.csv" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/config.ini" charset="windows-1251" />
-    <file url="file://$PROJECT_DIR$/№4 Азина 288, тел.74-20-40 .csv" charset="windows-1251" />
-    <file url="file://$PROJECT_DIR$/№5 50 Лет ВЛКСМ,40 тел.58-34-46.csv" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/Алматы.csv" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/Костанай Зона приемки.csv" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/Север.csv" charset="windows-1251" />
   </component>
 </project>

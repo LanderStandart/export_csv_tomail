@@ -1,7 +1,0 @@
-{"org_id": 1, "org_chenum": 2, "drug_id": 0, "price": 1300, "delivery": 0,
-  "reserv": 0, "preorder": 0, "payonline": 0, "limited": 0, "action": 0,
-  "bycard": 0, "qtty": 4, "item_id": "11234",
-  "item_name": "\u041f\u0430\u0440\u0430\u0446\u0435\u0442\u0430\u043c\u043e\u043b", "remark": ""}
-{"org_id": 1, "org_chenum": 2, "drug_id": 0, "price": 2300, "delivery": 0, "reserv": 0,
-  "preorder": 0, "payonline": 0, "limited": 0, "action": 0, "bycard": 0, "qtty": 4, "item_id": "11234",
-  "item_name": "\u0412\u0438\u0442\u0430\u043c\u0438\u043d\u044b", "remark": ""}

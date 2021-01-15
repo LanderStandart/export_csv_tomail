@@ -35,7 +35,7 @@ as
 begin
 if (:iffirst=0) then
      begin
-     delete from sozvezdie_action_batch where sozvezdie_action_batch.real_quant_beg is null;
+    delete from sozvezdie_action_batch where sozvezdie_action_batch.firsttime=0;
      execute procedure pr_sozvezdie_batch (:date_start,:date_end,:iffirst);
      delete from sozvezdie_action_batch1 where sozvezdie_action_batch1.real_quant_beg is null;
      insert into sozvezdie_action_batch1 (map_batch_id,
@@ -86,18 +86,18 @@ if (:iffirst=0) then
             coalesce( cast((select round(deps.ndsr,0) from deps where deps.id = p1.dep)as dm_text),'') as purchase_nds,
             cast (p1.price as numeric(10,2)) as retail_price_nds,
             cast (p1.nds as numeric(9,0)) as retail_nds,
-            w.barcode as barcode,
+            iif(char_length (w.barcode)>14,'',w.barcode) as barcode,
             '0' as sign_comission,
             w.name_id as nomenclature_codes
          from  SOZVEZDIE_ACTION_BATCH  p
-         join parts p1 on p1.id=p.map_batch_id
+         left join parts p1 on p1.id=p.map_batch_id
         -- left join doc_detail dd on dd.part_id=p.part_id
-          join docs d on d.id = p1.doc_id --and d.doc_type in (1,2,20)
-          join agents a on a.id=d.agent_id
-         join WARES w on p1.ware_id=w.id
-         join vals vname on w.name_id=vname.id
-         join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-         join vals vcountry on w.country_id=vcountry.id;
+         left  join docs d on d.id = p1.doc_id --and d.doc_type in (1,2,20)
+         left join agents a on a.id=d.agent_id
+         left join WARES w on p1.ware_id=w.id
+         left join vals vname on w.name_id=vname.id
+         left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+         left join vals vcountry on w.country_id=vcountry.id;
         --where
         --  exists(select docs.docdate from docs left join doc_detail dd on dd.part_id=p.map_batch_id where docs.docdate  between :date_start and :date_en
 
@@ -106,8 +106,8 @@ if (:iffirst=0) then
      end
 else
 begin
-     delete from sozvezdie_action_batch where sozvezdie_action_batch.real_quant_beg is not null;
-     execute procedure pr_sozvezdie_batch (:date_start,:date_end,:iffirst);
+   delete from sozvezdie_action_batch where sozvezdie_action_batch.firsttime=1;
+    execute procedure pr_sozvezdie_batch (:date_start,:date_end,:iffirst);
      delete from sozvezdie_action_batch1 where sozvezdie_action_batch1.real_quant_beg is not null;
      insert into sozvezdie_action_batch1 (map_batch_id,
                map_pharmacy_id,
@@ -157,21 +157,20 @@ begin
             cast((select deps.ndsr from deps where deps.id = p1.dep)as numeric (3,0)) as purchase_nds,
             cast (p1.price as numeric(10,2)) as retail_price_nds,
             cast (p1.nds as numeric(9,0)) as retail_nds,
-            w.barcode as barcode,
+             iif(char_length (w.barcode)>14,'',w.barcode) as barcode,
             '0' as sign_comission,
             w.name_id as nomenclature_codes
          from SOZVEZDIE_ACTION_BATCH  p
 
          left join parts p1 on p1.id=p.map_batch_id
          left join docs d on d.id = p1.doc_id --and d.doc_type in (1,2,20)
-         inner join agents a on a.id=d.agent_id
-         join WARES w on p1.ware_id=w.id
-         inner join vals vname on w.name_id=vname.id
-         inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
-         inner join vals vcountry on w.country_id=vcountry.id;
+         left join agents a on a.id=d.agent_id
+         left join WARES w on p1.ware_id=w.id
+         left join vals vname on w.name_id=vname.id
+         left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+         left join vals vcountry on w.country_id=vcountry.id;
 
---         where
---           d.docdate between :date_start||':00:00:00' and :date_end||':23:59:59'
+
 
       suspend;
      end

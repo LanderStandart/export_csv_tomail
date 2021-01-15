@@ -4,17 +4,18 @@ import configparser
 from typing import Any, Union
 
 import MyUtils
-from  MyUtils import Db,Archiv,CSV_File
+from  MyUtils import Db,Archiv,CSV_File,ExportData
 
 DataB = Db()
 config = configparser.ConfigParser()
 config.read('./config.ini')
 
+#исходя из настроек подгружаем выгрузки
 if int(config.get('PARAMS', 'DAMUMED')):
     from damumed import Damumed
 if int(config.get('PARAMS', '103KZ')):
     from kz103 import Kz103
-if int(config.get('PARAMS', '2GIS')):
+if int(config.get('PARAMS', 'Kz2GIS')):
     from kz2gis import Kz2GIS
 if int(config.get('PARAMS', 'FARMIT')):
     from  pharmit import PharmIt
@@ -32,14 +33,14 @@ if int(config.get('PARAMS', '103KZ')):
         for i in profiles:
             Kz103 (i[0]).get_data()
 
-if int(config.get('PARAMS', '2GIS')):
-    if int(config.get('BASE_CONF', 'ALONE')):
-        # Выгружаем на FTP  2Gis
-        Kz2GIS().get_data()
-    else:
-        profiles = DataB.get_sql(SQL_profile)
-        for i in profiles:
-            Kz2GIS(i[0]).get_data()
+# if int(config.get('PARAMS', 'Kz2GIS')):
+#     if int(config.get('BASE_CONF', 'ALONE')):
+#         # Выгружаем на FTP  2Gis
+#         Kz2GIS().get_data()
+#     else:
+#         profiles = DataB.get_sql(SQL_profile)
+#         for i in profiles:
+#             Kz2GIS(i[0]).get_data()
 
 
 # формируем выгрузку DAMUMED
@@ -65,7 +66,7 @@ for i in params:
     if int(i[1]) != 0:
         print(i)
 
-s = config.get('SCRIPTS', 'FARMIT')
 
+ExportData('Kz2GIS').create()
 
 
