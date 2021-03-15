@@ -1,0 +1,50 @@
+SET TERM ^ ;
+
+create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+
+/*  select w.mgn_name, w.barcode from WARES w where id = :ware_id into :mgn_name, :barcode;
+  if (:mgn_name is null and coalesce(:barcode, '') <> '') then
+   select first 1 w.mgn_name from WARES w where barcode = :barcode into :mgn_name;
+
+  if (:mgn_name is null and coalesce(:barcode, '') = '') then
+    GOODS_ID = Null;
+  else
+  begin
+   select id from asna_goods ag where ag.mgn_name = coalesce(:mgn_name,'$$$') into :GOODS_ID;
+   if ((:GOODS_ID is null) and coalesce(:barcode, '') <> '')  Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+  end*/
+
+  suspend;
+end^
+
+SET TERM ; ^
+
+/* Следующие операторы GRANT сгенерированы автоматически */
+
+GRANT SELECT ON VW_WARES TO PROCEDURE PR_ASNA_GET_GOODS;
+GRANT SELECT ON ASNA_GOODS TO PROCEDURE PR_ASNA_GET_GOODS;
+
+/* Существующие привилегии на эту процедуру */
+
+GRANT EXECUTE ON PROCEDURE PR_ASNA_GET_GOODS TO PROCEDURE PR_ASNA_SET_ACTUAL;
+GRANT EXECUTE ON PROCEDURE PR_ASNA_GET_GOODS TO SYSDBA;

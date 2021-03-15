@@ -1,0 +1,95 @@
+SET SQL DIALECT 3;
+
+
+
+/******************************************************************************/
+/***                                 Tables                                 ***/
+/******************************************************************************/
+
+
+
+CREATE TABLE ASNA_WAREBASE (
+    PART_ID        DM_ID /* DM_ID = BIGINT NOT NULL */,
+    G$PROFILE_ID   DM_ID /* DM_ID = BIGINT NOT NULL */,
+    MOTHERPART_ID  DM_ID_NULL /* DM_ID_NULL = BIGINT */,
+    QUANT          DM_DOUBLE /* DM_DOUBLE = DOUBLE PRECISION */,
+    DDATE          DM_DATE /* DM_DATE = DATE */,
+    DOC_ID         DM_ID_NULL /* DM_ID_NULL = BIGINT */,
+    PRICE          DM_DOUBLE /* DM_DOUBLE = DOUBLE PRECISION */,
+    PRICE_O        DM_DOUBLE /* DM_DOUBLE = DOUBLE PRECISION */,
+    NDS            DM_DOUBLE /* DM_DOUBLE = DOUBLE PRECISION */,
+    WARE_ID        DM_UUID_NULL /* DM_UUID_NULL = CHAR(36) */,
+    AGENT_ID       DM_ID_NULL /* DM_ID_NULL = BIGINT */
+);
+
+
+
+
+/******************************************************************************/
+/***                              Primary keys                              ***/
+/******************************************************************************/
+
+ALTER TABLE ASNA_WAREBASE ADD CONSTRAINT PK_ASNA_WAREBASE_1 PRIMARY KEY (PART_ID, G$PROFILE_ID);
+
+
+/******************************************************************************/
+/***                                Triggers                                ***/
+/******************************************************************************/
+
+
+
+SET TERM ^ ;
+
+
+
+/******************************************************************************/
+/***                          Triggers for tables                           ***/
+/******************************************************************************/
+
+
+
+/* Trigger: ASNA_WAREBASE_AI0 */
+CREATE OR ALTER TRIGGER ASNA_WAREBASE_AI0 FOR ASNA_WAREBASE
+ACTIVE AFTER INSERT POSITION 0
+AS
+begin
+  if (abs(coalesce(new.quant,0))< 0.01) then
+   delete from ASNA_WAREBASE w where w.part_id = new.part_id and w.g$profile_id = new.g$profile_id;
+end
+^
+
+
+/* Trigger: ASNA_WAREBASE_BI0 */
+CREATE OR ALTER TRIGGER ASNA_WAREBASE_BI0 FOR ASNA_WAREBASE
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.DDATE is not null) then
+--    select sum(dd2.quant) from doc_detail dd2 where dd2.part_id = new.part_id and dd2.g$profile_id = new.g$profile_id and dd2.doc_commitdate <= new.DDATE into new.quant;
+    select sum(dd2.quant) from doc_detail dd2 left join docs d on dd2.doc_id = d.id and dd2.g$profile_id = d.g$profile_id
+     where dd2.part_id = new.part_id and dd2.g$profile_id = new.g$profile_id and dd2.doc_commitdate < new.DDATE and d.status = 1 into new.quant;
+
+
+  if (abs(coalesce(new.quant,0)) > 0.01) then
+  begin
+   select MOTHERPART_ID,DOC_ID from PR_GETMOTHERPART(new.part_id,new.g$profile_id) into new.MOTHERPART_ID, new.DOC_ID;
+
+   select
+    PRICE,
+    PRICE_O ,
+    WARE_ID,
+    dp.nds,
+    p.agent_global_id
+   from parts p
+   inner join deps dp on p.dep = dp.id
+   where p.g$profile_id = new.g$profile_id and p.id = new.part_id into
+    new.PRICE,
+    new.PRICE_O,
+    new.WARE_ID,
+    new.nds,
+    new.AGENT_ID;
+  end
+end
+^
+
+SET TERM ; ^
