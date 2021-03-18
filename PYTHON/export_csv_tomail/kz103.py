@@ -25,13 +25,13 @@ from MyUtils import Db, CSV_File, FTP_work
 
 
 class Kz103(Db):
-    def __init__(self):
+    def __init__(self, profile_id=None):
         self.profile_id = profile_id
         self.DB = Db()
         self.FTPconf = 'FTP_CONF'
         self.head = [self.DB.config.get('CSV_CONF', 'HEAD')]
 
-    def get_data(self, profile_id=None):
+    def get_data(self):
         if self.profile_id:
             self.SQL = "SELECT  sname, cast(quant as numeric(9,2)), price FROM warebase_g w where quant>0"
             self.profile_name = \
@@ -47,8 +47,8 @@ class Kz103(Db):
 print(self.profile_name, 'Формируем: ')
 print(self.SQL + self.where)
 CSV_File(self.profile_name, self.DB.get_sql(self.SQL, self.where), self.head, self.profile_name).create_csv()
-FTP_work(self.FTPconf).upload_FTP(self.profile_name + '.csv')
 
+FTP_work(self.FTPconf).upload_FTP(self.profile_name + '.csv')
 
 
 

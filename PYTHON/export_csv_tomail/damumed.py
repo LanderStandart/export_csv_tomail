@@ -1,19 +1,19 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from MyUtils import FTP_work,Archiv
-import MyUtils
-class Damumed:
-    def __init__(self, DB, file_name, profile_id):
+from MyUtils import FTP_work,Archiv,Db,valid_xml
+
+class Damumed(Db):
+    def __init__(self, profile_id=None):
+        self.DB = Db()
         self.profile_id = profile_id
-        self.file_name = file_name
-        self.DB = DB
+        self.file_name = self.DB.config.get('FTP_CONF3', 'ID_CLIENT')
+        print(self.profile_id)
 
     def get_Data(self):
-        file_damumed = open("./" + self.file_name + ".xml", "wb")
-        xml = '<?xml version="1.0" encoding="utf-8" ?>\n' \
+        with open(self.file_name + str(self.profile_id) +".xml", "wb")as file_damumed:
+            xml = '<?xml version="1.0" encoding="utf-8" ?>\n' \
               '<drugs>\n'.encode('utf8')
-        file_damumed.write(xml)
-
-        SQL_DAMUMED = " select first 1 p.param_value as storename, " \
+            file_damumed.write(xml)
+            SQL_DAMUMED = " select first 5 g.caption  as storename, " \
                       "w.sname as drugname, " \
                       "w.sizg as manufacturer, " \
                       "w.scountry as country, " \
@@ -22,27 +22,24 @@ class Damumed:
                       "'' as registrationNumber, " \
                       "w.quant as balance, " \
                       "w.price as price " \
-                      "from warebase_g w " \
-                      "join params p on p.param_id='ORG_NAME_SHORT'"
-        if self.profile_id:
-            SQL_DAMUMED =SQL_DAMUMED+" and p.g$profile_id=w.g$profile_id"
+                      "from warebase_g w "\
+                    "inner join g$profiles g on g.id = w.g$profile_id"
+            result = self.DB.get_sql(SQL_DAMUMED,' where w.g$profile_id='+self.profile_id)
+            xml = ''
 
-        result = self.DB.get_sql(SQL_DAMUMED, self.profile_id)
-        xml = ''
-
-        for s in result:
-            xml = '  <drug storeName="' + MyUtils.valid_xml(s[0]) + '" drugName="' + MyUtils.valid_xml(
-                s[1]) + ' " manufacturer="' + MyUtils.valid_xml(s[2]) + '" country="' + s[3] + \
+            for s in result:
+                xml = '  <drug storeName="' + valid_xml(s[0]) + '" drugName="' + valid_xml(
+                s[1]) + ' " manufacturer="' + valid_xml(s[2]) + '" country="' + s[3] + \
                   '" dosage="' + s[4] + '" packaging="' + s[5] + '" registrationNumber="' + s[6] + '" balance="' + str(
                 s[7]) + '" price="' + str(s[8]) + '"/>\n'
-            xml = xml.encode('utf8')
+                xml = xml.encode('utf8')
+                file_damumed.write(xml)
+            xml = '</drugs>\n'.encode('utf8')
             file_damumed.write(xml)
-        xml = '</drugs>\n'.encode('utf8')
-        file_damumed.write(xml)
-        file_damumed.close()
 
-        Archiv(self.file_name, 'xml').zip_File()
-        FTP_work('FTP_CONF3').upload_FTP(self.file_name + '.zip')
+
+        Archiv(self.file_name+self.profile_id, 'xml').zip_File()
+        FTP_work('FTP_CONF3').upload_FTP(self.file_name+self.profile_id + '.zip')
 
 
 

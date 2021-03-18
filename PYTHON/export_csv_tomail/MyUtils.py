@@ -4,6 +4,8 @@ import csv
 import configparser
 import fdb
 import zipfile
+import importlib
+import os.path
 
 #Подключение к БД
 class Db:
@@ -22,12 +24,13 @@ class Db:
         self.sql=sql
         self.where = where
         if self.where:
-            self.sql = self.sql + self.where
-        # print(sql)
-        query = self.curs.execute(sql)
+            self.sql = self.sql + ' '+self.where
+
+        query = self.curs.execute(self.sql)
         result = []
         for i in query:
             result.append(list(i))
+        self.conn.commit()
         return result
 
 #Архивирование файла
@@ -36,8 +39,8 @@ class Archiv:
         self.fn = fn
         self.ext = ext
     def zip_File(self):
-        with zipfile.ZipFile('./' + self.fn + '.zip', 'w') as ZIPP:
-            ZIPP.write('./' +self.fn + '.'+self.ext, compress_type=zipfile.ZIP_DEFLATED)
+        with zipfile.ZipFile(os.path.abspath(os.curdir)+'\\'+self.fn + '.zip', 'w') as ZIPP:
+            ZIPP.write(os.path.abspath(os.curdir)+'\\'+self.fn + '.'+self.ext, compress_type=zipfile.ZIP_DEFLATED)
         ZIPP.close()
 
 #Создание CSV
@@ -70,44 +73,51 @@ class FTP_work(Db):
         self.port = int(self.DB.config.get(self.sections, 'FTP_PORT'))
         self.ftp_user = self.DB.config.get(self.sections, 'FTP_USER')
         self.ftp_password = self.DB.config.get(self.sections, 'FTP_PASSWORD')
+        self.status = self.DB.config.get(self.sections, 'STATUS')
 
     def upload_FTP(self, file_name, isbynary=None):
-        self.file_name = file_name
-        self.isbynary = isbynary
-        print(self.host, self.ftp_user, self.ftp_password, self.file_name, self.port,self.isbynary)
-        f_obj = open(self.file_name, 'rb')
+        print(self.status)
+        if self.status == '1':
+            self.file_name = file_name
+            self.isbynary = isbynary
+            print(self.host, self.ftp_user, self.ftp_password, self.file_name, self.port,self.isbynary)
+            f_obj = open(self.file_name, 'rb')
 
-        ftp = FTP()
-        # ftp.encoding = 'utf-8'
-        ftp.connect(self.host, self.port)
+            ftp = FTP()
+            # ftp.encoding = 'utf-8'
+            ftp.connect(self.host, self.port)
 
-        ftp.login(self.ftp_user, self.ftp_password)
-        print('Upload')
-        ftp.set_pasv(True)
-        if self.isbynary:
-            with f_obj as fobj:
-                ftp.storbinary('STOR '+self.file_name,fobj)
+            ftp.login(self.ftp_user, self.ftp_password)
+            print('Upload')
+            ftp.set_pasv(True)
+            if self.isbynary:
+                with f_obj as fobj:
+                    ftp.storbinary('STOR '+self.file_name,fobj)
+            else:
+                ftp.storlines("STOR " + self.file_name, f_obj)
+            ftp.quit()
         else:
-            ftp.storlines("STOR " + self.file_name, f_obj)
-        ftp.quit()
+            print('Тестовый режим выгрузка отключена')
 
 class ExportData(Db):
     def __init__(self,firm):
         self.firm = firm
         self.DB = Db()
 
-    def create(self):
-        if int(self.DB.config.get('PARAMS', self.firm)):
+    def create(self,filename):
+        self.filename = filename
+ #Импортируем соответсвующую библиотеку для выбранной выгрузки
+        firmname = getattr(importlib.import_module(self.firm.lower()), self.firm)
+
+        if int(self.DB.config.get('PARAMS', self.firm.lower())):
             if int(self.DB.config.get('BASE_CONF', 'ALONE')):
-                # Выгружаем на FTP  2Gis
-                firm = self.firm
-                from firm.lower import self.firm
-                func = eval(self.firm)
-                func.get_data()
+                firmname(self.DB,self.filename).get_Data()
             else:
-                profiles = DataB.get_sql(SQL_profile)
+                SQL_profile = "SELECT id,caption,email FROM G$PROFILES where id in(147,141)"
+                profiles = self.DB.get_sql(SQL_profile)
                 for i in profiles:
-                    self.firm(i[0]).get_data()
+                    firmname(str(i[0])).get_Data()
+
 
 def valid_xml(stroka):
     stroka = str(stroka)
