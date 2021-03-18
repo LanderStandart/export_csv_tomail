@@ -6,6 +6,9 @@ import fdb
 import zipfile
 import importlib
 import os.path
+import importlib.util
+import sys
+
 
 #Подключение к БД
 class Db:
@@ -105,9 +108,20 @@ class ExportData(Db):
         self.DB = Db()
 
     def create(self,filename):
-        self.filename = filename
+        self.filename = '.\\export\\'+filename
  #Импортируем соответсвующую библиотеку для выбранной выгрузки
-        firmname = getattr(importlib.import_module(self.firm.lower()), self.firm)
+        # firmname = getattr(importlib.import_module('./modules/'+self.firm.lower()), self.firm)
+        try:
+            spec = importlib.util.spec_from_file_location(self.firm.lower(), "./modules/"+self.firm.lower()+'.py')
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+            firmname = getattr(module,self.firm)
+        except FileNotFoundError:
+            print('Алгоритм выгрузки:'+self.firm+'- недоступен для загрузки')
+            exit()
+        else:
+            print('Загружаю алгоритм выгрузки:'+self.firm)
 
         if int(self.DB.config.get('PARAMS', self.firm.lower())):
             if int(self.DB.config.get('BASE_CONF', 'ALONE')):
@@ -147,4 +161,5 @@ def tranlit(input_str):
     for key in slovar:
         input_str = input_str.replace(key, slovar[key])
     return input_str
+
 

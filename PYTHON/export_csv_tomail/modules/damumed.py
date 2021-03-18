@@ -5,7 +5,7 @@ class Damumed(Db):
     def __init__(self, profile_id=None):
         self.DB = Db()
         self.profile_id = profile_id
-        self.file_name = self.DB.config.get('FTP_CONF3', 'ID_CLIENT')
+        self.file_name =self.DB.config.get('BASE_CONF', 'PATH_EXPORT')+ self.DB.config.get('FTP_CONF3', 'ID_CLIENT')
         print(self.profile_id)
 
     def get_Data(self):

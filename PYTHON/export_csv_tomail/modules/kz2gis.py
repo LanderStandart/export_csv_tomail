@@ -1,6 +1,6 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
 from MyUtils import Db,CSV_File,FTP_work
-class Kz2GIS(Db):
+class Kz2giz(Db):
     def __init__(self,profile_id=None):
         self.profile_id = profile_id
         self.DB = Db()
