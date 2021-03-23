@@ -36,7 +36,6 @@ class Engine:
         if self.where:
             self.sql = self.sql + self.where
 
-
 #проверка корректности запроса
         try:
             query = self.curs.execute(sql)
@@ -61,7 +60,7 @@ class Engine:
             return
         else:
             for i in query:
-                result.append(list(i))
+              result.append(list(i))
             return result
 
     def search(self,list, n):
@@ -119,25 +118,29 @@ class FTP_work(Engine):
         ftp.quit()
 
 #Создание CSV
-class CSV_File:
+class ASNA_File:
 
     def __init__(self,filename, data, header=None, profile_code=None):
-        self.filename = filename
+        self.filename = filename + '.txt'
         self.data = data
         self.header = header
         self.profile_code = profile_code
-    def create_csv(self):
+    def create_csv(self,quota=None):
+        # 2 = csv.QUOTE_NONNUMERIC
+        self.quota = quota
         print(self.filename + '.txt')
-        with open(self.filename + '.txt', 'w', newline='') as f:
-            writer = csv.writer(f, delimiter='|', escapechar=' ', quoting=csv.QUOTE_NONE)
-            if self.header is not None:
-                writer.writerow(self.header)
+        with open(self.filename, 'w')as fd:
             for row in self.data:
-                if self.profile_code is None:
-                    row = row
-                else:
-                    row = [self.profile_code] + row
-                writer.writerow(row)
+                print(row)
+                for y in self.quota:
+                    if row[y] is None or row[y]==' ':
+                        row[y]=''
+
+                    row[y]='"'+str(row[y])+'"'
+                    # print(row[y])
+                fd.write("|".join([str(elem) for elem in row])+'\n')
+
+
 
 
 

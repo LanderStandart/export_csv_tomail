@@ -1,8 +1,8 @@
 import dbf
-import fdb
+# import csv
 import configparser
 import query
-from engine import Engine,CSV_File,FTP_work
+from engine import Engine,ASNA_File,FTP_work
 import datetime
 #import create_query
 
@@ -45,7 +45,7 @@ print('Start:'+str(start))
 SQL='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null'
 # Eng.get_sql(SQL,None,1)
 print('Create GOODS')
-create_dbf(path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',query.SQL_WARES)
+# create_dbf(path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',query.SQL_WARES)
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
 #
 # #  #Базовые контрагенты
@@ -55,33 +55,36 @@ datum1.append(list(['1','Мелкооптовый покупатель',inn]))
 datum1.append(list(['2','Розничный покупатель (ККМ)',inn]))
 datum1.append(list(['3','Ввод остатков',inn]))
 # # Собираем контрагентов
-create_dbf(path+'vendor.dbf','id C(250); name C(250); inn C(250)',query.SQL_AGENTS,datum1)
+# create_dbf(path+'vendor.dbf','id C(250); name C(250); inn C(250)',query.SQL_AGENTS,datum1)
 
 # with open('query.txt','w') as file:
 #     file.write(query.SQL_MOVE)
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
 filename1 = path+ org_code+'_'+asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")
 print('Create MOVE')
-CSV_File(filename1, Eng.get_sql(query.SQL_MOVE)).create_csv()
+quota=[0,1,2,3,5,7,8,9,10,11,12,13,14,16,25,26,27]
+
+ASNA_File(filename1, Eng.get_sql(query.SQL_MOVE)).create_csv(quota)
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
 filename2 =path+org_code+'_'+asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")+'_RST'
 
 #ОСТАТКИ
 print('Create WAREBASE')
+
 Eng.get_sql(query.SQL_DEL_WAREBASE,None,1)
 Eng.get_sql(query.SQL_INSERT_WAREBASE,None,1)
-
-CSV_File(filename2, Eng.get_sql(query.SQL_WAREBASE)).create_csv()
+quota=[0,1,2,6,7]
+ASNA_File(filename2, Eng.get_sql(query.SQL_WAREBASE)).create_csv(quota)
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
 end =int(datetime.datetime.today().strftime("%H%M"))
 print(str(end))
 
 print(str(end-start)+'мин')
 
-FTP_work('FTP_CONF').upload_FTP(filename1 + '.txt')
-FTP_work('FTP_CONF').upload_FTP(filename2 + '.txt')
-FTP_work('FTP_CONF').upload_FTP(path+'goods.dbf')
-FTP_work('FTP_CONF').upload_FTP(path+'vendor.dbf')
+# FTP_work('FTP_CONF').upload_FTP(filename1 + '.txt')
+# FTP_work('FTP_CONF').upload_FTP(filename2 + '.txt')
+# FTP_work('FTP_CONF').upload_FTP(path+'goods.dbf')
+# FTP_work('FTP_CONF').upload_FTP(path+'vendor.dbf')
 
 
 

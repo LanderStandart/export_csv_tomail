@@ -27,7 +27,7 @@ SQL_WARES="select id,replace(MGN_NAME,'—','') as name,replace(PRODUCER,'—','
 #SQL_WARES="select w.id,w.mgn_name,w.izg_id,w.country_id,w.barcode from wares w where sname is not null and sname <>'' order by MGN_NAME "
 
 #Запрос Движения
-SQL_MOVE ="select cast(dd.id as varchar(255)) as ID," \
+SQL_MOVE ="select first 5 cast(dd.id as varchar(255)) as ID," \
                 "cast(d.id as varchar(255)) as DOC_ID, " \
                 "'"+org_code+"' as ur_l," \
                 "'"+asna_code+"'," \
@@ -60,10 +60,12 @@ SQL_MOVE ="select cast(dd.id as varchar(255)) as ID," \
     "        when 3 then d.docnum||'Ч'||(select max(docnum) from docs d2 where d2.status = 1 and d2.doc_type=13 and d2.vshift = d.vshift and d2.device_num = d.device_num) \n" \
     "    else d.docnum" \
     "       end as docnum, \n" \
-    "       dcard," \
+    "       0 as docnum1, --вид оплаты \n"\
+    "       dcard, ' '," \
     "       dcard," \
     "       dcard," \
     "       (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) as GOODS_ID,\n" \
+    "       iif(char_length(w.barcode)>13,'',w.barcode) as ean,"\
     "       abs(dd.quant) as quant," \
     "       a.inn as inn," \
     "       coalesce(0," + def_region + ") as region," \
@@ -73,12 +75,13 @@ SQL_MOVE ="select cast(dd.id as varchar(255)) as ID," \
     "       abs(dd.summa+dd.sum_dsc) as summa_b_dsc," \
     "       abs(dd.summa) as summa," \
     "       abs(dd.sum_dsc) as sum_dsc," \
-    "       d.status, '| | |0'" \
+    "       d.status, ' ',' ','0'" \
     " from doc_detail dd\n" \
     "inner join docs d on dd.doc_id = d.id " \
     "inner join agents a on a.id=d.agent_id " \
     "inner join parts p on  dd.part_id = p.id " \
     "inner join deps dp on p.dep = dp.id \n" \
+    "inner join wares w on w.id=p.ware_id "\
     "where d.status = 1 and d.doc_type in (11,2,3,1,37,9,4,17,10,5,20) and dd.doc_commitdate between "+date_beg+" and "+date_end+" \n" \
     "and (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) is not null \n" \
     " and dd.quant <> 0 " \
@@ -87,12 +90,13 @@ SQL_MOVE ="select cast(dd.id as varchar(255)) as ID," \
 SQL_DEL_WAREBASE = "delete from ASNA_WAREBASE"
 SQL_INSERT_WAREBASE = "insert into ASNA_WAREBASE(part_id, G$PROFILE_ID,ddate) select id, '1', "+date_end+" from parts p"
 SQL_WAREBASE = "select '"+org_code+"' as ur_l," \
-               "'"+asna_code+"'," \
-               " a.inn as inn," \
-               " coalesce(0,"+def_region+") as region," \
+               "'" + asna_code + "'," \
+               " iif(a.inn<>'',cast(coalesce(a.inn,0)as DM_ID),0) as inn," \
+                +def_region+" as region," \
                 " left(cast(cast(dateadd(0 day to w.ddate) as dm_datetime) as varchar(255)),19) as beg_date," \
                " left(cast(d.commitdate as varchar(255)),19) as post_date," \
                " (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) as GOODS_ID," \
+              "  iif(char_length(w1.barcode)>13,'',w1.barcode) as ean,"\
                " w.quant," \
                " coalesce(abs(Round((w.quant*w.price_o*100/(100+w.nds)),2)),0) as sum_b_nds," \
                " coalesce(abs(Round(w.quant*w.price_o,2)),0) as summa_o," \
@@ -101,6 +105,7 @@ SQL_WAREBASE = "select '"+org_code+"' as ur_l," \
                                          "from ASNA_WAREBASE w " \
         " inner join docs d on w.doc_id = d.id "\
         "inner join agents a on a.id=w.agent_id "\
+        " inner join wares w1 on w1.id = w.ware_id "\
         "where (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) is not null " \
         "order by 1"
 
