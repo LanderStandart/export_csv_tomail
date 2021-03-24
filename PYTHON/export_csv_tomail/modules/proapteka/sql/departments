@@ -1,0 +1,16 @@
+select
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT')as DepartmentName,
+  '' as DepartmentCode,
+(select p.param_value  from params p where p.param_id='ORG_ADRESS') as DepartmentAddress,
+'' as InstallPointCode,
+'' as InventoryControl,
+'' as PriceCompare,
+'0' as Is_buyer,
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT')as CompanyName,
+(select p.param_value  from params p where p.param_id='ORG_PARENT_ADRES')as AddressJur,
+(select p.param_value  from params p where p.param_id='ORG_INN')as Tin,
+(select p.param_value  from params p where p.param_id='ORG_KPP')as Trrc,
+(select p.param_value  from params p where p.param_id='ORG_PHONE')as PHONE,
+(select p.param_value  from params p where p.param_id='ORG_DIRECTOR')as ManagerName,
+'+DepartmentCode+' as IDDepartment
+from rdb$database

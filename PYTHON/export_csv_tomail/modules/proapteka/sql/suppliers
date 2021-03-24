@@ -1,0 +1,12 @@
+select
+ iif(docs.agent_id<0,'999999',docs.agent_id) as Code,
+ iif(docs.agent_id<0,'Ввод остатков',agents.caption) as Name,
+ agents.fullname as FullName,
+ agents.inn as Tin,
+ agents.kpp as Trrc,
+ agents.phonenumbers as Phone,
+ (select * from pr_getaddress(agents.addr_id)) as adress
+ from docs
+inner join agents on agents.id = docs.agent_id
+where docs.doc_type in (1,4) and docs.agent_id>0
+group by docs.agent_id,agents.caption, agents.fullname,tin,Trrc,Phone,agents.addr_id

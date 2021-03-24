@@ -1,0 +1,6 @@
+Select
+  '10000' as IdStore,
+  (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT')as StoreName,
+  '10000' as IdDepartment,
+  'основной'as StoreTypeName
+  from rdb$database

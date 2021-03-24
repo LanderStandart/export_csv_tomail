@@ -1,0 +1,11 @@
+select  d.id||dd.id as IdDocumentItem,
+        '' as IDDiscount,
+        abs(dd.discount) as BonusPercent,
+        cast(dd.sum_dsc as numeric(9,2)) as AmountDiscount
+
+            from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,11,4,6)
+
+  where dd.discount<0 and
+   dd.doc_commitdate between ' +DateToStr(date_start)+' and '+DateTOStr(date_end)+' order by d.docdate
