@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<drugs>
-  <drug storeName="Шымкент,Байдибек 25" drugName="Имудон таб д/расс №40 " manufacturer="Abbott Laboratories-М" country="Нидерланды" dosage="" packaging="" registrationNumber="" balance="0.8" price="5280.0"/>
-  <drug storeName="Шымкент,Байдибек 25" drugName="Терафлю от гриппа и простуды пор/пак №10 " manufacturer="GlaxoSmithKline-А" country="Франция" dosage="" packaging="" registrationNumber="" balance="0.0" price="1800.0"/>
-  <drug storeName="Шымкент,Байдибек 25" drugName="Ибуфен Д форте сусп. малиновая 200мг/5мл 40мл " manufacturer="Медана Фарма для Санто-А" country="Польша" dosage="" packaging="" registrationNumber="" balance="0.0" price="880.0"/>
-  <drug storeName="Шымкент,Байдибек 25" drugName="Зерде фито-чай листья сенна 50г " manufacturer="Зерде-фито ТОО" country="Казахстан" dosage="" packaging="" registrationNumber="" balance="0.0" price="170.0"/>
-  <drug storeName="Шымкент,Байдибек 25" drugName="Вольтарен таб 50мг №20 " manufacturer="GlaxoSmithKline-А" country="Щвейцария" dosage="" packaging="" registrationNumber="" balance="1.0" price="1805.0"/>
-</drugs>
