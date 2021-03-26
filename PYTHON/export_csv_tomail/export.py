@@ -1,19 +1,23 @@
 ﻿#  Autor by Lander (c) 2020. Created for Standart-N LLT
-import configparser
-from  MyUtils import Db,ExportData
+from  engine import ExportData,Db,LogIt
+import os
+try:
+    os.remove('./log.txt')
+except:
+    print('Файла с логом не нашлось')
 
-DataB = Db()
-config = configparser.ConfigParser()
-config.read('./config.ini')
+system = Db()
+system.config.read('./config.ini')
 
-head = [config.get('CSV_CONF', 'HEAD')]
 
-params = config.items('PARAMS')
+params = system.config.items('PARAMS')
 for i in params:
     if int(i[1]) != 0:
         firm = i[0].title()
-        print('Формируем:'+ firm)
+        LogIt('Формируем:'+ firm)
         ExportData(firm).create('file')
+
+
 
 
 

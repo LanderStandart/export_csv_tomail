@@ -1,14 +1,21 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from MyUtils import FTP_work,Archiv,Db,valid_xml
+from engine import FTP_work,Archiv,Db,valid_xml,LogIt,existPath
 
 class Damumed(Db):
     def __init__(self, profile_id=None):
         self.DB = Db()
+        self.conf = 'DAMUMED'
+        self.path = self.DB.config.get(self.conf, 'PATH_EXPORT')
+        existPath(self.path)
         self.profile_id = profile_id
-        self.file_name =self.DB.config.get('BASE_CONF', 'PATH_EXPORT')+ self.DB.config.get('FTP_CONF3', 'ID_CLIENT')
-        print(self.profile_id)
+        self.file_name =self.path+ self.DB.config.get(self.conf, 'ID_CLIENT')
+        if self.profile_id is None:
+            LogIt('Алгоритм работает только для сетей !!!')
+            exit()
+
 
     def get_Data(self):
+
         with open(self.file_name + str(self.profile_id) +".xml", "wb")as file_damumed:
             xml = '<?xml version="1.0" encoding="utf-8" ?>\n' \
               '<drugs>\n'.encode('utf8')
@@ -29,7 +36,7 @@ class Damumed(Db):
 
             for s in result:
                 xml = '  <drug storeName="' + valid_xml(s[0]) + '" drugName="' + valid_xml(
-                s[1]) + ' " manufacturer="' + valid_xml(s[2]) + '" country="' + s[3] + \
+                s[1]) + '" manufacturer="' + valid_xml(s[2]) + '" country="' + s[3] + \
                   '" dosage="' + s[4] + '" packaging="' + s[5] + '" registrationNumber="' + s[6] + '" balance="' + str(
                 s[7]) + '" price="' + str(s[8]) + '"/>\n'
                 xml = xml.encode('utf8')
@@ -39,7 +46,7 @@ class Damumed(Db):
 
 
         Archiv(self.file_name+self.profile_id, 'xml').zip_File()
-        FTP_work('FTP_CONF3').upload_FTP(self.file_name+self.profile_id + '.zip')
+        FTP_work(self.conf).upload_FTP(self.file_name+self.profile_id + '.zip')
 
 
 

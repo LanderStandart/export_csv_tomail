@@ -1,5 +1,5 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from MyUtils import Db,CSV_File,Archiv,FTP_work
+from engine import Db,CSV_File,Archiv,FTP_work
 class Iteka():
     def __init__(self):
         self.DB = Db()

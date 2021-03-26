@@ -1,5 +1,5 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from MyUtils import Db,CSV_File,Archiv,FTP_work
+from engine import Db,CSV_File,Archiv,FTP_work
 class Pharmit(Db):
     def __init__(self,profile_id=None):
         self.DB = Db()
@@ -9,5 +9,5 @@ class Pharmit(Db):
     def get_Data(self):
         CSV_File(self.filen, self.DB.get_sql(self.SQL)).create_csv()
         Archiv(self.filen, 'csv').zip_File()
-        # FTP_work('FTP_CONF2').upload_FTP(self.filen + '.zip' )
+        FTP_work('FTP_CONF2').upload_FTP(self.filen + '.zip' )
 

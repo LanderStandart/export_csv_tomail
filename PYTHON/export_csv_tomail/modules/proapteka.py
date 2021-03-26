@@ -34,6 +34,8 @@ class Proapteka(Db):
             sql = sql.replace('+DateToStr(date_start)+','01.10.2020')
             sql = sql.replace('+DateToStr(date_end)+', '01.11.2020')
             CSV_File(self.getFilename(i),self.DB.get_sql(sql), head,delimeter='|',encoding='utf-8').create_csv()
+    def get_Warebase(self):
+        #определяем дату за которую формируем отчет
 
 
 
