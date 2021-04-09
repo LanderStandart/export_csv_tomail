@@ -2,5 +2,8 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/CREATE_ASNA_GOODS" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/export/Org_ADIO_ADIO_1_20210323T1623.txt" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/export/Org_ADIO_ADIO_1_20210325T1359.txt" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/query.txt" charset="windows-1251" />
   </component>
 </project>

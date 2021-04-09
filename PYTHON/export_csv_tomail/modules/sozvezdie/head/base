@@ -1,0 +1,9 @@
+map_pharmacy_id
+batch_id
+dates
+opening_balance
+closing_balance
+input_purchasing_price_balance
+output_purchasing_price_balance
+input_retail_price_balance
+output_retail_price_balance 

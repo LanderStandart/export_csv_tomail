@@ -62,6 +62,7 @@ class Engine:
             for i in query:
               result.append(list(i))
             return result
+        print(query)
 
     def search(self,list, n):
         for i in range(len(list)):
@@ -110,6 +111,8 @@ class FTP_work(Engine):
         ftp.login(self.ftp_user, self.ftp_password)
         print('Upload'+file_name)
         ftp.set_pasv(True)
+        ftp.cwd('turnovers')
+
         if self.isbynary:
             with f_obj as fobj:
                 ftp.storbinary('STOR '+self.file_name,fobj)
@@ -131,11 +134,11 @@ class ASNA_File:
         print(self.filename + '.txt')
         with open(self.filename, 'w')as fd:
             for row in self.data:
-                print(row)
+
                 for y in self.quota:
                     if row[y] is None or row[y]==' ':
                         row[y]=''
-
+                    row[y]=str(row[y]).replace("'",'')
                     row[y]='"'+str(row[y])+'"'
                     # print(row[y])
                 fd.write("|".join([str(elem) for elem in row])+'\n')

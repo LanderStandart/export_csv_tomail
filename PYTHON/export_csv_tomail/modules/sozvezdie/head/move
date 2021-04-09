@@ -1,0 +1,17 @@
+map_pharmacy_id
+distribution_id
+batch_id
+doc_date
+doc_type
+doc_number
+pos_number
+check_number
+check_unique_number
+quantity
+purchase_sum_nds
+retail_sum_nds
+discount_sum
+cashier_id
+cashier_full_name
+cashier_tin
+resale_sign

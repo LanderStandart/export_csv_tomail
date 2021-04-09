@@ -62,7 +62,7 @@ datum1.append(list(['3','Ввод остатков',inn]))
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
 filename1 = path+ org_code+'_'+asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")
 print('Create MOVE')
-quota=[0,1,2,3,5,7,8,9,10,11,12,13,14,16,25,26,27]
+quota=[0,1,2,3,5,7,9,10,11,12,13,14,16,25,26]
 
 ASNA_File(filename1, Eng.get_sql(query.SQL_MOVE)).create_csv(quota)
 print('complete - '+datetime.datetime.today().strftime("%H:%M"))
