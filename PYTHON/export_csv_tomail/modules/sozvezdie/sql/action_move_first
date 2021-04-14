@@ -1,3 +1,34 @@
+  select distinct
+              'departmentcode' as map_pharmacy_id,
+               dd.part_id as distribution_id,
+               dd.part_id as batch_id,
+               (select RESULT from pr_sozvezdie_format_datetime(:date_start,null)) as  doc_date,
+               '9' as doc_type,
+               'Первичная выгрузка'as doc_number,
+               ''as pos_number,
+               ''as check_number,
+               ''as check_unique_number,
+              (select quant from pr_get_warebase_from_date(:date_start,dd.part_id)) as quantity,
+             cast(abs(p.price_o*(select quant from pr_get_warebase_from_date(:date_start,dd.part_id)))as numeric(10,2)) as purchase_sum_nds,
+             cast(abs(p.price*(select quant from pr_get_warebase_from_date(:date_start,dd.part_id))) as numeric(10,2)) as retail_sum_nds,
+             cast(0 as numeric(9,2)) as discount_sum,
+             '' as cashier_id,
+             '' as cashier_full_name,
+             '' as cashier_tin,
+             '0' as resale_sign,
+             '1' as firsttime,
+             cast(substring(:date_start from 1 for 10) as date)
+
+     from    doc_detail dd
+           inner join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32) and d.docdate < :date_start
+
+     left join parts p on dd.part_id=p.id
+
+       where  dd.part_id=:pid
+
+
+union all
+
 select
       'department_code' as map_pharmacy_id,
                d.id||dd.part_id as distribution_id,
@@ -31,16 +62,15 @@ select
              cast(abs(dd.summa_o)as numeric(10,2)) as purchase_sum_nds,
              cast(abs(dd.summa)+abs(dd.sum_dsc) as numeric(10,2)) as retail_sum_nds,
              cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum,
-             u.d$uuid as cashier_id,
+             trim(u.d$uuid) as cashier_id,
              u.username as cashier_full_name,
              coalesce(u.inn,'') as cashier_tin,
              '0' as resale_sign,
-             d.docdate
+             '0' as firsttime,
+             cast(d.docdate as date)
              from    doc_detail dd
 
       inner join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32) and d.docdate between :date_start and :date_end
 
-     -- left join parts p on dd.part_id=p1.part_id
       join users u on u.id=d.owner
       where  dd.part_id=:pid
-       order by d.docdate

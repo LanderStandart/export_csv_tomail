@@ -9,7 +9,7 @@
 # add_subelement(subelem='subelem', elem=element, data=date,attrib={"name":"attrib"})
 
 import xml.etree.ElementTree as xml
-from engine import valid_xml
+from engine import valid_xml,put_file
 class XML:
     def __init__(self):
         pass
@@ -48,6 +48,8 @@ class XML:
         sub.text = valid_xml(data)
         return sub
 
-    def save_file(self,root):
+    def save_file(self,root,filename):
         self.pretty(root)
-        xml.ElementTree.write(xml.ElementTree(root), 'trr.xml', encoding='cp1251')
+        # res = xml.tostring(root)#xml.ElementTree(root).  encoding='cp1251', method='xml')
+        # put_file(self,'trr1.xml',res)
+        xml.ElementTree.write(xml.ElementTree(root), filename, encoding='cp1251')
