@@ -26,6 +26,7 @@ select distinct
             w.name_id as nomenclature_codes
          from   parts p1
          left  join docs d on d.id = p1.doc_id
+
          left join agents a on a.id=d.agent_id
          left join WARES w on p1.ware_id=w.id
          left join vals vname on w.name_id=vname.id
