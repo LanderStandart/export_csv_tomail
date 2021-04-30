@@ -4,10 +4,11 @@
                 query.dates,
                 cast(query.opening_balance as dm_double)as opening_balance,
                 cast(query.closing_balance as dm_double)as closing_balance,
-                cast(query.opening_balance * query.price as dm_double)as input_retail_price_balance,
                 cast(query.opening_balance * query.price_o as dm_double)as input_purchasing_price_balance,
-                cast(query.closing_balance * query.price as dm_double)as output_retail_price_balance,
                 cast(query.closing_balance * query.price_o as dm_double)as output_purchasing_price_balance,
+                cast(query.opening_balance * query.price as dm_double)as input_retail_price_balance,
+                cast(query.closing_balance * query.price as dm_double)as output_retail_price_balance,
+
                 cast(query.price as dm_double),
                 cast(query.price_o as dm_double),
                 query.updatedt
@@ -15,14 +16,14 @@
                 (select
                     ':departmentcode' as map_pharmacy_id,
                     sab.id as batch_id,
-                    (select result from pr_sozvezdie_format_datetime(:date_start,0)) as dates,
-                    (select quant from pr_get_warebase_from_date(:date_start,sab.id))as opening_balance,
-                    (select quant from pr_get_warebase_from_date(:date_end,sab.id)) as closing_balance,
+                    (select result from pr_sozvezdie_format_datetime(:date_end,0)) as dates,
+                    (select quant from pr_get_warebase_from_date(:date_start,sab.id)/*profile*/)as opening_balance,
+                    (select quant from pr_get_warebase_from_date(:date_end,sab.id/*profile*/)) as closing_balance,
                     cast(sab.price as dm_double)as price,
                     cast(sab.price_o as dm_double)as price_o,
                     ':datesql' as updatedt
 
                   from parts sab
 
-                  where     sab.id = :pid
+                  where     sab.id = :pid -- and sab.g$profile_id = :profile_id
                  )  query

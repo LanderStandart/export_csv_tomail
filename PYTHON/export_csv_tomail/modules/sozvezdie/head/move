@@ -15,3 +15,7 @@ cashier_id
 cashier_full_name
 cashier_tin
 resale_sign
+fn_doc_number
+fn_doc_sign
+fn_number
+fn_doc_date

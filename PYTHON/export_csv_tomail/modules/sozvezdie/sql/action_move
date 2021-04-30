@@ -1,5 +1,5 @@
 select
-      'department_code' as map_pharmacy_id,
+      ':departmentcode' as map_pharmacy_id,
                d.id||dd.part_id as distribution_id,
                dd.part_id as batch_id,
                (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,null)) as  doc_date,
@@ -15,6 +15,7 @@ select
                 when 9 then 4
                 when 11 then 1
                 when 20 then 9
+                when 30 then 8
                 when 8 then iif (dd.quant>0,9,8)
                 when 7 then iif (dd.quant>0,9,8)
                 when 18 then iif (dd.quant>0,9,8)
@@ -27,7 +28,7 @@ select
               coalesce( iif(d.doc_type=3,d.device_num,''),' ')as pos_number,
                iif(d.doc_type=3,d.docnum,'')as check_number,
                iif(d.doc_type=3,d.docnum,'')as check_unique_number,
-               cast(abs(dd.quant)as numeric(10,6)) as quantity,
+		round(abs(dd.quant),2) as quantity,
              cast(abs(dd.summa_o)as numeric(10,2)) as purchase_sum_nds,
              cast(abs(dd.summa)+abs(dd.sum_dsc) as numeric(10,2)) as retail_sum_nds,
              cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum,
@@ -35,12 +36,17 @@ select
              u.username as cashier_full_name,
              coalesce(u.inn,'') as cashier_tin,
              '0' as resale_sign,
+             iif(d.doc_type in (3,9),d.docnum,'') as fn_doc_number,
+             iif(d.doc_type in (3,9),d.fiscalsign,'') as fn_doc_sign,
+             iif(d.doc_type in (3,9),d.fnnumber,'') as fn_number,
+             iif(d.doc_type in (3,9), (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,null)),'') as  fn_doc_date,
              d.docdate
-             from    doc_detail dd
+                        from docs d
 
-      inner join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32) and d.docdate between :date_start and :date_end
 
-     -- left join parts p on dd.part_id=p1.part_id
+      inner join doc_detail dd on d.id = dd.doc_id  -- and d.g$profile_id = dd.g$profile_id
+
       join users u on u.id=d.owner
-      where  dd.part_id=:pid
+      where  dd.part_id=:pid -- and d.g$profile_id = :profile_id
+       and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30) and d.docdate between :date_start and :date_end
        order by d.docdate
