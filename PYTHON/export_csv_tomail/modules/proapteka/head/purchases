@@ -1,23 +1,29 @@
- IdLotMovement
- DepartmentCode
- IdDepartment
- IdDepartmentFrom
- GoodsCode
- SupplierCode
- Quantity
- InvoiceNum
- InvoiceDate
- PurchaseStuInvoiceNum
- PurchaseStuInvoiceDate
- PurchaseDocType
- PriceWholeBuy
- PVatWholeBuy
- VatWholeBuy
- PriceRetail
- PVatWholeRetail
- VatWholeRetail
- BestBefore
- Series
- DocState
- IdStore
- IdStoreFrom
+IdLotMovement
+DepartmentCode
+IdDepartment
+IdDepartmentFrom
+GoodsCode
+SupplierCode
+Quantity
+InvoiceNum
+InvoiceDate
+PurchaseStuInvoiceNum
+PurchaseStuInvoiceDate
+PurchaseDocType
+PriceWholeBuy
+PVatWholeBuy
+VatWholeBuy
+PriceRetail
+PVatWholeRetail
+VatWholeRetail
+BestBefore
+Series
+DocState
+IdStore
+IdStoreFrom
+KIZ
+GTIN
+SGTIN
+InternetOrderNum
+BaseDocumentName
+OrderComment

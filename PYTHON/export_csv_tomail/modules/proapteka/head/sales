@@ -9,7 +9,7 @@ InvoiceNum
 InvoiceDate
 SaleStuNum
 SaleStuDate
-ChequeID
+ChequeId
 ChequeNum
 ChequeDate
 ChequeDateModified
@@ -29,3 +29,12 @@ Series
 DocState
 IdStore
 IdStoreTo
+InternetOrderNum
+KIZ
+GTIN
+SGTIN
+KKM_EKLZ_NUM
+FISCAL_SIGN
+FISCAL_DOCUMENT
+BaseDocumentName
+OrderComment

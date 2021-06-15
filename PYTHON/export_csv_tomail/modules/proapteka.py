@@ -1,6 +1,6 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 from engine import FTP_work,Archiv,Db,CSV_File,os,LogIt,existPath
-import time
+import time,datetime
 
 class Proapteka(Db):
     def __init__(self,profile_id=None):
@@ -27,15 +27,28 @@ class Proapteka(Db):
         return p
 
     def get_Data(self):
-        for i in self.expfile:
-            head = self.get_File('./modules/proapteka/head/',i.lower()).split('\n')
-            sql = self.get_File('./modules/proapteka/sql/',i.lower())
-            sql = sql.replace('+DepartmentCode+',self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
-            sql = sql.replace('+DateToStr(date_start)+','01.10.2020')
-            sql = sql.replace('+DateToStr(date_end)+', '01.11.2020')
-            CSV_File(self.getFilename(i),self.DB.get_sql(sql), head,delimeter='|',encoding='utf-8').create_csv()
-    def get_Warebase(self):
-        #определяем дату за которую формируем отчет
+        #полная выгрузка производится в 10-00 и 22-00
+        if int(datetime.datetime.today().strftime('%H')) in (16,22):
+            for i in self.expfile:
+                head = self.get_File('./modules/proapteka/head/',i.lower()).split('\n')
+                sql = self.get_File('./modules/proapteka/sql/',i.lower())
+                sql = sql.replace('DEP_CODE',self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
+                sql = sql.replace('+DepartmentCode+', self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
+                date_s = datetime.date.today()-datetime.timedelta(days=45)
+                date_start = datetime.datetime.today().strftime('%d.%m.%Y')
+                sql = sql.replace(':FROM_DATE', "'" + date_start + "'")
+                sql = sql.replace('+DateToStr(date_start)+',date_s.strftime('%d.%m.%Y'))
+                sql = sql.replace('+DateToStr(date_end)+', datetime.date.today().strftime('%d.%m.%Y'))
+                CSV_File(self.getFilename(i),self.DB.get_sql(sql), head,delimeter='|',encoding='utf-8').create_csv()
+        else:
+            i='stock'
+            head = self.get_File('./modules/proapteka/head/', i.lower()).split('\n')
+            sql = self.get_File('./modules/proapteka/sql/', i.lower())
+            date_start = datetime.datetime.today().strftime('%d.%m.%Y')
+            sql = sql.replace(':FROM_DATE', "'"+date_start+"'")
+            CSV_File(self.getFilename(i), self.DB.get_sql(sql), head, delimeter='|', encoding='utf-8').create_csv()
+
+
 
 
 

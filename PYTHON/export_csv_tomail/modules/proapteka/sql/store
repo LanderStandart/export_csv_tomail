@@ -2,5 +2,6 @@ Select
   '10000' as IdStore,
   (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT')as StoreName,
   '10000' as IdDepartment,
-  'РѕСЃРЅРѕРІРЅРѕР№'as StoreTypeName
+  'основной'as StoreTypeName,
+  0 as IsDeleted
   from rdb$database

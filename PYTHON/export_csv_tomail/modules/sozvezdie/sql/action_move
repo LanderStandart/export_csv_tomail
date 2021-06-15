@@ -1,8 +1,32 @@
 select
+map_pharmacy_id,
+distribution_id,
+batch_id,
+doc_date,
+doc_type,
+doc_number,
+pos_number,
+check_number,
+check_unique_number,
+sum(quantity) as quantity ,
+sum(purchase_sum_nds) as purchase_sum_nds,
+sum(retail_sum_nds)as retail_sum_nds,
+discount_sum,
+cashier_id,
+cashier_full_name,
+cashier_tin,
+resale_sign,
+fn_doc_number,
+fn_doc_sign,
+fn_number,
+fn_doc_date,
+docdate
+from (
+select distinct
       ':departmentcode' as map_pharmacy_id,
                d.id||dd.part_id as distribution_id,
                dd.part_id as batch_id,
-               (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,null)) as  doc_date,
+               (select RESULT from pr_sozvezdie_format_datetime(d.docdate,null)) as  doc_date,
                case d.doc_type
                 when 1 then 3
                 when 2 then 6
@@ -15,7 +39,7 @@ select
                 when 9 then 4
                 when 11 then 1
                 when 20 then 9
-                when 30 then 8
+                when 30 then iif (dd.quant>0,9,8)
                 when 8 then iif (dd.quant>0,9,8)
                 when 7 then iif (dd.quant>0,9,8)
                 when 18 then iif (dd.quant>0,9,8)
@@ -23,18 +47,18 @@ select
                 when 32 then 8
                end as doc_type,
 
-              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13),
+              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13 and d1.g$profile_id=d.g$profile_id),
                 left(d.docnum,iif(position(' ',d.docnum)=0,char_length(d.docnum), position(' ',d.docnum)))), ' ')as doc_number,
               coalesce( iif(d.doc_type=3,d.device_num,''),' ')as pos_number,
                iif(d.doc_type=3,d.docnum,'')as check_number,
                iif(d.doc_type=3,d.docnum,'')as check_unique_number,
-		round(abs(dd.quant),2) as quantity,
+        round(abs(dd.quant),2) as quantity,
              cast(abs(dd.summa_o)as numeric(10,2)) as purchase_sum_nds,
              cast(abs(dd.summa)+abs(dd.sum_dsc) as numeric(10,2)) as retail_sum_nds,
              cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum,
-             u.d$uuid as cashier_id,
-             u.username as cashier_full_name,
-             coalesce(u.inn,'') as cashier_tin,
+            trim( iif(d.doc_type in(3,9),coalesce(u.d$uuid,''),'')) as cashier_id,
+             iif(d.doc_type in(3,9),u.username,'') as cashier_full_name,
+             iif(d.doc_type in(3,9), coalesce(u.inn,''),'') as cashier_tin,
              '0' as resale_sign,
              iif(d.doc_type in (3,9),d.docnum,'') as fn_doc_number,
              iif(d.doc_type in (3,9),d.fiscalsign,'') as fn_doc_sign,
@@ -44,9 +68,28 @@ select
                         from docs d
 
 
-      inner join doc_detail dd on d.id = dd.doc_id  -- and d.g$profile_id = dd.g$profile_id
+      inner join doc_detail dd on d.id = dd.doc_id   and d.g$profile_id = dd.g$profile_id
 
-      join users u on u.id=d.owner
-      where  dd.part_id=:pid -- and d.g$profile_id = :profile_id
-       and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30) and d.docdate between :date_start and :date_end
-       order by d.docdate
+     left join users u on u.id=d.owner
+      where  dd.part_id=:pid  and d.g$profile_id = :profile_id
+       and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30) and d.docdate between :datestart1 and :date_end
+       order by d.docdate   )mov
+group by map_pharmacy_id,
+distribution_id,
+batch_id,
+doc_date,
+doc_type,
+doc_number,
+pos_number,
+check_number,
+check_unique_number,
+discount_sum,
+cashier_id,
+cashier_full_name,
+cashier_tin,
+resale_sign,
+fn_doc_number,
+fn_doc_sign,
+fn_number,
+fn_doc_date,
+docdate

@@ -1,5 +1,5 @@
 select
-p.id as Code,
+p.WARE_id as Code,
 vname.svalue as Name,
 vorig_izg.svalue as Producer,
 vcountry.svalue as Country,
@@ -10,7 +10,8 @@ p.barcode1 as barcode3,
 '' as CodeSup1,
 '' as CodeSup2,
 '' as CodeGoodsSup1,
-'' as CodeGoodsSup2
+'' as CodeGoodsSup2,
+0 as IsDeleted
 from parts p
  join WARES w on p.ware_id=w.id
   inner join vals vname on w.name_id=vname.id

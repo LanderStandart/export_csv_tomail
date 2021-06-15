@@ -1,9 +1,9 @@
 DepartmentName
 DepartmentCode
 IdDepartment
-Is_buyer
 DepartmentAddress
 InstallPointCode
+Is_buyer
 InventoryControl
 PriceCompare
 CompanyName
@@ -12,3 +12,4 @@ Tin
 Trrc
 Phone
 ManagerName
+IsDeleted
