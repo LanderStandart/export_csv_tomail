@@ -1,10 +1,10 @@
 select
            d.id||dd.id  as IdLotMovement,
            '' as DepartmentCode,
-           iif(d.doc_type<>20,d.agent_id,'999999') as IDDepartment,
+           '10000' as IDDepartment,
            iif(d.doc_type=2,d.agent_id,'') as IDDepartmentFrom,
            p.ware_id as GoodsCode,
-           (select docs.agent_id from docs where docs.id=p.doc_id) as SupplierCode,
+           (select iif(docs.agent_id<0,'999999',docs.agent_id)  from docs where docs.id=p.doc_id) as SupplierCode,
            cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
            (select docs.docnum from docs where docs.id=p.doc_id) as InvoiceNum,
            (select docs.docdate from docs where docs.id=p.doc_id) as InvoiceDate,
