@@ -1,9 +1,9 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 import sys
-from engine import FTP_work,Archiv,Db,CSV_File,os,existPath,read_ini,LogIt,list_file_in_path
+from engine import FTP_work,Archiv,Db,CSV_File,os,existPath,read_ini,LogIt,list_file_in_path,my_log
 
 import time,datetime
-
+logger = my_log.get_logger(__name__)
 class Proapteka(Db):
     def __init__(self,profile_id=None):
         self.profile_id = profile_id
@@ -24,7 +24,7 @@ class Proapteka(Db):
                 p = file.read()
                 # p = p.split('\n')
         except FileNotFoundError:
-            system.LogIt('Файл:' + i + '- недоступен для загрузки')
+            logger.error('Файл:' + i + '- недоступен для загрузки')
             exit()
         return p
 
@@ -32,7 +32,7 @@ class Proapteka(Db):
         #полная выгрузка производится в 10-00 и 22-00
         if int(datetime.datetime.today().strftime('%H')) in (10,22):
             for i in self.expfile:
-                print(i)
+                logger.info(i)
                 head = self.get_File('./modules/proapteka/head/',i.lower()).split('\n')
                 sql = self.get_File('./modules/proapteka/sql/',i.lower())
                 sql = sql.replace('DEP_CODE',self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
@@ -49,7 +49,7 @@ class Proapteka(Db):
             sql = self.get_File('./modules/proapteka/sql/', i.lower())
             date_start = datetime.datetime.today().strftime('%d.%m.%Y')
             sql = sql.replace(':FROM_DATE', "'"+date_start+"'")
-            print(i)
+            logger.info(i)
             CSV_File(self.getFilename(i), self.DB.get_sql(sql), head, delimeter='|', encoding='utf-8').create_csv()
         fl=list_file_in_path(self.path,'*')
 #        print(fl)

@@ -47,7 +47,9 @@ select distinct
                 when 32 then 8
                end as doc_type,
 
-              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13 and d1.g$profile_id=d.g$profile_id),
+              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13 
+--and d1.g$profile_id=d.g$profile_id
+),
                 left(d.docnum,iif(position(' ',d.docnum)=0,char_length(d.docnum), position(' ',d.docnum)))), ' ')as doc_number,
               coalesce( iif(d.doc_type=3,d.device_num,''),' ')as pos_number,
                iif(d.doc_type=3,d.docnum,'')as check_number,
@@ -68,10 +70,10 @@ select distinct
                         from docs d
 
 
-      inner join doc_detail dd on d.id = dd.doc_id   and d.g$profile_id = dd.g$profile_id
+      inner join doc_detail dd on d.id = dd.doc_id   --and d.g$profile_id = dd.g$profile_id
 
      left join users u on u.id=d.owner
-      where  dd.part_id=:pid  and d.g$profile_id = :profile_id
+      where  dd.part_id=:pid  --and d.g$profile_id = :profile_id
        and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30) and d.docdate between :datestart1 and :date_end
        order by d.docdate   )mov
 group by map_pharmacy_id,

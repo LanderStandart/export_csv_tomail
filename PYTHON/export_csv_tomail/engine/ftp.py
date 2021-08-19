@@ -1,8 +1,9 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 #Выгрузка на ФТП
 from ftplib import FTP
-from system import LogIt,read_ini
+from system import LogIt,read_ini,my_log
 import os.path
+logger = my_log.get_logger(__name__)
 class FTP_work:
     def __init__(self,sections):
         self.sections = sections
@@ -26,7 +27,7 @@ class FTP_work:
             ftp.login(self.ftp_user, self.ftp_password)
             if extpath:
                 ftp.cwd(extpath)
-            LogIt('Upload:' + ext_filename)
+            logger.info('Upload:' + ext_filename)
             ftp.set_pasv(True)
             if self.isbynary:
                 with f_obj as fobj:
@@ -41,8 +42,8 @@ class FTP_work:
                 # FTP.rename(ext_filename, os.path.splitext(ext_filename)[0]+'.zip')
             ftp.quit()
         else:
-            LogIt(str(self.host) + str(self.port))
+            logger.info(str(self.host) + str(self.port))
             ext_filename = os.path.basename(r'' + self.file_name)
-            LogIt(ext_filename)
-            LogIt('FTP:Тестовый режим выгрузка отключена')
+            logger.info(ext_filename)
+            logger.warning('FTP:Тестовый режим выгрузка отключена')
 

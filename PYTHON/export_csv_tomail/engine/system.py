@@ -2,7 +2,9 @@
 import time
 import configparser
 import pathlib
+import my_log
 def LogIt(text,status=None):
+   # Log(text)
     with open('./log.txt', 'a')as log:
         log_string = time.strftime("%d.%m_%H:%M:%S")
         log_string = log_string +' '+ text + "\n"
@@ -21,4 +23,8 @@ def list_file_in_path(path,ext):
     for curFile in curDir.glob(curPatt):
         fList.append(str(curFile))
     return fList
+
+
+
+
 

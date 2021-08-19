@@ -8,9 +8,15 @@
                ''as pos_number,
                ''as check_number,
                ''as check_unique_number,
-              (select quant from pr_get_warebase_from_date(:date_start,dd.part_id,dd.g$profile_id)) as quantity,
-             cast(abs(p.price_o*(select quant from pr_get_warebase_from_date(:datestart1,dd.part_id,dd.g$profile_id)))as numeric(10,2)) as purchase_sum_nds,
-             cast(abs(p.price*(select quant from pr_get_warebase_from_date(:datestart1,dd.part_id,dd.g$profile_id))) as numeric(10,2)) as retail_sum_nds,
+              (select quant from pr_get_warebase_from_date(:date_start,dd.part_id
+--,dd.g$profile_id
+)) as quantity,
+             cast(abs(p.price_o*(select quant from pr_get_warebase_from_date(:datestart1,dd.part_id
+--,dd.g$profile_id
+)))as numeric(10,2)) as purchase_sum_nds,
+             cast(abs(p.price*(select quant from pr_get_warebase_from_date(:datestart1,dd.part_id
+--,dd.g$profile_id
+))) as numeric(10,2)) as retail_sum_nds,
              cast(0 as numeric(9,2)) as discount_sum,
              '' as cashier_id,
              '' as cashier_full_name,
@@ -22,20 +28,21 @@
              '' as  fn_doc_date,
              cast(substring(:date_start from 1 for 10) as dm_datetime)
 
- from    doc_detail dd
-           left join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30,24)
+ from    parts p
+ inner join doc_detail dd on dd.part_id=p.id -- and dd.g$profile_id=p.g$profile_id
+ left join docs d on d.id = dd.doc_id  and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30,24)
  and  d.docdate between '01.11.2020' and :datestart2   -- and d.g$profile_id = dd.g$profile_id
 
 
 
-     left join parts p on dd.part_id=p.id -- and p.g$profile_id=dd.g$profile_id
+
 
        where  dd.part_id=:pid -- and dd.g$profile_id = :profile_id
    and (select quant from pr_get_warebase_from_date(:date_start,dd.part_id
               --,dd.g$profile_id
               )) >0
 
-    group by part_id,p.price_o,p.price,dd.g$profile_id
+    group by part_id,p.price_o,p.price--,dd.g$profile_id
 
 union all
 select distinct
@@ -81,7 +88,7 @@ select distinct
              iif(d.doc_type in (3,9),d.fnnumber,'') as fn_number,
              iif(d.doc_type in (3,9), (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,null)),'') as  fn_doc_date,
              d.docdate
-                        from docs d
+           from docs d
 
 
       inner join doc_detail dd on d.id = dd.doc_id  -- and d.g$profile_id = dd.g$profile_id

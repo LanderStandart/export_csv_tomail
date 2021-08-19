@@ -1,10 +1,11 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
-from engine import FTP_work,Archiv,Db,os,LogIt,existPath,read_ini,get_File,put_file
+from engine import FTP_work,Archiv,Db,os,LogIt,existPath,read_ini,get_File,put_file,my_log
 from XMLcreate import XML
 import datetime
 import itertools
 from pathlib import Path
-
+import sys
+logger = my_log.get_logger(__name__)
 class Sozvezdie(Db):
     def __init__(self,profile_id=None):
         self.DB = Db()
@@ -27,10 +28,10 @@ class Sozvezdie(Db):
 
 
     def get_Filename(self):#формируем имя файла
-        filename = '_'+self.client_id+'_'+self.dep_code+'_bat'
-        self.filename=self.date_end.strftime('%Y')+self.date_end.strftime('%m')+self.date_end.strftime('%d')+\
-                      self.date_end.strftime('%H')+self.date_end.strftime('%M')+self.date_end.strftime('%S')+ filename
-        return self.path +self.filename + '.xml'
+        #{datetime}_{code_client}_{dep_code}_bat.xml  = 2021061110315_1_bat.xml
+        self.filename=f"{self.path}{self.date_end.strftime('%Y%m%d%H%M%S')}_{self.client_id}_{self.dep_code}_bat.xml"
+        logger.info('Формируем файл - '+self.filename)
+        return self.filename
 
     def prepare_sql(self,sql,pid,da_strt,da_end,header=None):
         sql1 = sql.replace(':pid', str(pid))
@@ -103,7 +104,7 @@ class Sozvezdie(Db):
                 for head in heads:
                     exp_data = row[y]
                     if 'base' in head_file and y==4 and row[4]<0:
-                        LogIt(str(row))
+                        logger.info(str(row))
 
                     if head != 'nomenclature_codes':
                         XML().add_subelement(subelem=head,elem=el1,data=exp_data)
@@ -116,7 +117,8 @@ class Sozvezdie(Db):
 
     def get_Data(self):
         self.get_Date()
-        file_name = self.get_Filename()
+        self.get_Filename()
+       # raise SystemExit('nnn'+self.filename)
         part_id=[]
         part_id1=[]
 
@@ -161,7 +163,7 @@ class Sozvezdie(Db):
             part_id.append(po[0])
         part_id = list(set(part_id))
         parts = list(set(part_id+part_id1))
-        LogIt(str(len(parts)))
+        logger.info(str(len(parts)))
         #Create XML
         if self.type:
             self.date_start=self.date_start - datetime.timedelta(days=1)
@@ -169,12 +171,12 @@ class Sozvezdie(Db):
         XML().add_element(element='data_version',root=gl_root,data='6')
 
         self.create_export(gl_root=gl_root,root='batches',element='batch',data=parts,head_file='goods',sql='action_batch')
-        LogIt('distr')
+        logger.info('distr')
         self.doc_dates=[]
         self.doc_dates1 = []
    
         if self.type:
-            LogIt('Собираю первичные движения')
+            logger.info('Собираю первичные движения')
             self.create_export(gl_root=gl_root,root='distributions', element='distribution', data=parts, head_file='move', sql='action_move_first')
             self.create_export(root='distributions', element='distribution', data=part_id,head_file='move', sql='action_move')
         else:
@@ -187,42 +189,40 @@ class Sozvezdie(Db):
         docs1 = list(docs1 for docs1, _ in itertools.groupby(docs1))
         self.check_move(part_id1,docs1)
         #LogIt(str(docs2))
-        LogIt('remnant')
+        logger.info('remnant')
         if self.type:
 
             self.create_export(gl_root=gl_root, root='remnants', element='remnant', data=docs1, head_file='base', sql='action_remnant_first',date_end='1')
-
-
             self.create_export(gl_root=None,root='remnants',element='remnant', data=docs2, head_file='base', sql='action_remnant',date_start=self.date_start)
         else:
             self.create_export(gl_root=gl_root, root='remnants', element='remnant', data=docs2, head_file='base', sql='action_remnant')
 
 
-        XML().save_file(root=gl_root,filename=file_name)
+        XML().save_file(root=gl_root,filename=self.filename)
 
-        fn  = file_name.replace('./', '')
+        fn  = self.filename.replace('./', '')
         fn = fn.replace('/',"\\")
-        pf = Path(os.path.abspath(os.curdir) + file_name+'.zip')
+        pf = Path(os.path.abspath(os.curdir) + self.filename+'.zip')
 
         Archiv(fn , '').zip_File()
 
         pf.rename(Path(pf.parent,"{}.{}".format(pf.stem,'tmp')))
-        FTP_work(self.conf).upload_FTP(file_name+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
+        FTP_work(self.conf).upload_FTP(self.filename+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
 
 #,extpath=str(read_ini(self.conf, 'FTP_PATH'))
-        LogIt('END')
+        logger.info('END')
 
 
 
 
     def get_Date(self):
         if self.type:
-            LogIt('Выбранна первичная выгрузка')
+            logger.info('Выбранна первичная выгрузка')
             self.date_start = datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y")
             self.date_end = datetime.datetime.today()-datetime.timedelta(days=1)
 #datetime.datetime.strptime(read_ini(self.conf, 'DATE_END'),"%d.%m.%Y")#
         else:
-            LogIt('Выбрана текущая выгрузка')
+            logger.info('Выбрана текущая выгрузка')
             self.date_start = datetime.date.today()-datetime.timedelta(days=92)
             self.date_end =datetime.datetime.today()-datetime.timedelta(days=1)
 
@@ -234,7 +234,7 @@ class Sozvezdie(Db):
                 for doc in docs:
                     good = good+ doc.count(part)
                 if not good:
-                    LogIt(str(part)+'- нет выгрузки')
+                    logger.info(str(part)+'- нет выгрузки')
              
 
 

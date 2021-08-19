@@ -18,8 +18,12 @@
                     ':departmentcode' as map_pharmacy_id,
                     sab.id as batch_id,
                     (select result from pr_sozvezdie_format_datetime(:date_start,0)) as dates,
-                    (select quant from pr_get_warebase_from_date(:date_start,sab.id,sab.g$profile_id))as opening_balance,
-                    (select quant from pr_get_warebase_from_date(:date_end,sab.id,sab.g$profile_id)) as closing_balance,
+                    (select quant from pr_get_warebase_from_date(:date_start,sab.id
+--,sab.g$profile_id
+))as opening_balance,
+                    (select quant from pr_get_warebase_from_date(:date_end,sab.id
+--,sab.g$profile_id
+)) as closing_balance,
                     cast(sab.price as dm_double)as price,
                     cast(sab.price_o as dm_double)as price_o,
                     :date_start as updatedt
