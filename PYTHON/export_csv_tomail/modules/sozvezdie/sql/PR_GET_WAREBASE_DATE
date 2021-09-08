@@ -2,29 +2,26 @@ SET TERM ^ ;
 
 create or alter procedure PR_GET_WAREBASE_FROM_DATE (
     DATE_W DM_DATETIME,
-    PARTID DM_ID,
-    PROFILE DM_ID)
+    PARTID DM_ID)
 returns (
     QUANT DM_DOUBLE)
 as
 begin
 select
-coalesce((select iif(w.quant<0,0,w.quant)
-            from warebase_d w
-          where w.part_id=:partid and w.g$profile_id=:PROFILE
-          and w.doc_commitdate= '01.'||extract(month from :date_w)||'.'||extract (year from :date_w)),0)+iif(quant<0,0,quant)
+coalesce((select iif(w.quant<0,0,cast(w.quant as numeric(15,2))) from warebase_d w where w.part_id=:partid and w.doc_commitdate= '01.10.2020' ),0)+q.quant
 from
  ( Select
      -- dd.part_id,
-  cast(coalesce(sum(dd.quant),0)as numeric (9,2))as quant
-  from
-   doc_detail dd
- -- left join docs d on d.id=dd.doc_id
+  cast(coalesce(sum(dd.quant),0)as numeric (15,2))as quant
+  from  docs d
+
+  join doc_detail dd on d.id=dd.doc_id
  --    inner join docs d on dd.doc_id=d.id and d.status=1 and d.docdate   between '01.01.'||extract (year from current_date) and :DATE_W
   where
-    dd.doc_commitdate between '01.'||extract(month from :date_w)||'.'||extract (year from :date_w) and :DATE_W and
+    d.docdate between '01.10.2020:00:00:00' and dateadd(second,-1,:DATE_W) and
+    --d.docdate between '01.10.2020:00:01:00' and :DATE_W and
     --dd.doc_commitdate <=:date_w and
-    dd.part_id =:partid and dd.g$profile_id=:PROFILE) q
+    dd.part_id =:partid) q
   into :quant;
 --  do
   suspend;
@@ -35,9 +32,11 @@ SET TERM ; ^
 /* Following GRANT statetements are generated automatically */
 
 GRANT SELECT ON WAREBASE_D TO PROCEDURE PR_GET_WAREBASE_FROM_DATE;
+GRANT SELECT ON DOCS TO PROCEDURE PR_GET_WAREBASE_FROM_DATE;
 GRANT SELECT ON DOC_DETAIL TO PROCEDURE PR_GET_WAREBASE_FROM_DATE;
 
 /* Existing privileges on this procedure */
 
 GRANT EXECUTE ON PROCEDURE PR_GET_WAREBASE_FROM_DATE TO PROCEDURE PR_SOZVEZDIE_ACTION_REMHANT;
+GRANT EXECUTE ON PROCEDURE PR_GET_WAREBASE_FROM_DATE TO PROCEDURE PR_SOZVEZDIE_BATCH;
 GRANT EXECUTE ON PROCEDURE PR_GET_WAREBASE_FROM_DATE TO SYSDBA;

@@ -5,6 +5,7 @@ import datetime
 import itertools
 from pathlib import Path
 import sys
+import os
 logger = my_log.get_logger(__name__)
 class Sozvezdie(Db):
     def __init__(self,profile_id=None):
@@ -24,6 +25,7 @@ class Sozvezdie(Db):
             self.dep_code =read_ini(self.conf, 'DEP_CODE')
         else:
             self.dep_code = profile_id
+
 
 
 
@@ -82,7 +84,8 @@ class Sozvezdie(Db):
             #     print(head_file, da_strt, da_end, date_start)
             #     continue
 
-
+            distr_id=[]
+            distr_id1=[]
             for row in p:
 
                 el1 = XML().add_element(element, self.el)
@@ -90,19 +93,32 @@ class Sozvezdie(Db):
                 if 'move_first' in sql :
  #                   print (row[2], row[21])
                     self.doc_dates1.append([row[2], datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y")])
+                if row[1] in distr_id1:
+                    logger.error('Дубль в первичке- ' + str(row))
+                    continue
+                distr_id1.append(row[1])
                 elif 'move' in sql:
                     move_data= datetime.datetime.strptime(row[21].strftime("%d.%m.%Y"),"%d.%m.%Y")
                     if self.type and row[21]==datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y"):
                         #print(row[21],move_data,'eee',row[2])
                         continue
+                    if row[1] in distr_id:
+                        logger.error('Дубль - '+str(row))
+                        continue
+                    distr_id.append(row[1])
                     move_data= datetime.datetime.strptime(row[21].strftime("%d.%m.%Y"),"%d.%m.%Y")
                     #print(type(row[21]),row[21],type(self.date_start.strftime('%Y-%m-%d')),type(move_data),row[2])
                     self.doc_dates.append([row[2], move_data])
+                if 'batch' in sql:
+                    self.batch_id.append(row[0])
 
 
                 y = 0
                 for head in heads:
+ #помещаем значение из строки запроса по колонкам в переменную
                     exp_data = row[y]
+                    if row[y]==None:
+                        row[y]=''
                     if 'base' in head_file and y==4 and row[4]<0:
                         logger.info(str(row))
 
@@ -121,6 +137,7 @@ class Sozvezdie(Db):
        # raise SystemExit('nnn'+self.filename)
         part_id=[]
         part_id1=[]
+        self.batch_id=[]
 
         #Если первичная выгрузкв
         if self.type:
@@ -197,7 +214,7 @@ class Sozvezdie(Db):
         else:
             self.create_export(gl_root=gl_root, root='remnants', element='remnant', data=docs2, head_file='base', sql='action_remnant')
 
-
+        self.check_batch(self.batch_id,parts)
         XML().save_file(root=gl_root,filename=self.filename)
 
         fn  = self.filename.replace('./', '')
@@ -237,7 +254,11 @@ class Sozvezdie(Db):
                     logger.info(str(part)+'- нет выгрузки')
              
 
-
+    def check_batch(self,batch,parts):
+        #batch_clear = list(batch for batch, _ in itertools.groupby(batch))
+        result = [x for x in parts if x not in set(batch)]
+        if result:
+            logger.error(str(result)+' - нет партий')
 
 
 

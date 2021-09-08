@@ -11,7 +11,7 @@ check_unique_number,
 sum(quantity) as quantity ,
 sum(purchase_sum_nds) as purchase_sum_nds,
 sum(retail_sum_nds)as retail_sum_nds,
-discount_sum,
+sum(discount_sum)as discount_sum,
 cashier_id,
 cashier_full_name,
 cashier_tin,
@@ -22,7 +22,7 @@ fn_number,
 fn_doc_date,
 docdate
 from (
-select distinct
+select 
       ':departmentcode' as map_pharmacy_id,
                d.id||dd.part_id as distribution_id,
                dd.part_id as batch_id,
@@ -72,7 +72,7 @@ select distinct
 
       inner join doc_detail dd on d.id = dd.doc_id   --and d.g$profile_id = dd.g$profile_id
 
-     left join users u on u.id=d.owner
+     left join users u on u.id=d.owner --and u.g$profile_id = dd.g$profile_id
       where  dd.part_id=:pid  --and d.g$profile_id = :profile_id
        and d.doc_type in (1,11,10,17,2,3,4,5,6,9,8,20,7,18,23,32,30) and d.docdate between :datestart1 and :date_end
        order by d.docdate   )mov
@@ -85,7 +85,6 @@ doc_number,
 pos_number,
 check_number,
 check_unique_number,
-discount_sum,
 cashier_id,
 cashier_full_name,
 cashier_tin,

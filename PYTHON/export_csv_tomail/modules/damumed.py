@@ -1,6 +1,6 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from engine import FTP_work,Archiv,Db,valid_xml,LogIt,existPath
-
+from engine import FTP_work,Archiv,Db,valid_xml,LogIt,existPath,my_log
+logger = my_log.get_logger(__name__)
 class Damumed(Db):
     def __init__(self, profile_id=None):
         self.DB = Db()
@@ -9,8 +9,9 @@ class Damumed(Db):
         existPath(self.path)
         self.profile_id = profile_id
         self.file_name =self.path+ self.DB.config.get(self.conf, 'ID_CLIENT')
+        logger.info('Формируем - '+self.file_name)
         if self.profile_id is None:
-            LogIt('Алгоритм работает только для сетей !!!')
+            logger.info('Алгоритм работает только для сетей !!!')
             exit()
 
 
@@ -44,9 +45,8 @@ class Damumed(Db):
             xml = '</drugs>\n'.encode('utf8')
             file_damumed.write(xml)
 
-
         Archiv(self.file_name+self.profile_id, 'xml').zip_File()
-        FTP_work(self.conf).upload_FTP(self.file_name+self.profile_id + '.zip')
+        FTP_work(self.conf).upload_FTP(self.file_name + '.zip')
 
 
 

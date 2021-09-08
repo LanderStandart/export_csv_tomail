@@ -36,15 +36,14 @@ class XML:
     def add_element(self,element,root=None,attrib=None,data=None):
         appt = xml.Element(element,attrib)if attrib else xml.Element(element)
         root.append(appt)
-        data = '' if data is None or len(str(data))<1 else data
+        data = '' if data is None or len(str(data)) < 1 or data == 'None' else data
         appt.text = data
         return appt
 
     def add_subelement(self,subelem,data,elem=None,attrib=None):
         sub = xml.SubElement(elem, subelem,attrib) if attrib else xml.SubElement(elem, subelem)
         data = str(data)
-        if len(data) < 1 or data is None:
-            data = ''
+        data = '' if data is None or len(str(data)) < 1 or data == 'None' else data
         sub.text = data
         return sub
 

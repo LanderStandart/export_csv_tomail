@@ -1,7 +1,9 @@
 select distinct
             p1.id as map_batch_id,
             ':departmentcode' as map_pharmacy_id,
-            (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT')as map_pharmacy_name,
+            (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'
+            --and p.g$profile_id=p1.g$profile_id
+            )as map_pharmacy_name,
             '' as nomenclature_id,
             vname.svalue as map_nomenclature_name,
             '' as map_product_code,
@@ -25,9 +27,9 @@ select distinct
             '0' as sign_comission,
             w.name_id as nomenclature_codes
          from   parts p1
-         left  join docs d on d.id = p1.doc_id -- and d.g$profile_id =p1.g$profile_id
+         join docs d on d.id = p1.doc_id -- and d.g$profile_id =p1.g$profile_id
 
-         left join agents a on a.id=d.agent_id --
+         left join agents a on a.id=d.agent_id --and a.g$profile_id=p1.g$profile_id
          left join WARES w on p1.ware_id=w.id
          left join vals vname on w.name_id=vname.id
          left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
