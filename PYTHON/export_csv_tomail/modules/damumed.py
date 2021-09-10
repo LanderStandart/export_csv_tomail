@@ -21,7 +21,7 @@ class Damumed(Db):
             xml = '<?xml version="1.0" encoding="utf-8" ?>\n' \
               '<drugs>\n'.encode('utf8')
             file_damumed.write(xml)
-            SQL_DAMUMED = " select first 5 g.caption  as storename, " \
+            SQL_DAMUMED = " select g.caption  as storename, " \
                       "w.sname as drugname, " \
                       "w.sizg as manufacturer, " \
                       "w.scountry as country, " \
@@ -32,7 +32,7 @@ class Damumed(Db):
                       "w.price as price " \
                       "from warebase_g w "\
                     "inner join g$profiles g on g.id = w.g$profile_id"
-            result = self.DB.get_sql(SQL_DAMUMED,' where w.g$profile_id='+self.profile_id)
+            result = self.DB.get_sql(SQL_DAMUMED,' where w.g$profile_id='+self.profile_id+' and w.quant>0.01')
             xml = ''
 
             for s in result:
@@ -46,7 +46,7 @@ class Damumed(Db):
             file_damumed.write(xml)
 
         Archiv(self.file_name+self.profile_id, 'xml').zip_File()
-        FTP_work(self.conf).upload_FTP(self.file_name + '.zip')
+        FTP_work(self.conf).upload_FTP(self.file_name+self.profile_id + '.zip',isbynary=True)
 
 
 

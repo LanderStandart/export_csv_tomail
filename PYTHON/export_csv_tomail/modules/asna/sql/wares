@@ -1,0 +1,1 @@
+select id,replace(MGN_NAME,'—','') as name,replace(PRODUCER,'—','') as PRODUCER, COUNTRY, EAN from ASNA_GOODS where ACTUAL = 1 order by MGN_NAME

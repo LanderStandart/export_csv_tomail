@@ -1,6 +1,6 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
-from engine import FTP_work,Archiv,Db,os,LogIt,existPath,read_ini,get_File,put_file,my_log
-from XMLcreate import XML
+from engine import FTP_work,Archiv,Db,os,LogIt,existPath,read_ini,get_File,put_file,my_log,XML
+#from XMLcreate import XML
 import datetime
 import itertools
 from pathlib import Path
@@ -93,10 +93,10 @@ class Sozvezdie(Db):
                 if 'move_first' in sql :
  #                   print (row[2], row[21])
                     self.doc_dates1.append([row[2], datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y")])
-                if row[1] in distr_id1:
-                    logger.error('Дубль в первичке- ' + str(row))
-                    continue
-                distr_id1.append(row[1])
+                    if row[1] in distr_id1:
+                        logger.error('Дубль в первичке- ' + str(row))
+                        continue
+                    distr_id1.append(row[1])
                 elif 'move' in sql:
                     move_data= datetime.datetime.strptime(row[21].strftime("%d.%m.%Y"),"%d.%m.%Y")
                     if self.type and row[21]==datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y"):
