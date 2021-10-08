@@ -1,0 +1,1 @@
+insert into ASNA_WAREBASE(part_id, G$PROFILE_ID,ddate) select id, '1', "+date_end+" from parts p

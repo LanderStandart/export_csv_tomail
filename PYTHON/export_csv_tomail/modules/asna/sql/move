@@ -1,0 +1,59 @@
+select first 5  cast(dd.id as varchar(255)) as ID,
+               cast(d.id as varchar(255)) as DOC_ID,
+               '+org_code+' as ur_l,
+               '+asna_code+',
+               case d.doc_type
+                when 11 then 1 --мелкооптовый отпуск
+                when 3  then 2 --продажа через ККМ
+                when 1  then 3 --приход товара
+                when 9  then 4 --возврат от покупателя
+                when 37 then 4 --возврат от покупателя
+                when 4  then 5 --возврат поставщику
+                when 2  then iif((char_length(a.email) between 1 and 3), 6, 8) --межскладская передача
+                when 17 then 7 --Списание
+                when 10 then 7 --Списание
+                when 5  then 7 --Списание
+                when 20 then 8  --Ввод остатков
+                end as doc_type,
+                case d.doc_type
+                  when 11 then '+INN+' --мелкооптовый отпуск
+                  when 3  then '+INN+' --продажа через ККМ
+                  when 1  then coalesce(a.inn,'') --приход товара
+                  when 2  then '+asna_code+' --межскладская передача
+                  when 17 then '+asna_code+'  --Списание
+                  when 10 then '+asna_code+'  --Списание
+                  when 5 then '+asna_code+'  --Списание
+                  when 20 then '+asna_code+' --Ввод остатков
+                 else ''
+                 end as sagent,
+          left(cast(d.commitdate as varchar(255)),19) as doc_date,
+          case d.doc_type 
+           when 3 then d.docnum||'Ч'||(select max(docnum) from docs d2 where d2.status = 1 and d2.doc_type=13 and d2.vshift = d.vshift and d2.device_num = d.device_num) 
+       else d.docnum
+          end as docnum, 
+          0 as docnum1, --вид оплаты
+          dcard, ' ',
+          dcard,
+          dcard,
+          --(select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) as GOODS_ID,
+          iif(char_length(w.barcode)>13,'',w.barcode) as ean,
+          abs(dd.quant) as quant,
+          a.inn as inn,
+          coalesce(0,'+def_region+') as region,
+          abs(Round((dd.quant*p.price_o*100/(100+dp.nds)),2)) as sum_b_nds,
+          abs(dd.summa_o) as summa_o,
+          abs(Round((dd.summa_o-dd.quant*p.price_o*100/(100+dp.nds)),2)) as sum_nds,
+          abs(dd.summa+dd.sum_dsc) as summa_b_dsc,
+          abs(dd.summa) as summa,
+          abs(dd.sum_dsc) as sum_dsc,
+          d.status, ' ',' ','0'
+    from doc_detail dd
+    inner join docs d on dd.doc_id = d.id
+    inner join agents a on a.id=d.agent_id
+    inner join parts p on  dd.part_id = p.id
+    inner join deps dp on p.dep = dp.id
+    inner join wares w on w.id=p.ware_id
+    where d.status = 1 and d.doc_type in (11,2,3,1,37,9,4,17,10,5,20) and dd.doc_commitdate between '+date_beg+' and '+date_end+'
+    --and (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) is not null
+    and dd.quant <> 0 
+    order by 1

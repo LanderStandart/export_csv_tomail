@@ -219,13 +219,14 @@ class Sozvezdie(Db):
 
         fn  = self.filename.replace('./', '')
         fn = fn.replace('/',"\\")
-        pf = Path(os.path.abspath(os.curdir) + self.filename+'.zip')
+        fn1=fn.split('.')
+        pf = Path(os.path.abspath(os.curdir) +'/'+ fn1[0]+'.zip')
 
-        Archiv(fn , '').zip_File()
+        Archiv(fn1[0] ,fn1[1]).zip_File()
 
         pf.rename(Path(pf.parent,"{}.{}".format(pf.stem,'tmp')))
-        FTP_work(self.conf).upload_FTP(self.filename+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
-
+    #    FTP_work(self.conf).upload_FTP(self.filename+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
+        FTP_work(self.conf).upload_FTP('./'+fn1[0]+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
 #,extpath=str(read_ini(self.conf, 'FTP_PATH'))
         logger.info('END')
 
