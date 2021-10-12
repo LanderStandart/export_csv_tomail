@@ -17,6 +17,10 @@ class Asna(Db):
         self.asna_code =read_ini(self.conf, 'ASNA_CODE')
         self.def_region =read_ini(self.conf, 'DEF_REGION')
         self.inn = read_ini(self.conf, 'INN')
+        self.DB.cheak_db(read_ini(self.conf, 'TABLE'),'TABLE')
+        self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE'),'PROCEDURE')
+        self.DB.cheak_db(read_ini(self.conf, 'TRIGGER'),'TRIGGER')
+        sys.exit()
         # if self.profile_id is None:
         #     logger.info('Алгоритм работает только для сетей !!!')
         #    exit()
