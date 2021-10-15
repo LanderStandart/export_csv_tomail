@@ -35,7 +35,7 @@ select first 5  cast(dd.id as varchar(255)) as ID,
           dcard, ' ',
           dcard,
           dcard,
-          --(select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) as GOODS_ID,
+          (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) as GOODS_ID,
           iif(char_length(w.barcode)>13,'',w.barcode) as ean,
           abs(dd.quant) as quant,
           a.inn as inn,
@@ -54,6 +54,6 @@ select first 5  cast(dd.id as varchar(255)) as ID,
     inner join deps dp on p.dep = dp.id
     inner join wares w on w.id=p.ware_id
     where d.status = 1 and d.doc_type in (11,2,3,1,37,9,4,17,10,5,20) and dd.doc_commitdate between '+date_beg+' and '+date_end+'
-    --and (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) is not null
+    and (select GOODS_ID from PR_ASNA_GET_GOODS(p.ware_id)) is not null
     and dd.quant <> 0 
     order by 1

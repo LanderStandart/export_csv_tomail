@@ -14,7 +14,7 @@ begin
   select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
   if (char_length(:barcode) <> 13) then barcode = '';
 
-   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = coalesce(trim(:barcode),'') into :GOODS_ID;
    if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
     select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
 

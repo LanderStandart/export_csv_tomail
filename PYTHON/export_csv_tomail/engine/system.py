@@ -11,9 +11,10 @@ def LogIt(text,status=None):
         log.write(log_string)
     print(log_string)
 
-def read_ini(sections,params):
+def read_ini(sections,params,modules=None):
     config = configparser.ConfigParser()
-    config.read('./config.ini')
+    path ='.' if not modules else './modules/'+modules
+    config.read(path+'/config.ini')
     return config.get(sections, params)
 
 def list_file_in_path(path,ext):

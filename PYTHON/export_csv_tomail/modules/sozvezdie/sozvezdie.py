@@ -10,19 +10,19 @@ logger = my_log.get_logger(__name__)
 class Sozvezdie(Db):
     def __init__(self,profile_id=None):
         self.DB = Db()
+        self.path_ini=__name__
         self.profile_id = profile_id
         self.conf = 'SOZVEZDIE'
         self.alone = str(read_ini('BASE_CONF', 'ALONE'))
-        self.path = read_ini(self.conf, 'PATH_EXPORT')
+        self.path = read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
         #CLIENT_ID пока получаем из ini но думаю для сети нужно привязку к профиль ИД
-        self.client_id = read_ini(self.conf, 'CLIENT_ID')
+        self.client_id = read_ini(self.conf, 'CLIENT_ID',self.path_ini)
         #Тип выгрузки 1- первичная 0-текущая
-        self.type = int(read_ini(self.conf, 'TYPE'))
+        self.type = int(read_ini(self.conf, 'TYPE',self.path_ini))
         existPath(self.path)
-        #список файлов выгрузки
-        self.expfile = read_ini(self.conf, 'FILE_LIST').split(',')
+
         if int(read_ini('BASE_CONF', 'ALONE'))==1:
-            self.dep_code =read_ini(self.conf, 'DEP_CODE')
+            self.dep_code =read_ini(self.conf, 'DEP_CODE',self.path_ini)
         else:
             self.dep_code = profile_id
 
@@ -92,14 +92,14 @@ class Sozvezdie(Db):
 
                 if 'move_first' in sql :
  #                   print (row[2], row[21])
-                    self.doc_dates1.append([row[2], datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y")])
+                    self.doc_dates1.append([row[2], datetime.datetime.strptime(read_ini(self.conf, 'DATE_START',self.path_ini),"%d.%m.%Y")])
                     if row[1] in distr_id1:
                         logger.error('Дубль в первичке- ' + str(row))
                         continue
                     distr_id1.append(row[1])
                 elif 'move' in sql:
                     move_data= datetime.datetime.strptime(row[21].strftime("%d.%m.%Y"),"%d.%m.%Y")
-                    if self.type and row[21]==datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y"):
+                    if self.type and row[21]==datetime.datetime.strptime(read_ini(self.conf, 'DATE_START',self.path_ini),"%d.%m.%Y"):
                         #print(row[21],move_data,'eee',row[2])
                         continue
                     if row[1] in distr_id:
@@ -184,7 +184,7 @@ class Sozvezdie(Db):
         #Create XML
         if self.type:
             self.date_start=self.date_start - datetime.timedelta(days=1)
-        gl_root=XML().add_root(root='map-actions',attrib={"client_id":read_ini(self.conf, 'CLIENT_ID')})
+        gl_root=XML().add_root(root='map-actions',attrib={"client_id":read_ini(self.conf, 'CLIENT_ID',self.path_ini)})
         XML().add_element(element='data_version',root=gl_root,data='6')
 
         self.create_export(gl_root=gl_root,root='batches',element='batch',data=parts,head_file='goods',sql='action_batch')
@@ -226,7 +226,7 @@ class Sozvezdie(Db):
 
         pf.rename(Path(pf.parent,"{}.{}".format(pf.stem,'tmp')))
     #    FTP_work(self.conf).upload_FTP(self.filename+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
-        FTP_work(self.conf).upload_FTP('./'+fn1[0]+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH')),isbynary=True,rename=True)
+        FTP_work(self.conf).upload_FTP('./'+fn1[0]+'.tmp',extpath=str(read_ini(self.conf, 'FTP_PATH',self.path_ini)),isbynary=True,rename=True)
 #,extpath=str(read_ini(self.conf, 'FTP_PATH'))
         logger.info('END')
 
@@ -236,7 +236,7 @@ class Sozvezdie(Db):
     def get_Date(self):
         if self.type:
             logger.info('Выбранна первичная выгрузка')
-            self.date_start = datetime.datetime.strptime(read_ini(self.conf, 'DATE_START'),"%d.%m.%Y")
+            self.date_start = datetime.datetime.strptime(read_ini(self.conf, 'DATE_START',self.path_ini),"%d.%m.%Y")
             self.date_end = datetime.datetime.today()-datetime.timedelta(days=1)
 #datetime.datetime.strptime(read_ini(self.conf, 'DATE_END'),"%d.%m.%Y")#
         else:

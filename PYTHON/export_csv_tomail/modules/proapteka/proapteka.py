@@ -1,4 +1,6 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
+
+#  Autor by Lander (c) 2021. Created for Standart-N LLT
 import sys
 from engine import FTP_work,Archiv,Db,CSV_File,os,existPath,read_ini,LogIt,list_file_in_path,my_log
 
@@ -9,10 +11,11 @@ class Proapteka(Db):
         self.profile_id = profile_id
         self.DB = Db()
         self.conf = 'PROAPTEKA'
-        self.path = read_ini(self.conf, 'PATH_EXPORT')
+        self.path_ini=__name__
+        self.path = read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
         existPath(self.path)
         #список файлов фыгрузки
-        self.expfile = self.DB.config.get(self.conf, 'FILE_LIST').split(',')
+        self.expfile = read_ini(self.conf, 'FILE_LIST',self.path_ini).split(',')
 
     def getFilename(self, filename):#формируем имя файла
         self.filename= filename
@@ -35,8 +38,8 @@ class Proapteka(Db):
                 logger.info(i)
                 head = self.get_File('./modules/proapteka/head/',i.lower()).split('\n')
                 sql = self.get_File('./modules/proapteka/sql/',i.lower())
-                sql = sql.replace('DEP_CODE',self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
-                sql = sql.replace('+DepartmentCode+', self.DB.config.get(self.conf, 'DEPARTMENTCODE'))
+                sql = sql.replace('DEP_CODE',read_ini(self.conf, 'DEPARTMENTCODE',self.path_ini))
+                sql = sql.replace('+DepartmentCode+', read_ini(self.conf, 'DEPARTMENTCODE',self.path_ini))
                 date_s = datetime.date.today()-datetime.timedelta(days=45)
                 date_start = datetime.datetime.today().strftime('%d.%m.%Y')
                 sql = sql.replace(':FROM_DATE', "'" + date_start + "'")
@@ -55,7 +58,7 @@ class Proapteka(Db):
 #        print(fl)
         #FTP_work(self.conf).upload_FTP(file_name + '.csv', extpath=str(read_ini(self.conf, 'FTP_PATH')), isbynary=True,rename=False)
         for fname in fl:
-            FTP_work(self.conf).upload_FTP(fname, extpath=str(read_ini(self.conf, 'FTP_PATH')), isbynary=True,rename=False)
+            FTP_work(self.conf).upload_FTP(fname, extpath=str(read_ini(self.conf, 'FTP_PATH',self.path_ini)), isbynary=True,rename=False)
 
 
 

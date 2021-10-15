@@ -1,8 +1,8 @@
 select '+org_code+' as ur_l,
        '+asna_code+',
        iif(a.inn<>'',cast(coalesce(a.inn,0)as DM_ID),0) as inn,
-       '+def_region+' as region,
-       left(cast(cast(dateadd(0 day to w.ddate) as dm_datetime) as varchar(255)),19) as beg_date,
+       (select par.param_value from params par where par.param_id='NAC_REGION') as region,
+       '+date_end+'as beg_date,
        left(cast(d.commitdate as varchar(255)),19) as post_date,
        (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) as GOODS_ID,
        iif(char_length(w1.barcode)>13,'',w1.barcode) as ean,
@@ -10,10 +10,13 @@ select '+org_code+' as ur_l,
        coalesce(abs(Round((w.quant*w.price_o*100/(100+w.nds)),2)),0) as sum_b_nds,
        coalesce(abs(Round(w.quant*w.price_o,2)),0) as summa_o,
        coalesce(abs(Round((w.quant*w.price_o-w.quant*w.price_o*100/(100+w.nds)),2)),0) as sum_nds,
-       coalesce(abs(round(w.quant*w.price,2)),0) as summa
-       from ASNA_WAREBASE w
+       coalesce(abs(round(w.quant*w.price,2)),0) as summa,
+       iif (char_length(w.seria)<4,'',coalesce(w.seria,'')) as seria,
+       '' as dateprod,
+       left(cast(w.godendo as varchar(255)),10) as godendo
+       from warebase w
         inner join docs d on w.doc_id = d.id
-        inner join agents a on a.id=w.agent_id
+        inner join agents a on a.id=d.agent_id
         inner join wares w1 on w1.id = w.ware_id
-        where (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) is not null
+       where w.quant>0 and (select GOODS_ID from PR_ASNA_GET_GOODS(w.ware_id)) is not null
         order by 1

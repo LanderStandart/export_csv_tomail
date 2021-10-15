@@ -1,4 +1,6 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
+
+#  Autor by Lander (c) 2021. Created for Standart-N LLT
 import sys
 
 from engine import FTP_work,Archiv,Db,os,existPath,read_ini,get_File,list_file_in_path,my_log,create_dbf,CSV_File
@@ -10,16 +12,17 @@ class Asna(Db):
     def __init__(self, profile_id=None):
         self.conf = 'ASNA'
         self.DB = Db()
-        self.path = read_ini(self.conf, 'PATH_EXPORT')
+        self.path_ini=__name__
+        self.path = read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
         existPath(self.path)
         self.profile_id = profile_id
-        self.org_code = read_ini(self.conf, 'ORG_CODE')
-        self.asna_code =read_ini(self.conf, 'ASNA_CODE')
-        self.def_region =read_ini(self.conf, 'DEF_REGION')
-        self.inn = read_ini(self.conf, 'INN')
-        self.DB.cheak_db(read_ini(self.conf, 'TABLE'),'TABLE')
-        self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE'),'PROCEDURE')
-        self.DB.cheak_db(read_ini(self.conf, 'TRIGGER'),'TRIGGER')
+        self.org_code = read_ini(self.conf, 'ORG_CODE',self.path_ini)
+        self.asna_code =read_ini(self.conf, 'ASNA_CODE',self.path_ini)
+        self.def_region =read_ini(self.conf, 'DEF_REGION',self.path_ini)
+        self.inn = read_ini(self.conf, 'INN',self.path_ini)
+        self.DB.cheak_db(read_ini(self.conf, 'TABLE',self.path_ini),'TABLE')
+        self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE',self.path_ini),'PROCEDURE')
+        self.DB.cheak_db(read_ini(self.conf, 'TRIGGER',self.path_ini),'TRIGGER')
         sys.exit()
         # if self.profile_id is None:
         #     logger.info('Алгоритм работает только для сетей !!!')
@@ -33,8 +36,8 @@ class Asna(Db):
     def prepare_sql(self,sql):
         sql=sql.replace('+org_code+',  str(self.org_code))
         sql=sql.replace('+asna_code+',  str(self.asna_code))
-        sql=sql.replace('+date_beg+',  str(read_ini(self.conf, 'DATE_START')))
-        sql=sql.replace('+date_end+',  str(read_ini(self.conf, 'DATE_END')))
+        sql=sql.replace('+date_beg+',  str(read_ini(self.conf, 'DATE_START',self.path_ini)))
+        sql=sql.replace('+date_end+',  str(read_ini(self.conf, 'DATE_END',self.path_ini)))
         #print(sql)
         return sql
 
@@ -44,8 +47,8 @@ class Asna(Db):
         SQL='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null'
         self.DB.get_sql(SQL,None,1)
         logger.info('Create GOODS')
-        #data = get_from_base(sql_file='wares')
-        #create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
+        data = self.get_from_base(sql_file='wares')
+        create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
 
 #Базовые контрагенты
         logger.info('Create VENDOR')
@@ -69,13 +72,14 @@ class Asna(Db):
         logger.info('Complete MOVE')
 
 #ОСТАТКИ
-        filename2 =self.path+ self.org_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")+'_RST'
+        filename2 =self.path+ self.org_code+'_'+self.asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'\
+                   +datetime.datetime.today().strftime("%H%M")+'_RST'
         logger.info('Create WAREBASE')
-        quota=[0,1,2,6,7]
+        quota=[0,1,2,6,7,13]
         #очищаем таблицу
-        self.get_from_base(sql_file='del_warebase',commit=1)
+       # self.get_from_base(sql_file='del_warebase',commit=1)
         #заполняем таблицу
-        self.get_from_base(sql_file='insert_warebase',commit=1)
+       # self.get_from_base(sql_file='insert_warebase',commit=1)
         data = self.get_from_base(sql_file='warebase')
         CSV_File(data=data,filename=filename2,delimeter='|',ext='.txt').create_csv(quota=quota)
         logger.info('Complete WAREBASE')
@@ -83,7 +87,7 @@ class Asna(Db):
 
         fl=list_file_in_path(self.path,'*')
         for fname in fl:
-            FTP_work(self.conf).upload_FTP(fname, extpath=str(read_ini(self.conf, 'FTP_PATH')), isbynary=True,rename=False)
+            FTP_work(self.conf).upload_FTP(fname, extpath=str(read_ini(self.conf, 'FTP_PATH',self.path_ini)), isbynary=True,rename=False)
 
 # FTP_work('FTP_CONF').upload_FTP(filename1 + '.txt')
 # FTP_work('FTP_CONF').upload_FTP(filename2 + '.txt')
