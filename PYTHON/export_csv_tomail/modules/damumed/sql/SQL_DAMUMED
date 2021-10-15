@@ -1,0 +1,12 @@
+ select first 3 g.caption  as storename,
+                  w.sname as drugname,
+                  w.sizg as manufacturer,
+                  w.scountry as country,
+                  '' as dosage,
+                  '' as packaging,
+                  '' as registrationNumber,
+                  w.quant as balance,
+                  w.price as price
+                  from warebase_g w
+                inner join g$profiles g on g.id = w.g$profile_id
+          where w.g$profile_id={profile_id} and w.quant>0.01

@@ -54,7 +54,7 @@ class Sozvezdie(Db):
 
 
     def create_export(self,root,element,data,head_file,sql,date_start=None,date_end=None,gl_root=None,first=None):
-        LogIt(sql)
+        #LogIt(sql)
         if self.type:
             attrib = {"type": root,  "map_pharmacy_ids": self.dep_code}
         else:
