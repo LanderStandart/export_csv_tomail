@@ -1,17 +1,17 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 #Выгрузка на ФТП
 from ftplib import FTP
-from system import LogIt,read_ini,my_log
+from system import read_ini,my_log
 import os.path
 logger = my_log.get_logger(__name__)
 class FTP_work:
     def __init__(self,sections):
         self.sections = sections
-        self.host = read_ini(self.sections, 'FTP_HOST')
-        self.port = int(read_ini(self.sections, 'FTP_PORT'))
-        self.ftp_user = read_ini(self.sections, 'FTP_USER')
-        self.ftp_password = read_ini(self.sections, 'FTP_PASSWORD')
-        self.status = read_ini(self.sections, 'STATUS')
+        self.host = read_ini(self.sections, 'FTP_HOST',sections)
+        self.port = int(read_ini(self.sections, 'FTP_PORT',sections))
+        self.ftp_user = read_ini(self.sections, 'FTP_USER',sections)
+        self.ftp_password = read_ini(self.sections, 'FTP_PASSWORD',sections)
+        self.status = read_ini(self.sections, 'STATUS',sections)
 
     def upload_FTP(self, file_name, isbynary=None, extpath=None, rename=None):
         self.file_name = file_name

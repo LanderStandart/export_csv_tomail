@@ -3,7 +3,7 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 import sys
 
-from engine import FTP_work,Archiv,Db,os,existPath,read_ini,get_File,list_file_in_path,my_log,create_dbf,CSV_File
+from engine import FTP_work,Archiv,Db,existPath,read_ini,get_File,list_file_in_path,my_log,create_dbf,CSV_File
 import datetime
 #import create_query
 
@@ -18,7 +18,6 @@ class Asna(Db):
         self.profile_id = profile_id
         self.org_code = read_ini(self.conf, 'ORG_CODE',self.path_ini)
         self.asna_code =read_ini(self.conf, 'ASNA_CODE',self.path_ini)
-        self.def_region =read_ini(self.conf, 'DEF_REGION',self.path_ini)
         self.inn = read_ini(self.conf, 'INN',self.path_ini)
         self.DB.cheak_db(read_ini(self.conf, 'TABLE',self.path_ini),'TABLE')
         self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE',self.path_ini),'PROCEDURE')
