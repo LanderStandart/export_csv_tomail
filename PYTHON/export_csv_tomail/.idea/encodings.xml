@@ -6,6 +6,8 @@
     <file url="file://$PROJECT_DIR$/log/202108190951loggi.log" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/log/202108190956loggi.log" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/log/202108190958loggi.log" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/log/202110261010loggi.log" charset="windows-1251" />
+    <file url="file://$PROJECT_DIR$/modules/asna/sql/wares" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/modules/proapteka/sql/store" charset="windows-1251" />
     <file url="file://$PROJECT_DIR$/modules/sozvezdie/sql/action_move_first" charset="windows-1251" />
   </component>

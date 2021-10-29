@@ -8,4 +8,4 @@ select  d.id||dd.id as IdDocumentItem,
   inner join docs d on d.id = dd.doc_id  and d.doc_type in (3,11,4,6)
 
   where dd.discount<0 and
-   dd.doc_commitdate between ' +DateToStr(date_start)+' and '+DateTOStr(date_end)+' order by d.docdate
+   dd.doc_commitdate between '{date_start}' and '{date_end}' order by d.docdate

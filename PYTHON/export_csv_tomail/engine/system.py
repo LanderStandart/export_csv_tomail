@@ -10,8 +10,11 @@ logger = my_log.get_logger(__name__)
 def read_ini(sections,params,modules=None):
     config = configparser.ConfigParser()
     path ='.' if not modules else './modules/'+modules
-    config.read(path+'/config.ini')
-    return config.get(sections, params)
+    try:
+        config.read(path+'/config.ini')
+        return config.get(sections, params)
+    except:
+        logger.error(f'Нет параметра - {params} в настройках - {sections}')
 
 def list_file_in_path(path,ext):
     curDir=pathlib.Path(path)
@@ -33,9 +36,10 @@ def get_File(path,file):
 
 def clear_export_path(path):
     #Чистим логи чтобы выгрузка была только свежая
-    logger.info('Удаляем старые выгрузки в - '+path)
+    logger.info(f'Удаляем старые выгрузки в - {path}')
     now=datetime.datetime.now()
     i=0
+    if not path:return logger.error('Не указан путь для удаления выгрузок')
     try:
         with os.scandir(path) as files:
             for file in files:
@@ -50,6 +54,7 @@ def clear_export_path(path):
         logger.info('Удалять нечего')
 
 def existPath(path):
+    if not path:return logger.error('Не указан путь для  выгрузок')
     if os.path.exists(path):
         logger.info('Каталог -'+path+' найден')
 

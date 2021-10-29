@@ -1,11 +1,9 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 
-#  Autor by Lander (c) 2021. Created for Standart-N LLT
-import sys
 
 from engine import FTP_work,Archiv,Db,existPath,read_ini,get_File,list_file_in_path,my_log,create_dbf,CSV_File
 import datetime
-#import create_query
+
 
 logger = my_log.get_logger(__name__)
 class Asna(Db):
@@ -13,7 +11,7 @@ class Asna(Db):
         self.conf = 'ASNA'
         self.DB = Db()
         self.path_ini=__name__
-        self.path = read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
+        self.path = read_ini(self.conf, 'PATH_EXPORT',self.conf)
         existPath(self.path)
         self.profile_id = profile_id
         self.org_code = read_ini(self.conf, 'ORG_CODE',self.path_ini)
@@ -22,7 +20,7 @@ class Asna(Db):
         self.DB.cheak_db(read_ini(self.conf, 'TABLE',self.path_ini),'TABLE')
         self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE',self.path_ini),'PROCEDURE')
         self.DB.cheak_db(read_ini(self.conf, 'TRIGGER',self.path_ini),'TRIGGER')
-        sys.exit()
+
         # if self.profile_id is None:
         #     logger.info('Алгоритм работает только для сетей !!!')
         #    exit()
@@ -33,18 +31,20 @@ class Asna(Db):
         return data
 
     def prepare_sql(self,sql):
-        sql=sql.replace('+org_code+',  str(self.org_code))
-        sql=sql.replace('+asna_code+',  str(self.asna_code))
-        sql=sql.replace('+date_beg+',  str(read_ini(self.conf, 'DATE_START',self.path_ini)))
-        sql=sql.replace('+date_end+',  str(read_ini(self.conf, 'DATE_END',self.path_ini)))
-        #print(sql)
-        return sql
+        if not self.profile_id:
+            res = sql.format(org_code=str(self.org_code),asna_code=str(self.asna_code),
+                       date_beg=str(read_ini(self.conf, 'DATE_START',self.path_ini)),
+                       date_end=str(read_ini(self.conf, 'DATE_END',self.path_ini)),
+                           inn=str(read_ini(self.conf, 'INN',self.path_ini)),
+                       aprofile_id='')
+
+        return res
 
     def get_Data(self):
 #Справочник товаров
 
         SQL='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null'
-        self.DB.get_sql(SQL,None,1)
+        #self.DB.get_sql(SQL,None,1)
         logger.info('Create GOODS')
         data = self.get_from_base(sql_file='wares')
         create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
@@ -61,7 +61,7 @@ class Asna(Db):
         for row in data:
             datum1.append(row)
         #create_dbf(self.path+'vendor.dbf','id C(250); name C(250); inn C(250)',datum1)
-
+        exit()
 #Собираем Движение
         filename1 = self.path+ self.org_code+'_'+self.asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")
         logger.info('Create MOVE')

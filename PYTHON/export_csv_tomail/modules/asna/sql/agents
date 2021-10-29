@@ -1,3 +1,3 @@
 select cast(a.id as varchar(255)) as ID, caption as name, coalesce(INN,'') as INN from agents a
-           --inner join ASNA_G$PROFILES ga on ga.id = a.g$profile_id
-           where  a.id > 0 --and ga.id is not null
+
+           where  a.id > 0  {aprofile_id}
