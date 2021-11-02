@@ -1,0 +1,10 @@
+select
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.quant,
+            w.ware_id
+            from
+            warebase_g w
+        where w.g$profile_id in ({profile_id})
