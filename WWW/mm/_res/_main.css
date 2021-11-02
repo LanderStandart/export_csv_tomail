@@ -1,0 +1,54 @@
+html {
+	font-family: "Century Gothic";
+	margin: 0px;
+	padding: 0px;
+}
+div{
+
+}
+
+.header{
+background: #e25e5e;
+height: 100px;
+	margin-left: auto;
+	margin-right: auto;
+margin-bottom: 10px;
+padding: 10px;
+}
+.wrap{
+	margin-left: auto;
+	margin-right: auto;
+	background: #ddd;
+	padding: 10px;
+	top: 200px;
+} 
+.left{
+	float: left;
+	padding: 10px;
+	width: 200px;
+	background: #5ee28d;
+}
+.right{
+float: right;
+padding: 10px;
+width: 300px;
+background: #5ee28d;
+}
+ 
+.content{
+float: none;
+padding: 10px;
+margin-left: auto; 
+margin-right: auto;
+background: #5e86e2;
+text-align: left;
+}
+ 
+.bottom{
+	background: #141926;
+	height: 60px;
+	margin-top: 10px;
+	padding: 10px;
+	color: #FFFFFF;
+	vertical-align: bottom;
+}

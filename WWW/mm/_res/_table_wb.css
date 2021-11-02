@@ -1,0 +1,27 @@
+.t_wares{
+background: #D8DFE7;
+padding: 2px;
+}
+.t_profiles{
+	font-size: 14px;
+	background-color: #F3F3F3;
+	padding: 2px;
+	border: 1px solid #999999;
+}
+.t_profiles_header{
+	background-color: #E0E4FE;
+
+}
+.t_profiles_td_odd{
+	background-color: #E0E4FE;
+}
+.t_profiles_td_quant{
+	background-color: #00CCFF;
+	font-weight: bold;
+	text-align: center;
+}
+.t_profiles_td_price{
+	background-color: #0099FF;
+	font-weight: bold;
+	text-align: center;
+}

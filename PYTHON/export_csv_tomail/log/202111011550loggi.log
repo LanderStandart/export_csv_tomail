@@ -1,0 +1,28 @@
+11-01 15:50 - [INFO] (export.py).<module>(15) - Формируем:Pharmit
+11-01 15:50 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./export/pharmit/
+11-01 15:50 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:50 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./log/
+11-01 15:50 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:50 - [INFO] (engine.py).wrapper(33) - Выполняю: create, 'file', '1'
+11-01 15:50 - [INFO] (engine.py).create(173) - .\export\file
+11-01 15:50 - [INFO] (engine.py).create(186) - Загружаю алгоритм выгрузки:Pharmit
+11-01 15:50 - [INFO] (system.py).existPath(59) - Каталог -./export/pharmit/ найден
+11-01 15:50 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TABLE
+11-01 15:50 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - PROCEDURE
+11-01 15:50 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TRIGGER
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+229197
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:51 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+500

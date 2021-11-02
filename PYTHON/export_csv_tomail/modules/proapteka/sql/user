@@ -1,0 +1,6 @@
+select
+ iif(u.id<0,abs(u.id*10000),u.id) as UserNum,
+ u.username as Name,
+ u.username as FullName,
+ '' as DateDeleted
+from users u

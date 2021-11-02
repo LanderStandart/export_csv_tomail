@@ -1,0 +1,12 @@
+11-01 09:27 - [INFO] (export.py).<module>(15) - Формируем:Pharmit
+11-01 09:27 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./export/pharmit/
+11-01 09:27 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 09:27 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./log/
+11-01 09:27 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 09:27 - [INFO] (engine.py).wrapper(33) - Выполняю: create, 'file'
+11-01 09:27 - [INFO] (engine.py).create(172) - .\export\file
+11-01 09:28 - [INFO] (engine.py).create(185) - Загружаю алгоритм выгрузки:Pharmit
+11-01 09:28 - [INFO] (system.py).existPath(59) - Каталог -./export/pharmit/ найден
+11-01 09:28 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TABLE
+11-01 09:28 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - PROCEDURE
+11-01 09:28 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TRIGGER

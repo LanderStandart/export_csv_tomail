@@ -1,0 +1,6 @@
+<?php
+$GLOBALS["DB_DATABASENAME"]="192.168.67.33:D:\\Standart-N\\base_s_new\\ZTRADE_S.FDB";
+//$GLOBALS["DB_DATABASENAME"]="192.168.67.33:D:\\Standart-N\\2018\\ZTRADE_G.FDB";
+$GLOBALS["DB_USER"]="SYSDBA";
+$GLOBALS["DB_PASSWD"]="masterkey";
+?>

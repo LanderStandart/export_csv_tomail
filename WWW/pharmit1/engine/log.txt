@@ -1,0 +1,16 @@
+Фармаком
+Accept: */*
+Accept-Encoding: gzip, deflate
+Authorization: Basic cGhhcm1hY29tOktqZGhnMzcqM2x1NQ==
+Cache-Control: no-cache
+Connection: keep-alive
+Host: api.pharmit.kz
+Postman-Token: d3cb4eb9-0575-45b5-bc43-d15597e3a180,7b27ba2f-10c8-47d0-b021-06d5d53bd816
+User-Agent: LanderPOST 0.1.2
+cache-control: no-cache
+https://api.pharmit.kz/api/values?startDate=20200801
+Response:
+{"lastSalesDate":20200907,"hasResult":true,"noDates":[]}
+Code answer:
+200
+

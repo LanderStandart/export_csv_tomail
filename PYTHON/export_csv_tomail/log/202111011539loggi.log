@@ -1,0 +1,53 @@
+11-01 15:39 - [INFO] (export.py).<module>(15) - Формируем:Pharmit
+11-01 15:39 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./export/pharmit/
+11-01 15:39 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:39 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./log/
+11-01 15:39 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:39 - [INFO] (engine.py).wrapper(33) - Выполняю: create, 'file', '1'
+11-01 15:39 - [INFO] (engine.py).create(172) - .\export\file
+11-01 15:39 - [INFO] (engine.py).create(185) - Загружаю алгоритм выгрузки:Pharmit
+11-01 15:39 - [INFO] (system.py).existPath(59) - Каталог -./export/pharmit/ найден
+11-01 15:39 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TABLE
+11-01 15:39 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - PROCEDURE
+11-01 15:39 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TRIGGER
+11-01 15:39 - [ERROR] (engine.py).get_sql(99) - ('Error while preparing SQL statement:\n- SQLCODE: -104\n- Dynamic SQL Error\n- SQL error code = -104\n- Token unknown - line 37, column 43\n- [', -104, 335544569)
+11-01 15:39 - [ERROR] (engine.py).get_sql(109) - Ошибка в запросе
+11-01 15:39 - [ERROR] (engine.py).get_sql(110) - Вероятная ошибка - Dynamic SQL Error
+ select first 2
+    iif (d.doc_type in(3),3,iif (d.doc_type in(1),1,iif(d.doc_type in(2,6),5,'')))as typeid,
+    extract(year from d.docdate)||iif(char_length(extract(month from d.docdate))=1,0||extract(month from d.docdate),
+    extract(month from d.docdate))||
+    iif(char_length(extract(day from d.docdate))=1,0||extract(day from d.docdate),extract(day from d.docdate))as saledate,
+    p.ware_id as externalgoodid,
+    vizg.svalue as producername,
+    iif(w.sname is null, (select svalue from vals where vals.id=w.name_id),w.sname) as goodname,
+    abs(dd.quant) as quantity,
+    p.price_o as wholesaleprice,
+    p.price as price,
+    a.caption as pharm,
+    a.inn as pharmbin,
+ (select first 1 adr.param_value from params  adr
+ where adr.param_id='ORG_ADRESS'and adr.g$profile_id=d.g$profile_id) as pharmaddress,
+    '' as postindex,
+    iif(d.doc_type=1,
+    (select first 1 a1.caption from agents a1
+    where a1.id = (select first 1 AGENT_ID from pr_getmotherpart(p.id, p.g$profile_id)) ),(select first 1 a1.caption from agents a1 where a1.id =d.agent_id )),
+    iif(d.doc_type=1,(select first 1 a1.inn from agents a1 where a1.id = (select first 1 AGENT_ID from pr_getmotherpart(p.id, p.g$profile_id)) ),(select first 1 a1.inn from agents a1 where a1.id =d.agent_id)),
+    iif(d.doc_type=1,(select first 1 adr.addresstext from addrs adr join agents a11 on a11.id =(select first 1 AGENT_ID from pr_getmotherpart(p.id, p.g$profile_id))where adr.id=a11.factaddr_id  ),(select first 1 adr.addresstext from addrs adr join agents a11 on a11.id =d.agent_id)),
+    d.id||dd.id||d.g$profile_id,
+    d.commitdate,
+    (select quant from pr_get_warebase_from_date(d.commitdate,p.id,d.g$profile_id))--,
+    --(select g.webkassa from g$profiles g where g.id=d.g$profile_id),
+    ,cast(d.docdate as time)
+
+  from docs d
+    join doc_detail dd on dd.doc_id = d.id and dd.g$profile_id=d.g$profile_id
+    join parts p on p.id = dd.part_id and p.g$profile_id=dd.g$profile_id
+    join wares w on w.id = p.ware_id
+    join vals vizg on vizg.id=w.izg_id
+  --  join g$profiles g on g.id = d.g$profile_id
+    join agents a on a.email<>'' and a.email is not null
+     and char_length(a.email)<4 and a.email=cast(d.g$profile_id as dm_text)
+    where d.doc_type in (1,3,2,6) and d.docdate  between '02.02.2021 00:00:00' and '02.02.2021 23:59:59'
+    and d.status=1 and d.g$profile_id in (['1', '2', '3'])
+    and vizg.svalue<>''

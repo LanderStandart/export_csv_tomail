@@ -1,0 +1,47 @@
+UPDATE OR INSERT INTO ANALYTICS (ID, PARENT_ID, CAPTION, STATUS, DESCRIPTION, DETAIL_TABLENAME, DATA, USERDATA, BINDATA)
+                         VALUES (NULL, 0, 'Проверка МЕМОРАНДУМ', 0, NULL, '                               ', ';createsql - запрос создания документа аналитики
+;----:session_id - предустановленный параметр - передается программой менеджер - номер текущей сессии
+;:analytic_doc_id - предустановленный параметр - передается программой менеджер - код заранее созданного документа аналитики
+; остальные параметры - создаются во время выполнения на основании ANALYTICS.USERDATA
+[createsql]
+select verb from PR_MEMORANDUMCHECK(:analytic_doc_id,:SOURCE,:periodbeg,:periodend)
+
+;в таблице детализации должно быть поле ANALYTIC_DOC_ID = ANALYTIC_DOCS.id
+[selectsql]
+select * from ANALYTIC_MEMORANDUM order by id,sname
+
+[deletesql]
+delete from ANALYTIC_MEMORANDUM
+
+
+[main]
+SelectFieldExpression=sname
+;cfFRtmpl - путь к шаблону пакетов cfFastReport
+cfFRtmpl=
+tablename=ANALYTIC_MEMORANDUM
+report_id=
+[SOURCE]
+type=list
+caption=Поиск среди
+mode=FIXEDITEMS SHOWONLYVALUES RETURNNAME
+default=0
+0=Остатков
+1=Приходов
+2=Расходов перемещений
+
+[periodbeg]
+type=date
+caption=Начало периода
+mode=
+default=STARTOFMONTH
+
+[periodend]
+type=date
+caption=Конец периода
+mode=
+default=NOW
+
+[end]', NULL)
+                       MATCHING (ID);
+
+COMMIT WORK;

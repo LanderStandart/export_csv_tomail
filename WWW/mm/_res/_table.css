@@ -1,0 +1,28 @@
+.t_header{
+background: #CCCCCC;
+padding: 2px;
+}
+.t_row{
+
+}
+
+.table1{display: table; border: 1px solid black; margin: 6px; padding: 0px;width:80%}
+.table{
+	display: table;
+	border: 2px solid black;
+	margin: 6px;
+	padding: 0px;
+	width:100%;
+	font-family: "Century Gothic";
+	font-size: 14px;
+}
+.caption{display: table-caption; border: 0px solid black}
+.cell{display: table-cell; border: 1px solid black}
+.cell1{display:inline-block;margin:1px; }
+.cell_h{display: table-cell; border: 1px solid black;text-align: center;}
+.cell_h1{display:inline-block;margin:1px; }
+.row{display: table-row; border: 1px solid black;}
+.row_header{
+	display: table-row;
+	border: 1px solid black;
+}

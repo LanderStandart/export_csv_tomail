@@ -1,0 +1,761 @@
+06.10_12:11:41 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:11:41 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:11:41 
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:11:41 
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:11:41 
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:11:41 
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:11:41 
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:11:41 
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:11:41 
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:11:41 
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:11:41 
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:11:41 
+
+
+
+
+
+06.10_12:13:31 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:13:31 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:13:31 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:13:31 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:14:55 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:15:58 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:15:58 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:15:58 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:15:58 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:15:58 
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:15:58 
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:15:58 
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:15:58 
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:15:58 
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:15:58 
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:15:58 
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:15:58 
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:15:58 
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:15:58 
+
+
+
+
+
+06.10_12:15:58 Запрос-
+
+
+
+
+
+06.10_12:18:10 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:18:10 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:18:10 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:18:10 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:18:10 
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:18:10 
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:18:10 
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:18:10 
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:18:10 
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:18:10 
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:18:10 
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:18:10 
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:18:10 
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:18:10 
+
+
+
+
+
+06.10_12:18:10 Запрос-
+
+
+
+
+
+06.10_12:20:19 update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:20:19 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:20:19 create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:20:19 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:20:19 
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:20:19 
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:20:19 
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:20:19 
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:20:19 
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:20:19 
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:20:19 
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:20:19 
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:20:19 
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:20:19 
+
+
+
+
+
+06.10_12:20:19 Запрос-
+
+
+
+
+
+06.10_12:21:58 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:21:58 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:21:58 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:24:04 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:24:04 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:24:04 Запрос-
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:24:04 Запрос-
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:24:04 Запрос-
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:24:04 Запрос-
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:24:04 Запрос-
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:24:04 Запрос-
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:24:04 Запрос-
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:24:04 Запрос-
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:24:04 Запрос-
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:24:04 Запрос-
+
+
+
+
+
+06.10_12:46:26 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:50:29 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:50:29 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:50:29 Запрос-
+CREATE TABLE ASNA_GOODS (
+    ID        DM_UUID /* DM_UUID = CHAR(36) NOT NULL */,
+    MGN_NAME  DM_TEXT1024 NOT NULL /* DM_TEXT1024 = VARCHAR(1024) */,
+    PRODUCER  DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    COUNTRY   DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    EAN       DM_TEXT /* DM_TEXT = VARCHAR(250) */,
+    INSERTDT  DM_DATETIME /* DM_DATETIME = TIMESTAMP */,
+    ACTUAL    DM_ID_NULL /* DM_ID_NULL = BIGINT */
+)
+06.10_12:50:29 Запрос-
+
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT UNQ1_ASNA_GOODS UNIQUE (MGN_NAME, PRODUCER, EAN, COUNTRY)
+06.10_12:50:29 Запрос-
+ALTER TABLE ASNA_GOODS ADD CONSTRAINT PK_ASNA_GOODS PRIMARY KEY (ID)
+06.10_12:50:29 Запрос-
+
+CREATE INDEX ASNA_GOODS_IDX1 ON ASNA_GOODS (EAN)
+06.10_12:50:29 Запрос-
+CREATE INDEX ASNA_GOODS_IDX2 ON ASNA_GOODS (INSERTDT)
+06.10_12:50:29 Запрос-
+CREATE INDEX ASNA_GOODS_IDX3 ON ASNA_GOODS (PRODUCER)
+06.10_12:50:29 Запрос-
+CREATE INDEX ASNA_GOODS_IDX4 ON ASNA_GOODS (ACTUAL)
+06.10_12:50:29 Запрос-
+
+
+
+
+CREATE OR ALTER TRIGGER ASNA_GOODS_BI0 FOR ASNA_GOODS
+ACTIVE BEFORE INSERT POSITION 0
+AS
+begin
+  if (new.id is null) then
+   new.id = UUID_TO_CHAR(GEN_UUID());
+  new.insertdt = CURRENT_TIMESTAMP;
+  new.actual = 1;
+end
+
+06.10_12:50:29 Запрос-
+CREATE OR ALTER TRIGGER ASNA_GOODS_BU0 FOR ASNA_GOODS
+ACTIVE BEFORE UPDATE POSITION 0
+AS
+begin
+  if (new.ean is null) then new.ean = '';
+end
+
+06.10_12:50:29 Запрос-
+
+
+
+
+
+06.10_12:50:34 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+06.10_12:50:34 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = trim(:barcode) into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+06.10_12:50:34 Запрос-update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null
+13.10_16:44:38 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+13.10_16:44:38 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+13.10_16:44:38 Запрос-create or alter procedure PR_ASNA_GET_GOODS (
+    WARE_ID DM_UUID)
+returns (
+    GOODS_ID DM_UUID_NULL)
+as
+declare variable MGN_NAME DM_TEXT1024;
+declare variable BARCODE DM_TEXT;
+declare variable SNAME DM_TEXT;
+declare variable SIZG DM_TEXT;
+begin
+  GOODS_ID = Null;
+
+
+  select first 1 sname, sizg, barcode from vw_WARES w where id = :ware_id into :sname, :sizg, :barcode;
+  if (char_length(:barcode) <> 13) then barcode = '';
+
+   select first 1 id from asna_goods ag where ag.mgn_name = Trim(:sname) and PRODUCER = trim(:sizg) and coalesce(trim(ean),'') = coalesce(trim(:barcode),'') into :GOODS_ID;
+   if ((:GOODS_ID is null) and (char_length(:barcode) = 13)) Then
+    select first 1 id from asna_goods ag where ag.ean = coalesce(:barcode,'$$$') into :GOODS_ID;
+
+  suspend;
+end
+
+13.10_16:44:38 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+13.10_16:44:38 Запрос-
+CREATE OR ALTER TRIGGER WARES_BU0_MGN_NAME_ASNA FOR WARES
+ACTIVE BEFORE INSERT OR UPDATE POSITION 0
+AS
+declare variable sname dm_text;
+declare variable sizg dm_text;
+declare variable scountry dm_text;
+declare variable barcode dm_text;
+begin
+
+ select svalue from vals where id = new.name_id into :sname;
+ select svalue from vals where id = new.izg_id into :sizg;
+ select svalue from vals where id = new.country_id into :scountry;
+
+ if (:sname is null) then exit;
+ sizg = coalesce(sizg,'');
+
+ if (char_length(new.barcode) <> 13) then barcode = ''; else barcode = new.barcode;
+
+ if ((select GOODS_ID from PR_ASNA_GET_GOODS(new.id)) is null) then
+  --РґРѕРї РїСЂРѕРІРµСЂРєР° РЅР° СѓРЅРёРєР°Р»СЊРЅРѕСЃС‚СЊ, С‚.Рє. РїСЂРё РІСЃС‚Р°РІРєРµ РїСЂРѕС†РµРґСѓСЂР° PR_ASNA_GET_GOODS РЅРµ РІРёРґРёС‚ РЅРѕРІС‹Рµ РґР°РЅРЅС‹Рµ
+  if (not exists(select id from ASNA_GOODS where MGN_NAME = Trim(:sname) and producer = Trim(coalesce(:sizg,'')) and country=Trim(:scountry) and ean = coalesce(Trim(:barcode),''))) then
+    insert into ASNA_GOODS(MGN_NAME, producer, country, ean) values (Trim(:sname), Trim(coalesce(:sizg,'')), Trim(:scountry), Trim(:barcode));
+
+end
+
+13.10_16:44:38 Запрос-
+
+
+13.10_16:45:42 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+13.10_16:45:42 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+13.10_16:45:42 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+14.10_17:26:18 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+14.10_17:26:18 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+14.10_17:26:18 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+14.10_17:29:06 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+14.10_17:29:06 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+14.10_17:29:06 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:10:04 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:10:04 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:10:04 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:11:18 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:11:18 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:11:18 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:14:16 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:14:16 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:14:16 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:16:49 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:16:49 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:16:49 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:17:38 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:17:38 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:17:38 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:18:37 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:18:37 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:18:37 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:29:32 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:29:32 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:29:32 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:30:28 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:30:28 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:30:28 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:52:37 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:52:37 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:52:37 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:54:05 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:54:05 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:54:05 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_09:58:01 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_09:58:01 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_09:58:01 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_10:44:16 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_10:44:16 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_10:44:16 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_10:45:06 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_10:45:06 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_10:45:06 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_10:47:25 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_10:47:25 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_10:47:25 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'
+15.10_10:48:46 Запрос-select r.rdb$FIELD_id from RDB$RELATIONS r where r.rdb$relation_name='ASNA_GOODS'
+15.10_10:48:46 Запрос-select r.rdb$procedure_id from RDB$PROCEDURES r where r.rdb$procedure_name='PR_ASNA_GET_GOODS'
+15.10_10:48:46 Запрос-select r.rdb$trigger_name from RDB$TRIGGERS r where r.rdb$trigger_name='WARES_BU0_MGN_NAME_ASNA'

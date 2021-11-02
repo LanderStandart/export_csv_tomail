@@ -1,0 +1,42 @@
+11-01 15:41 - [INFO] (export.py).<module>(15) - Формируем:Pharmit
+11-01 15:41 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./export/pharmit/
+11-01 15:41 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:41 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./log/
+11-01 15:41 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:41 - [INFO] (engine.py).wrapper(33) - Выполняю: create, 'file', '1'
+11-01 15:41 - [INFO] (engine.py).create(172) - .\export\file
+11-01 15:41 - [INFO] (engine.py).create(185) - Загружаю алгоритм выгрузки:Pharmit
+11-01 15:41 - [INFO] (system.py).existPath(59) - Каталог -./export/pharmit/ найден
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TABLE
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - PROCEDURE
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TRIGGER
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-400- Bad Request-
+"Данные за эту дату уже загружены!"
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+[]
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-500- Internal Server Error-
+
+11-01 15:41 - [INFO] (export.py).<module>(15) - Формируем:Pharmit
+11-01 15:41 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./export/pharmit/
+11-01 15:41 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:41 - [INFO] (system.py).clear_export_path(39) - Удаляем старые выгрузки в - ./log/
+11-01 15:41 - [INFO] (system.py).clear_export_path(52) - Удаленно 0 файлов
+11-01 15:41 - [INFO] (engine.py).wrapper(33) - Выполняю: create, 'file', '1'
+11-01 15:41 - [INFO] (engine.py).create(172) - .\export\file
+11-01 15:41 - [INFO] (engine.py).create(185) - Загружаю алгоритм выгрузки:Pharmit
+11-01 15:41 - [INFO] (system.py).existPath(59) - Каталог -./export/pharmit/ найден
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TABLE
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - PROCEDURE
+11-01 15:41 - [ERROR] (engine.py).cheak_db(65) - Нет параметров для проверки - TRIGGER
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-400- Bad Request-
+"Данные за эту дату уже загружены!"
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-200- OK-
+[]
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-400- Bad Request-
+Пакет № 1; ProviderSaleId = 3823287513951 - 20210202 - Аптека №1 родионова - Фарингосепт №10 таб - Catched error: Input string was not in a correct format. 
+Пакет № 2; ProviderSaleId = 3823267513921 - 20210202 - Аптека №1 родионова - Шприц 10мл 3-х комп №5 - Catched error: Input string was not in a correct format. 
+
+11-01 15:41 - [INFO] (pharmit.py).send_request(44) - https://api.pharmit.kz/api/loadhistories-500- Internal Server Error-
+

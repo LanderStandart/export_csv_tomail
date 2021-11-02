@@ -1,0 +1,222 @@
+SET TERM ^ ;
+
+create or alter procedure REPAIR_DOC_DETAIL
+returns (
+    DOCID DM_ID)
+as
+begin
+  for select
+  id
+  from 
+  docs d
+  where not exists (select id from doc_detail dd where dd.doc_id=d.id) and
+  d.docdate>'01.07.2020' and d.status=1  and exists(select id from  doc_detail_active_log ddl where ddl.doc_id=d.id)
+  into :docID
+  do
+  begin
+   update docs set docs.status=0 where docs.id=:docid;
+merge into doc_detail_active dda
+using(select
+ID,
+PARENT_ID,
+DOC_ID,
+PART_ID,
+PART_PARENT_ID,
+DOC_DETAIL_ID,
+PRICE,
+NAC,
+QUANT,
+DISCOUNT,
+SUMMA,
+SUMMA_O,
+DCARD,
+WARE_ID,
+PRICE_O,
+PRICE_Z,
+PRICE_R,
+BARCODE,
+BARCODE1,
+BCODE_IZG,
+--KRITK,
+GODENDO,
+SERIA,
+NDS,
+SUM_NDSO,
+SUM_NDSR,
+SERT,
+DATESERT,
+KEMVSERT,
+SDSERT,
+REGN,
+NGTD,
+EDIZM,
+NAME_ID,
+IZG_ID,
+COUNTRY_ID,
+ORIG_CODE,
+ORIG_NAME_ID,
+ORIG_IZG_ID,
+ORIG_COUNTRY_ID,
+Z_ID,
+SKLAD_ID,
+SNAME,
+SIZG,
+SCOUNTRY,
+SORIG_NAME,
+SORIG_IZG,
+SORIG_COUNTRY,
+INSERTDT,
+INFO,
+KOEF,
+MOTHERPART_ID,
+DEP,
+SUM_DSC,
+HUMAN_QUANT,
+customdraw,
+part_type,
+base_agent_id
+ from doc_detail_active_log where doc_detail_active_log.doc_id=:docid
+ order by insertdt desc ) ddl
+on
+dda.ID=ddl.id and
+dda.DOC_ID=ddl.DOC_ID and
+dda.PART_ID=ddl.part_id
+when NOT matched then
+insert (ID,
+PARENT_ID,
+DOC_ID,
+PART_ID,
+PART_PARENT_ID,
+DOC_DETAIL_ID,
+PRICE,
+NAC,
+QUANT,
+DISCOUNT,
+SUMMA,
+SUMMA_O,
+DCARD,
+WARE_ID,
+PRICE_O,
+PRICE_Z,
+PRICE_R,
+BARCODE,
+BARCODE1,
+BCODE_IZG,
+--KRITK,
+GODENDO,
+SERIA,
+NDS,
+SUM_NDSO,
+SUM_NDSR,
+SERT,
+DATESERT,
+KEMVSERT,
+SDSERT,
+REGN,
+NGTD,
+EDIZM,
+NAME_ID,
+IZG_ID,
+COUNTRY_ID,
+ORIG_CODE,
+ORIG_NAME_ID,
+ORIG_IZG_ID,
+ORIG_COUNTRY_ID,
+Z_ID,
+SKLAD_ID,
+SNAME,
+SIZG,
+SCOUNTRY,
+SORIG_NAME,
+SORIG_IZG,
+SORIG_COUNTRY,
+INSERTDT,
+INFO,
+KOEF,
+MOTHERPART_ID,
+DEP,
+SUM_DSC,
+HUMAN_QUANT,
+customdraw,
+part_type,
+base_agent_id)
+values (ddl.ID,
+ddl.PARENT_ID,
+ddl.DOC_ID,
+ddl.PART_ID,
+ddl.PART_PARENT_ID,
+ddl.DOC_DETAIL_ID,
+ddl.PRICE,
+ddl.NAC,
+ddl.QUANT,
+ddl.DISCOUNT,
+ddl.SUMMA,
+ddl.SUMMA_O,
+ddl.DCARD,
+ddl.WARE_ID,
+ddl.PRICE_O,
+ddl.PRICE_Z,
+ddl.PRICE_R,
+ddl.BARCODE,
+ddl.BARCODE1,
+ddl.BCODE_IZG,
+--KRITK,
+ddl.GODENDO,
+ddl.SERIA,
+ddl.NDS,
+ddl.SUM_NDSO,
+ddl.SUM_NDSR,
+ddl.SERT,
+ddl.DATESERT,
+ddl.KEMVSERT,
+ddl.SDSERT,
+ddl.REGN,
+ddl.NGTD,
+ddl.EDIZM,
+ddl.NAME_ID,
+ddl.IZG_ID,
+ddl.COUNTRY_ID,
+ddl.ORIG_CODE,
+ddl.ORIG_NAME_ID,
+ddl.ORIG_IZG_ID,
+ddl.ORIG_COUNTRY_ID,
+ddl.Z_ID,
+ddl.SKLAD_ID,
+ddl.SNAME,
+ddl.SIZG,
+ddl.SCOUNTRY,
+ddl.SORIG_NAME,
+ddl.SORIG_IZG,
+ddl.SORIG_COUNTRY,
+ddl.INSERTDT,
+ddl.INFO,
+ddl.KOEF,
+ddl.MOTHERPART_ID,
+ddl.DEP,
+ddl.SUM_DSC,
+ddl.HUMAN_QUANT,
+ddl.customdraw,
+ddl.part_type,
+ddl.base_agent_id);
+
+
+execute procedure pr_doc_commit(:docid,0);
+
+ end
+
+
+end^
+
+SET TERM ; ^
+
+/* Following GRANT statements are generated automatically */
+
+GRANT SELECT,UPDATE ON DOCS TO PROCEDURE REPAIR_DOC_DETAIL;
+GRANT SELECT ON DOC_DETAIL TO PROCEDURE REPAIR_DOC_DETAIL;
+GRANT SELECT ON DOC_DETAIL_ACTIVE_LOG TO PROCEDURE REPAIR_DOC_DETAIL;
+GRANT SELECT,INSERT ON DOC_DETAIL_ACTIVE TO PROCEDURE REPAIR_DOC_DETAIL;
+GRANT EXECUTE ON PROCEDURE PR_DOC_COMMIT TO PROCEDURE REPAIR_DOC_DETAIL;
+
+/* Existing privileges on this procedure */
+
+GRANT EXECUTE ON PROCEDURE REPAIR_DOC_DETAIL TO SYSDBA;
