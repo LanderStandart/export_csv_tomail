@@ -2,10 +2,11 @@
 import json
 import sys
 
-from engine import Db, existPath, read_ini, my_log
+from engine import Db, existPath, read_ini, my_log, put_file
 import requests
 import datetime
 from requests.auth import HTTPBasicAuth
+
 
 logger = my_log.get_logger(__name__)
 
@@ -16,6 +17,7 @@ class Pharmit(Db):
         self.path_ini = __name__
         self.conf = self.path_ini.upper()
         self.url_file_id = read_ini(self.conf, 'URL_FILE_ID', self.conf)
+        self.url_get_file_id = read_ini(self.conf, 'URL_GET_FILE_ID', self.conf)
         self.url_load = read_ini(self.conf, 'URL_LOAD', self.conf)
         self.path = read_ini(self.conf, 'PATH_EXPORT', self.conf)
         existPath(self.path)
@@ -27,12 +29,12 @@ class Pharmit(Db):
 
     def get_Data(self):
         self.getDate()
-
+        print(self.profile_id)
         val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
         self.data = self.DB.get_from_base(__name__, 'move', val)
         #date_start = datetime.date.today()-datetime.timedelta(days=11)
         self.fileID = self.getToken(datetime.datetime.strptime(self.date_start,'%d.%m.%Y').strftime('%Y%m%d'))
-
+        print(f'FileID-{self.fileID}')
         c=self.getPacket()
         self.put_packet(c)
 
@@ -47,6 +49,8 @@ class Pharmit(Db):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
         data = json.dumps({'DateSale': date})
         res=self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_file_id)
+        if "Данные за эту дату уже загружены!" in res:
+            res=self.send_request(url=self.url_get_file_id+date,type='GET',auth=self.auth)
         return res
 
     def getPacket(self):
@@ -81,18 +85,21 @@ class Pharmit(Db):
             i += 1
             if i == 100:
                 i = 0
-                self.send_packet(packet)
+                self.send_packet(packet,j)
                 packet = []
             j += 1
-        self.send_packet(packet)
+        self.send_packet(packet,j)
         print(j)
         return j
 
 
-    def send_packet(self, packet,last=None):
+    def send_packet(self, packet,count,last=None):
         data = json.dumps(packet, ensure_ascii=False).encode('utf8')
         headers = {'Content-type': 'application/json'}
-        print(data)
+        print(self.path+str(count)+'.json')
+        print(packet)
+        put_file(self.path+str(self.fileID)+'_'+str(count)+'.json',data)
+
         self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_load)
 
     def put_packet(self,count):

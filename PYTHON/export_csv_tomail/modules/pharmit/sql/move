@@ -1,4 +1,4 @@
- select first 2
+ select first 500
     iif (d.doc_type in(3),3,iif (d.doc_type in(1),1,iif(d.doc_type in(2,6),5,'')))as typeid,
     extract(year from d.docdate)||iif(char_length(extract(month from d.docdate))=1,0||extract(month from d.docdate),
     extract(month from d.docdate))||
@@ -36,3 +36,4 @@
     where d.doc_type in (1,3,2,6) and d.docdate  between '{date_start} 00:00:00' and '{date_end} 23:59:59'
     and d.status=1 and d.g$profile_id in ({profile_id})
     and vizg.svalue<>''
+    order by d.docdate
