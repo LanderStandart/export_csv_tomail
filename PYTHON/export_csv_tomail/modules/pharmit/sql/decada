@@ -1,0 +1,35 @@
+ select
+   typeid,
+   tender,
+   goodname,
+   producerName,
+   pharm,pharmaddress,barcode,
+   sum(quantity)
+  from(select
+    iif (d.doc_type in(3),3,iif (d.doc_type in(1),1,iif(d.doc_type in(2,6),5,'')))as typeid,
+    '' as tender,d1.part_id,
+    iif(w.sname is not null,w.sname,
+    (select svalue from vals where vals.id=(select w.name_id
+     from wares w where w.id=(select ware_id from parts p where p.id=d1.part_id and p.g$profile_id=d.g$profile_id)))) as goodname,
+
+    (select svalue from vals v where v.id=(select w1.izg_id from wares w1 where w1.id=(select ware_id from parts p where p.id=d1.part_id and p.g$profile_id=d.g$profile_id)))as producerName,
+
+    (select a.caption from agents a where a.email=cast(d.g$profile_id as dm_text))as pharm,
+   '' as pharmaddress,
+     (select barcode from wares w where w.id=(select ware_id from parts p where p.id=d1.part_id and p.g$profile_id=d.g$profile_id)) as barcode,
+     abs(sum(d1.quant))as quantity
+
+
+
+ from  doc_detail d1
+ left join docs d on d1.doc_id=d.id and d1.g$profile_id=d.g$profile_id
+ join parts p on p.id=d1.part_id and p.g$profile_id=d1.g$profile_id
+ join g$profiles g on g.id=d.g$profile_id and g.status=0
+ left join wares w on w.id = p.ware_id
+
+
+ where d1.doc_commitdate between {date_start} and {date_end}
+ and d.doc_type in (1,3,2,6) and d.status=1 and d.g$profile_id in ({profile_id})
+  Group by d.doc_type,d.g$profile_id,d1.part_id,w.sname)www
+
+  group by typeid,tender,goodname,producername,pharm,pharmaddress,barcode
