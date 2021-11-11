@@ -141,7 +141,7 @@ class Db:
         path=f'./modules/{module}/sql/'
         SQL = get_File(path=path, file=sql_file)
         SQL=self.prepare_sql(SQL,values=val)
-
+        #logger.info(SQL)
         data=self.get_sql(SQL,None,None)
         return data
 

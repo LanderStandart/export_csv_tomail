@@ -3,8 +3,14 @@ select
             w.price,
             w.scountry,
             w.sizg,
-            w.quant,
+            sum(w.quant),
             w.ware_id
             from
             warebase_g w
-        where w.g$profile_id in ({profile_id})
+        where w.g$profile_id in ({profile_id}) and w.ware_id is not null
+          group by
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.ware_id

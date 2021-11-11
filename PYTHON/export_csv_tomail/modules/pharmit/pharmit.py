@@ -26,19 +26,21 @@ class Pharmit(Db):
 
     def get_Data(self,date_start=None):
         if not date_start:
+            self.check_date()
+        if not date_start:
             self.getDate()
         else:
             self.date_start=date_start
 
-        print(self.profile_id)
+        print(self.date_start + '   '+datetime.datetime.now().strftime('%H'))
+
         val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
         self.data = self.DB.get_from_base(__name__, 'move', val)
         # date_start = datetime.date.today()-datetime.timedelta(days=11)
         self.fileID = self.getToken(datetime.datetime.strptime(self.date_start,'%d.%m.%Y').strftime('%Y%m%d'))
         #print(f'FileID-{self.fileID}')
         self.put_packet(self.getPacket())
-        if not date_start:
-            self.check_date()
+
         self.get_Decada()
 
     def send_request(self, type,data=None,header=None,auth=None,url=None):
@@ -103,7 +105,7 @@ class Pharmit(Db):
         data = json.dumps(packet, ensure_ascii=False).encode('utf8')
         headers = {'Content-type': 'application/json'}
         print(self.path+str(count)+'.json')
-        print(packet)
+       # print(packet)
         put_file(self.path+str(self.fileID)+'_'+str(count)+'.json',data)
 
         self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_load)
@@ -113,7 +115,8 @@ class Pharmit(Db):
 
     def getDate(self):
         if not read_ini(self.conf,'DATE_START',self.conf):
-            self.date_start =datetime.date.today().strftime('%d.%m.%Y')
+            self.date_start =datetime.datetime.now() if int(datetime.datetime.now().strftime('%H'))>5 else datetime.date.today()-datetime.timedelta(days=1)
+            self.date_start = self.date_start.strftime('%d.%m.%Y')
         else:
             self.date_start=read_ini(self.conf,'DATE_START',self.conf)
         return self.date_start
@@ -128,6 +131,7 @@ class Pharmit(Db):
         chk_date=datetime.datetime.strptime(read_ini(self.conf,'DATE_CHECK',self.conf), '%d.%m.%Y').strftime('%Y%m%d')
         url=f'{self.url_load}?startDate={chk_date}'
         res = self.send_request(url=url, type='GET', auth=self.auth)
+        logger.info(res)
         res = json.loads(res.replace("'",'"'))
         noDate=res['noDates']
         for date in noDate:
@@ -162,7 +166,7 @@ class Pharmit(Db):
         print(j)
         return j
 
-    def get_Decada(self):
+    def get_Decada(self,date_go=None,type=None):
         today =datetime.date.today().strftime('%d')
         month = str(int(datetime.date.today().strftime('%m')) - 1) if int(datetime.date.today().strftime('%m')) != 1 else '12'
         year = str(int(datetime.date.today().strftime('%Y'))) if int(month) != 1 else str(int(datetime.date.today().strftime('%Y'))-1)
@@ -183,7 +187,10 @@ class Pharmit(Db):
         if today==25 or read_ini(self.conf,'DECADA',self.conf)=='25':
             #decade 2
             date_go=year+month+'2'
+            type = 'DecadeSale'
             date_end = f'20.{month}.{year}'
+        if not date_go:
+            return
         self.fileID = self.getToken(date=date_go,type=type)
         val = {'date_start': date_start, 'date_end': date_start, 'profile_id': self.profile_id}
         self.data = self.DB.get_from_base(__name__, 'decada', val)

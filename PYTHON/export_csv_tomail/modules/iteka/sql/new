@@ -3,10 +3,16 @@ select
             w.price,
             w.scountry,
             w.sizg,
-            w.quant,
+            sum(w.quant),
             w.ware_id
             from
             warebase_g w
         inner join doc_detail dd on dd.part_id=w.part_id and dd.g$profile_id=w.g$profile_id
         inner join docs d on d.id=dd.doc_id and d.g$profile_id=dd.g$profile_id and d.commitdate between '{date_start}' and current_timestamp
-        where w.g$profile_id in ({profile_id})
+        where w.g$profile_id in ({profile_id}) and w.ware_id is not null
+        group by
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.ware_id

@@ -7,14 +7,21 @@ import pathlib
 import my_log
 logger = my_log.get_logger(__name__)
 
-def read_ini(sections,params,modules=None):
+def read_ini(sections,params,modules=None,save=None,values=None):
     config = configparser.ConfigParser()
     path ='.' if not modules else './modules/'+modules
     try:
         config.read(path+'/config.ini')
-        return config.get(sections, params)
+        if not save:
+            return config.get(sections, params)
+        else:
+            #config[sections][params]=str(values)
+            config.set(sections, params, str(values))
+            with open(path+'/config.ini', 'w') as configfile:
+                config.write(configfile)
+
     except:
-        logger.error(f'Нет параметра - {params} в настройках - {sections}')
+        logger.error(f'Нет параметра - {params} в настройках - {sections} модуля {modules} - {path}/config.ini')
 
 def list_file_in_path(path,ext):
     curDir=pathlib.Path(path)

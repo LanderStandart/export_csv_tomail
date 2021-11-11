@@ -47,7 +47,7 @@ select
                 when 32 then 8
                end as doc_type,
 
-              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13 
+              coalesce( iif(d.doc_type=3,(select first 1 d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13
 --and d1.g$profile_id=d.g$profile_id
 ),
                 left(d.docnum,iif(position(' ',d.docnum)=0,char_length(d.docnum), position(' ',d.docnum)))), ' ')as doc_number,

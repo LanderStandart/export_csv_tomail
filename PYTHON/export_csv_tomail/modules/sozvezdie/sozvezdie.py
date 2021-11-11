@@ -1,6 +1,5 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
-from engine import FTP_work,Archiv,Db,os,LogIt,existPath,read_ini,get_File,put_file,my_log,XML
-#from XMLcreate import XML
+from engine import FTP_work,Archiv,Db,os,existPath,read_ini,get_File,put_file,my_log,XML
 import datetime
 import itertools
 from pathlib import Path
@@ -237,7 +236,7 @@ class Sozvezdie(Db):
         if self.type:
             logger.info('Выбранна первичная выгрузка')
             self.date_start = datetime.datetime.strptime(read_ini(self.conf, 'DATE_START',self.path_ini),"%d.%m.%Y")
-            self.date_end = datetime.datetime.today()-datetime.timedelta(days=1)
+            self.date_end =datetime.datetime.today()-datetime.timedelta(days=1)
 #datetime.datetime.strptime(read_ini(self.conf, 'DATE_END'),"%d.%m.%Y")#
         else:
             logger.info('Выбрана текущая выгрузка')
