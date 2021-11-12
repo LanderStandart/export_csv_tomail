@@ -1,0 +1,6 @@
+select
+dd.doc_id,
+dd.quant,
+dd.doc_commitdate
+from doc_detail dd
+where dd.part_id={part_id}

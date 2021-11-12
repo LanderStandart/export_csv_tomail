@@ -50,20 +50,32 @@ class Iteka(Db):
                 sql_name = 'new'
             self.data = self.DB.get_from_base(__name__, sql_name, val)
 
-            gl_root = XML.add_root(self, root='offers')
+            attrib = {"date": datetime.now().strftime('%Y-%m-%d %H:%M'), "price_list_type": str(self.type)}
+            gl_root = XML.add_root(self, root='yml_catalog', attrib=attrib)
+            root = XML.add_element(self, 'shop', gl_root)
 
+            XML.add_element(self, 'company', root,data=read_ini(self.conf, 'COMPANY', self.conf))
+
+            lvl1 = XML.add_element(self, 'currencies', root)
+
+            attrib = {"id":"KZ","rate":"1"}
+            lvl2 = XML.add_element(self, 'currency ', lvl1,attrib=attrib)
+
+            root1 = XML.add_element(self, 'offers', gl_root)
             for s in self.data:
-                attrib = {"name": s[0], "price": str(s[1]), "country_of_origin": str(s[2]), "vendor": str(s[3]),
-                          "count": str(s[4]), "offer_id": s[5]}
-
-                XML.add_element(self, 'offer', gl_root, attrib=attrib)
+                attrib= {"id":s[5],"type":"medicine"}
+                offer = XML.add_element(self, 'offer', root1, attrib=attrib)
+                XML.add_element(self, 'name', offer, data=s[0])
+                XML.add_element(self, 'price', offer, data=str(s[1]))
+                XML.add_element(self, 'country_of_origin', offer, data=str(s[2]))
+                XML.add_element(self, 'vendor', offer, data=str(s[3]))
+                XML.add_element(self, 'count', offer, data=str(s[4]))
+                XML.add_element(self, 'offer_id', offer, data=str(s[5]))
             count = read_ini(self.conf, 'COUNT', self.conf)
             upd_count = int(count)+1
             XML().save_file(root=gl_root, filename=f'{self.file_name}_{self.type}_{str(upd_count)}.xml')
             read_ini(self.conf, 'COUNT', self.conf, save=1, values=upd_count)
-            FTP_work(self.conf).upload_FTP('./' + f'{self.file_name}_{self.type}_{str(upd_count)}.xml',
-                                           extpath=str(read_ini(self.conf, 'FTP_PATH', self.path_ini)), isbynary=True,
-                                           )
+            FTP_work(self.conf).upload_FTP('./' + f'{self.file_name}_{self.type}_{str(upd_count)}.xml',isbynary=True)
         else:
             return
 

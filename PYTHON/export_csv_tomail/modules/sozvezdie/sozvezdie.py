@@ -145,7 +145,8 @@ class Sozvezdie(Db):
                 sql = f"select  part_id from warebase_d w where w.doc_commitdate='{self.date_start.strftime('01.%m.%Y')}' and w.quant>0.01 " \
                       f" union all " \
                       f"SELECT   part_id from docs d left join doc_detail dd on dd.doc_id=d.id where d.docdate " \
-                      f"between '{self.date_start.strftime('01.%m.%Y:00:00:00')}' and '{self.date_start.strftime('01.%m.%Y:23:59:00')}' and part_id is not null  "
+                      f"between '{self.date_start.strftime('01.%m.%Y:00:00:00')}' and '{self.date_start.strftime('01.%m.%Y:23:59:00')}' and part_id is not null " \
+                      f"and (dd.quant>0 or  exists(select  part_id from warebase_d w where w.doc_commitdate='{self.date_start.strftime('01.%m.%Y')}' and w.quant>0.01) )"
 
                 where=''
                # where = f" where d.docdate <= '{self.date_start.strftime('%d.%m.%Y:23:59:00')}'and part_id is not null   group by dd.part_id having (abs(sum(dd.quant))>0.001)"
@@ -154,7 +155,9 @@ class Sozvezdie(Db):
                 sql = f"select part_id from warebase_d w where w.doc_commitdate='{self.date_start.strftime('01.%m.%Y')}' and w.quant>0.01 and w.g$profile_id= {self.profile_id} " \
                 f" union all " \
                 f"SELECT  part_id from docs d left join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id= d.g$profile_id where d.docdate " \
-                f"between '{self.date_start.strftime('01.%m.%Y:00:00:00')}' and '{self.date_start.strftime('01.%m.%Y:23:59:00')}' and part_id is not null and d.g$profile_id= {self.profile_id} "
+                f"between '{self.date_start.strftime('01.%m.%Y:00:00:00')}' and '{self.date_start.strftime('01.%m.%Y:23:59:00')}' and part_id is not null and d.g$profile_id= {self.profile_id} " \
+                      f"and (dd.quant>0 or  exists(select  part_id from warebase_d w where w.doc_commitdate='{self.date_start.strftime('01.%m.%Y')}' and w.quant>0.01" \
+                      f" and w.g$profile_id= {self.profile_id}) )"
                 where =''
                # where = f" where w.doc_commitdate='{self.date_start.strftime('01.%m.%Y')}' and w.quant>0.01 and w.g$profile_id= {self.profile_id} "
                #where =  f" where d.docdate < '{self.date_start.strftime('%d.%m.%Y:00:00:00')}'and part_id is not null and d.g$profile_id= {self.profile_id}  group by dd.part_id having (abs(sum(dd.quant))>0.001)"
@@ -259,6 +262,8 @@ class Sozvezdie(Db):
         result = [x for x in parts if x not in set(batch)]
         if result:
             logger.error(str(result)+' - нет партий')
+
+
 
 
 

@@ -1,2 +1,5 @@
 /PYTHON/export_csv_tomail/modules/__pycache__
 /PYTHON/export_csv_tomail/venv
+/PYTHON/export_csv_tomail/export/**/
+/PYTHON/export_csv_tomail/log/*.*
+
