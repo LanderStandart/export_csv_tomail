@@ -1,4 +1,4 @@
-#  Autor by Lander (c) 2021. Created for Standart-N LLT
+﻿#  Autor by Lander (c) 2021. Created for Standart-N LLT
 import json
 import sys
 from engine import Db, existPath, read_ini, my_log, put_file
@@ -22,25 +22,34 @@ class Pharmit(Db):
         self.DB.cheak_db(read_ini(self.conf, 'TABLE', self.path_ini), 'TABLE')
         self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE', self.path_ini), 'PROCEDURE')
         self.DB.cheak_db(read_ini(self.conf, 'TRIGGER', self.path_ini), 'TRIGGER')
-        self.auth=HTTPBasicAuth(read_ini(self.conf, 'LOGIN', self.conf),read_ini(self.conf, 'PASS', self.conf))
+
+        base = self.DB.get_from_base(self.path_ini,'getbase',{"profile_id":self.profile_id})[0][0]
+        self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))[str(base)] if base  else read_ini(self.conf, 'LOGIN', self.conf)
+        self.password = json.loads(read_ini(self.conf, 'PASS', self.conf).replace("'", '"'))[str(base)] if base  else read_ini(self.conf, 'PASS', self.conf)
+        self.auth=HTTPBasicAuth(self.Logins,self.password)
 
     def get_Data(self,date_start=None):
-        if not date_start:
+
+        if not date_start and int(datetime.datetime.now().strftime('%H')) != 23 and int(datetime.datetime.now().strftime('%M')) < 50:
             self.check_date()
-        if not date_start:
-            self.getDate()
-        else:
-            self.date_start=date_start
+            self.get_Decada()
+            return
+        self.date_start = self.getDate() if not date_start else date_start
+
+
 
         print(self.date_start + '   '+datetime.datetime.now().strftime('%H'))
-
-        val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
-        self.data = self.DB.get_from_base(__name__, 'move', val)
+        self.fileID = self.getToken(datetime.datetime.strptime(self.date_start, '%d.%m.%Y').strftime('%Y%m%d'))
+        logger.info(f'FileID-{self.fileID}')
+        if self.fileID!=0:
+            val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
+            self.data = self.DB.get_from_base(__name__, 'move', val)
+            self.put_packet(self.getPacket())
         # date_start = datetime.date.today()-datetime.timedelta(days=11)
-        self.fileID = self.getToken(datetime.datetime.strptime(self.date_start,'%d.%m.%Y').strftime('%Y%m%d'))
-        #print(f'FileID-{self.fileID}')
-        self.put_packet(self.getPacket())
 
+
+        if not date_start:
+            self.check_date()
         self.get_Decada()
 
     def send_request(self, type,data=None,header=None,auth=None,url=None):
@@ -53,10 +62,12 @@ class Pharmit(Db):
     def getToken(self, date,type='DateSale'):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
         data = json.dumps({type: date})
+        #logger.error(data)
         res=self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_file_id)
-        if "Данные за эту дату уже загружены!" in res:
+        if "Данные за эту дату уже загружены!" in res or "Данные за эту декаду уже загружены!" in res:
             logger.error("Данные за эту дату уже загружены!")
-            sys.exit()
+            res=0
+            
             #res=self.send_request(url=self.url_get_file_id+date,type='GET',auth=self.auth)
         return res
 
@@ -131,14 +142,15 @@ class Pharmit(Db):
         chk_date=datetime.datetime.strptime(read_ini(self.conf,'DATE_CHECK',self.conf), '%d.%m.%Y').strftime('%Y%m%d')
         url=f'{self.url_load}?startDate={chk_date}'
         res = self.send_request(url=url, type='GET', auth=self.auth)
-        logger.info(res)
         res = json.loads(res.replace("'",'"'))
         noDate=res['noDates']
         for date in noDate:
             c_date=datetime.datetime.strptime(str(date),'%Y%m%d').strftime('%d.%m.%Y')
             self.get_Data(date_start=c_date)
+        return
 
     def getPacket_decada(self):
+        
         packet = []
         i = 1
         j = 0
@@ -154,7 +166,7 @@ class Pharmit(Db):
                        'quantity': pack[7],
                        'FileId': self.fileID,
          }
-            self.check_null(pack)
+            #self.check_null(pack)
             packet.append(one_str)
             i += 1
             if i == 100:
@@ -166,8 +178,9 @@ class Pharmit(Db):
         print(j)
         return j
 
-    def get_Decada(self,date_go=None,type=None):
+    def get_Decada(self):
         today =datetime.date.today().strftime('%d')
+        date_go = None
         month = str(int(datetime.date.today().strftime('%m')) - 1) if int(datetime.date.today().strftime('%m')) != 1 else '12'
         year = str(int(datetime.date.today().strftime('%Y'))) if int(month) != 1 else str(int(datetime.date.today().strftime('%Y'))-1)
         last_day=str(monthrange(int(year), int(month))[1])
@@ -192,9 +205,13 @@ class Pharmit(Db):
         if not date_go:
             return
         self.fileID = self.getToken(date=date_go,type=type)
-        val = {'date_start': date_start, 'date_end': date_start, 'profile_id': self.profile_id}
-        self.data = self.DB.get_from_base(__name__, 'decada', val)
-        self.put_packet(self.getPacket_decada())
+
+        if self.fileID != 0:
+            val = {'date_start': date_start, 'date_end': date_end, 'profile_id': self.profile_id}
+            self.data = self.DB.get_from_base(__name__, 'decada', val)
+            self.put_packet(self.getPacket_decada())
+
+
 
 
 

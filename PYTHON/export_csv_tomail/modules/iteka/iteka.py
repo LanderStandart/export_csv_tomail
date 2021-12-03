@@ -26,8 +26,7 @@ class Iteka(Db):
         Log = self.Logins[self.profile_id]
 
         chkFile = self.chk_file(f'{Log}_0')
-        self.type = 0 if datetime.now().strftime('%w') == '1' or read_ini(self.conf, 'TYPE',
-                                                                          self.conf) and chkFile == 0 else 1
+        self.type = 0 if (datetime.now().strftime('%w') == '1' or read_ini(self.conf, 'TYPE', self.conf)) and chkFile == 0 else 1
         print(f'LOGIN-{Log}--{self.type}')
 
     def get_Data(self):

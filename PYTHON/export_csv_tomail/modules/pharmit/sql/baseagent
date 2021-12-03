@@ -1,0 +1,1 @@
+Select id from g$profiles where apteka_number={baseagent}

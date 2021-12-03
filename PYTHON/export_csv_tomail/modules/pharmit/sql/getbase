@@ -1,0 +1,4 @@
+select first 1
+apteka_number
+--webkassa
+ from g$profiles where id in ({profile_id})

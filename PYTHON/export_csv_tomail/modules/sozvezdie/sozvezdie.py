@@ -171,11 +171,13 @@ class Sozvezdie(Db):
         if self.alone =='1':
         # Одиночная точка
             sql = 'SELECT  part_id from docs d left join doc_detail dd on dd.doc_id=d.id'
-            where = f" where d.docdate between '{self.date_start.strftime('%d.%m.%Y:00:00:00')}' and '{self.date_end.strftime('%d.%m.%Y:23:59:59')}' and part_id is not null "
+            where = f" where d.docdate between '{self.date_start.strftime('%d.%m.%Y:00:00:00')}' and '{self.date_end.strftime('%d.%m.%Y:23:59:59')}' " \
+                    f"and dd.quant>0 and part_id is not null "
         # Сеть аптек
         else:
             sql = 'SELECT distinct part_id from docs d left join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id= d.g$profile_id'
-            where = f" where d.docdate between '{self.date_start.strftime('%d.%m.%Y:00:00:00')}' and '{self.date_end.strftime('%d.%m.%Y:23:59:59')}' and part_id is not null  and d.g$profile_id= {self.profile_id} "
+            where = f" where d.docdate between '{self.date_start.strftime('%d.%m.%Y:00:00:00')}' and '{self.date_end.strftime('%d.%m.%Y:23:59:59')}' and dd.quant>0 " \
+                    f"and part_id is not null  and d.g$profile_id= {self.profile_id} "
         print(sql,where)
         p = self.DB.get_sql(sql, where)
         for po in p:

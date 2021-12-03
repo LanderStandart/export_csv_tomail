@@ -137,7 +137,7 @@ class Db:
                 return i
         return False
 
-    def get_from_base(self,module,sql_file,val=None):
+    def get_from_base(self, module,sql_file:str,val=None):
         path=f'./modules/{module}/sql/'
         SQL = get_File(path=path, file=sql_file)
         SQL=self.prepare_sql(SQL,values=val)
@@ -147,9 +147,11 @@ class Db:
 
     def prepare_sql(self,sql,values=None):
         try:
-            res = sql.format(**values)
+            res = sql.format(**values) if values else sql
+
         except KeyError as Key:
             sys.exit(logger.error(f'Не задан параметр - {Key} \n в запросе \n {sql}'))
+
         return res
 
 
@@ -188,10 +190,11 @@ class ExportData(Db):
 
         if int(read_ini('PARAMS', self.firm.lower())):
             try:
-
+                entity=read_ini(self.firm.upper(), 'ENTITY', self.firm.lower())
                 if int(read_ini('BASE_CONF', 'ALONE')):
                     firmname().get_Data()
-                else:
+                elif not entity and not int(read_ini('BASE_CONF', 'ALONE')):
+
                     SQL_profile = f"SELECT id,caption FROM G$PROFILES where id {get_profile()}"
                     profiles = self.DB.get_sql(SQL_profile)
                     prof=[]
@@ -203,6 +206,26 @@ class ExportData(Db):
                             prof.append(str(i[0]))
                         prof=','.join(prof)
                         firmname(profile_id=str(prof)).get_Data()
+                else:
+                    entity = entity.split(',')
+
+
+                    for i in entity:
+                        val={'baseagent':str(i)}
+                        profiles = self.DB.get_from_base( sql_file='baseagent', module=self.firm.lower(), val=val)
+                        prof = []
+                        if not queue:
+                            for i in profiles:
+                                firmname(profile_id=str(i[0])).get_Data()
+                        else:
+                            for i in profiles:
+                                prof.append(str(i[0]))
+                            prof = ','.join(prof)
+                            firmname(profile_id=str(prof)).get_Data()
+
+
+
+
             except AttributeError:
                 logger.error(f'Нет алгоритма для выгрузки get_DATA(){firmname}')
 

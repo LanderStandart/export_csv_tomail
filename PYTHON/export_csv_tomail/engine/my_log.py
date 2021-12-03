@@ -13,7 +13,6 @@ def get_file_handler():
     date=datetime.datetime.now().strftime('%Y%m%d%H%M')
     filename = f"./log/{date}loggi.log"
     file_handler = logging.FileHandler(filename)
-
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(logging.Formatter(_log_format,datefmt=datefmt))
     return file_handler

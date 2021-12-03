@@ -1,0 +1,2 @@
+SELECT  sname,w.bcode_izg,w.sizg, cast(quant as numeric(9,2)), price
+FROM warebase_g w where quant>0 and w.g$profile_id={profile} and w.mmbsh not containing('10481=')and w.mmbsh not containing('10480=')

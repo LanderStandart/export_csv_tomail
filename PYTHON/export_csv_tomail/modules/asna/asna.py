@@ -24,21 +24,21 @@ class Asna(Db):
         # if self.profile_id is None:
         #     logger.info('Алгоритм работает только для сетей !!!')
         #    exit()
-    def get_from_base(self,sql_file,commit=None):
-        SQL = get_File(path='./modules/asna/sql/', file=sql_file)
-        SQL=self.prepare_sql(SQL)
-        data=self.DB.get_sql(SQL,None,commit)
-        return data
+    # def get_from_base(self,sql_file,commit=None):
+    #     SQL = get_File(path='./modules/asna/sql/', file=sql_file)
+    #     SQL=self.prepare_sql(SQL)
+    #     data=self.DB.get_sql(SQL,None,commit)
+    #     return data
 
-    def prepare_sql(self,sql):
-        if not self.profile_id:
-            res = sql.format(org_code=str(self.org_code),asna_code=str(self.asna_code),
-                       date_beg=str(read_ini(self.conf, 'DATE_START',self.path_ini)),
-                       date_end=str(read_ini(self.conf, 'DATE_END',self.path_ini)),
-                           inn=str(read_ini(self.conf, 'INN',self.path_ini)),
-                       aprofile_id='')
-
-        return res
+    # def prepare_sql(self,sql):
+    #     if not self.profile_id:
+    #         res = sql.format(org_code=str(self.org_code),asna_code=str(self.asna_code),
+    #                    date_beg=str(read_ini(self.conf, 'DATE_START',self.path_ini)),
+    #                    date_end=str(read_ini(self.conf, 'DATE_END',self.path_ini)),
+    #                        inn=str(read_ini(self.conf, 'INN',self.path_ini)),
+    #                    aprofile_id='')
+    #
+    #     return res
 
     def get_Data(self):
 #Справочник товаров
@@ -46,8 +46,10 @@ class Asna(Db):
         SQL='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null'
         #self.DB.get_sql(SQL,None,1)
         logger.info('Create GOODS')
-        data = self.get_from_base(sql_file='wares')
-        create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
+        Db.get_from_base(self,module='asna',sql_file='wares')
+        exit('dddsa')
+        #data = DB.get_from_base(sql_file='wares')
+        #create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
 
 #Базовые контрагенты
         logger.info('Create VENDOR')
@@ -57,16 +59,17 @@ class Asna(Db):
         datum1.append(list(['3','Ввод остатков',self.inn]))
 
 #Собираем контрагентов
-        data = self.get_from_base(sql_file='agents')
-        for row in data:
-            datum1.append(row)
-        #create_dbf(self.path+'vendor.dbf','id C(250); name C(250); inn C(250)',datum1)
-        exit()
+        #data = self.get_from_base(sql_file='agents')
+        # for row in data:
+        #     datum1.append(row)
+       # create_dbf(self.path+'vendor.dbf','id C(250); name C(250); inn C(250)',datum1)
+
 #Собираем Движение
         filename1 = self.path+ self.org_code+'_'+self.asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")
         logger.info('Create MOVE')
         quota=[0,1,2,3,5,7,9,10,11,12,13,14,16,25,26]
-        data = self.get_from_base(sql_file='move')
+
+        data =self.get_from_base(sql_file='move_g') if self.profile_id  else self.get_from_base(sql_file='move')
         CSV_File(data=data,filename=filename1,delimeter='|',ext='.txt').create_csv(quota=quota)
         logger.info('Complete MOVE')
 

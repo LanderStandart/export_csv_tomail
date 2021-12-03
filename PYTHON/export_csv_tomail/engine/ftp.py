@@ -42,7 +42,7 @@ class FTP_work:
                 # FTP.rename(ext_filename, os.path.splitext(ext_filename)[0]+'.zip')
             ftp.quit()
         else:
-            logger.info(str(self.host) + str(self.port))
+            logger.info(str(self.host) +':'+ str(self.port))
             ext_filename = os.path.basename(r'' + self.file_name)
             logger.info(ext_filename)
             logger.warning('FTP:Тестовый режим выгрузка отключена')

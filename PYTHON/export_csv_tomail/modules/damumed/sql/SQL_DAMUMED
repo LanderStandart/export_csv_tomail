@@ -1,4 +1,4 @@
- select first 3 g.caption  as storename,
+ select g.caption  as storename,
                   w.sname as drugname,
                   w.sizg as manufacturer,
                   w.scountry as country,
