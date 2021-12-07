@@ -33,8 +33,8 @@ class Asna(Db):
     # def prepare_sql(self,sql):
     #     if not self.profile_id:
     #         res = sql.format(org_code=str(self.org_code),asna_code=str(self.asna_code),
-    #                    date_beg=str(read_ini(self.conf, 'DATE_START',self.path_ini)),
-    #                    date_end=str(read_ini(self.conf, 'DATE_END',self.path_ini)),
+    #                    date_beg=self.date_start.strftime("%d.%m.%Y"),
+    #                    date_end=self.date_end.strftime("%d.%m.%Y"),
     #                        inn=str(read_ini(self.conf, 'INN',self.path_ini)),
     #                    aprofile_id='')
     #
@@ -42,14 +42,12 @@ class Asna(Db):
 
     def get_Data(self):
 #Справочник товаров
-
+        self.get_Date()
         SQL='update wares w set id = id where (select p.GOODS_ID from PR_ASNA_GET_GOODS(w.id) p) is null'
         #self.DB.get_sql(SQL,None,1)
         logger.info('Create GOODS')
-        Db.get_from_base(self,module='asna',sql_file='wares')
-        exit('dddsa')
-        #data = DB.get_from_base(sql_file='wares')
-        #create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
+        data = Db.get_from_base(self,module='asna',sql_file='wares')
+        create_dbf(self.path+'goods.dbf','id C(250); name C(250); producer C(250); country C(250); ean C(250)',data)
 
 #Базовые контрагенты
         logger.info('Create VENDOR')
@@ -59,10 +57,10 @@ class Asna(Db):
         datum1.append(list(['3','Ввод остатков',self.inn]))
 
 #Собираем контрагентов
-        #data = self.get_from_base(sql_file='agents')
-        # for row in data:
-        #     datum1.append(row)
-       # create_dbf(self.path+'vendor.dbf','id C(250); name C(250); inn C(250)',datum1)
+        data = self.get_from_base(sql_file='agents')
+        for row in data:
+            datum1.append(row)
+       create_dbf(self.path+'vendor.dbf','id C(250); name C(250); inn C(250)',datum1)
 
 #Собираем Движение
         filename1 = self.path+ self.org_code+'_'+self.asna_code+'_'+datetime.datetime.today().strftime("%Y%m%d")+'T'+datetime.datetime.today().strftime("%H%M")
@@ -78,10 +76,7 @@ class Asna(Db):
                    +datetime.datetime.today().strftime("%H%M")+'_RST'
         logger.info('Create WAREBASE')
         quota=[0,1,2,6,7,13]
-        #очищаем таблицу
-       # self.get_from_base(sql_file='del_warebase',commit=1)
-        #заполняем таблицу
-       # self.get_from_base(sql_file='insert_warebase',commit=1)
+
         data = self.get_from_base(sql_file='warebase')
         CSV_File(data=data,filename=filename2,delimeter='|',ext='.txt').create_csv(quota=quota)
         logger.info('Complete WAREBASE')
@@ -91,10 +86,18 @@ class Asna(Db):
         for fname in fl:
             FTP_work(self.conf).upload_FTP(fname, extpath=str(read_ini(self.conf, 'FTP_PATH',self.path_ini)), isbynary=True,rename=False)
 
-# FTP_work('FTP_CONF').upload_FTP(filename1 + '.txt')
-# FTP_work('FTP_CONF').upload_FTP(filename2 + '.txt')
-# FTP_work('FTP_CONF').upload_FTP(path+'goods.dbf')
-# FTP_work('FTP_CONF').upload_FTP(path+'vendor.dbf')
+
+    def get_Date(self):
+        date_start =read_ini(self.conf, 'DATE_START',self.path_ini)
+        if date_start:
+            logger.info('Выбранна дата из настроек')
+            self.date_start = datetime.datetime.strptime(date_start, "%d.%m.%Y")
+            self.date_end = datetime.datetime.today() - datetime.timedelta(days=1)
+        # datetime.datetime.strptime(read_ini(self.conf, 'DATE_END'),"%d.%m.%Y")#
+        else:
+            logger.info('Выбрана текущая выгрузка')
+            self.date_start = datetime.date.today() - datetime.timedelta(days=1)
+            self.date_end = datetime.datetime.today()
 
 
 

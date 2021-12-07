@@ -1,3 +1,3 @@
 select cast(a.id as varchar(255)) as ID, caption as name, coalesce(INN,'') as INN from agents a
 
-           where  a.id > 0  {aprofile_id}
+           where  a.id > 0
