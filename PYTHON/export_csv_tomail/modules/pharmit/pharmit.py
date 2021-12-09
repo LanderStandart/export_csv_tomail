@@ -6,7 +6,7 @@ import requests
 import datetime
 from requests.auth import HTTPBasicAuth
 from calendar import monthrange
-
+from tqdm import tqdm
 logger = my_log.get_logger(__name__)
 class Pharmit(Db):
     def __init__(self, profile_id=None):
@@ -75,6 +75,7 @@ class Pharmit(Db):
         packet = []
         i = 1
         j = 0
+        pbar = tqdm(total=len(self.data))
         for pack in self.data:
 
             one_str = {'typeid': pack[0],
@@ -101,6 +102,7 @@ class Pharmit(Db):
                        'QuantityBalance': str(pack[17]), }
             self.check_null(pack)
             packet.append(one_str)
+            pbar.update(1)
             i += 1
             if i == 100:
                 i = 0
