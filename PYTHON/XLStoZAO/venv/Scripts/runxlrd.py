@@ -15,12 +15,12 @@ biff_count[1]   Print a count of each type of BIFF record in the file
 biff_dump[1]    Print a dump (char and hex) of the BIFF records in the file
 fonts           hdr + print a dump of all font objects
 hdr             Mini-overview of file (no per-sheet information)
-hotshot         Do a hotshot profile run e.g. ... -f1 hotshot bench bigfile*.xls
+hotshot         Do a hotshot baseagent run e.g. ... -f1 hotshot bench bigfile*.xls
 labels          Dump of sheet.col_label_ranges and ...row... for each sheet
 name_dump       Dump of each object in book.name_obj_list
 names           Print brief information for each NAME record
 ov              Overview of file
-profile         Like "hotshot", but uses cProfile
+baseagent         Like "hotshot", but uses cProfile
 show            Print the contents of all rows in each sheet
 version[0]      Print versions of xlrd and Python and exit
 xfc             Print "XF counts" and cell-type counts -- see code for details
@@ -406,7 +406,7 @@ if __name__ == "__main__":
         stats.strip_dirs()
         stats.sort_stats('time', 'calls')
         stats.print_stats(20)
-    elif firstarg == "profile":
+    elif firstarg == "baseagent":
         import cProfile
         av = av[1:]
         cProfile.run('main(av)', 'YYYY.prof')

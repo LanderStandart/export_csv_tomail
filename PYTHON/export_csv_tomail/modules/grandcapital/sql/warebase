@@ -1,0 +1,30 @@
+select * from
+(select
+0 as d_type,
+(select docNUM from docs where id=(select doc_id from pr_getmotherpart(w.part_id)))as N_DOK,
+'{date_ost}' as d_dok,
+(select caption from agents a where a.id=(select d.agent_id from docs d where d.id=(select doc_id from pr_getmotherpart(w.part_id)))) as Supplier,
+(select coalesce(inn, '') from agents a where a.id=(select d.agent_id from docs d where d.id=(select doc_id from pr_getmotherpart(w.part_id)))) as Supplier_INN,
+'' as N_KKM,
+'' as N_Chek,
+'' as FIO_Chek,
+'' as Disk_T,
+'' as Disk_Sum,
+'' as Sum_zak,
+'' as Sum_Rozn,
+0 as PP_Teg,
+w.name_id as Drug_Code,
+w.sname,
+w.izg_id as Drug_Producer_Code,
+w.sizg as Drug_Producer_Name,
+w.scountry as Drug_Producer_Country,
+w.bcode_izg as Drug_Bar,
+w.price_o as Cena_zak,
+w.price as Cena_Rozn,
+w.quant - (select coalesce(sum(dd.quant),0) from doc_detail dd join docs on docs.id=dd.doc_id and docs.status=1 where dd.part_id=w.part_id and dd.doc_commitdate between '{date_beg}' and current_date) as Quant,
+ coalesce(w.seria,'') as Serial,
+ coalesce((select s from utpr_datetostr(w.godendo)),'') as Godn,
+w.barcode as BArecode
+
+from warebase w )ww
+where ww.quant>0.01

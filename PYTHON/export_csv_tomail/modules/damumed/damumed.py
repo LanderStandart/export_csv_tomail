@@ -18,19 +18,23 @@ class Damumed(Db):
 
 
     def get_Data(self):
-        gl_root=XML.add_root(self,root='drugs' )
-        SQL_DAMUMED =get_File('./modules/damumed/sql/','SQL_DAMUMED')
-        SQL = SQL_DAMUMED.format(profile_id=self.profile_id)
-        result = self.DB.get_sql(SQL)
-        for s in result:
-            attrib={"storeName":s[0],"drugName":str(s[1]),"manufacturer":str(s[2]),"country":str(s[3]),"dosage":s[4],"packaging":s[5],
-                    "registrationNumber":s[6],"balance":str(s[7]),"price":str(s[8]) }
-            if not s[1]:
-                logger.error(f'Пустое наименование {s[6]}')
-            XML.add_element(self,'drug',gl_root,attrib=attrib)
-        XML().save_file(root=gl_root,filename=self.file_name + str(self.profile_id) +".xml")
-        Archiv(self.file_name+self.profile_id, 'xml').zip_File()
-        FTP_work(self.conf).upload_FTP(self.file_name+self.profile_id + '.zip',isbynary=True)
+        ignore_profile = read_ini(self.conf, 'PROFILES_OFF',self.path_ini)
+        if self.profile_id not in ignore_profile:
+            gl_root=XML.add_root(self,root='drugs' )
+            SQL_DAMUMED =get_File('./modules/damumed/sql/','SQL_DAMUMED')
+            SQL = SQL_DAMUMED.format(profile_id=self.profile_id)
+            result = self.DB.get_sql(SQL)
+            for s in result:
+                attrib={"storeName":s[0],"drugName":str(s[1]),"manufacturer":str(s[2]),"country":str(s[3]),"dosage":s[4],"packaging":s[5],
+                        "registrationNumber":s[6],"balance":str(s[7]),"price":str(s[8]) }
+                if not s[1]:
+                    logger.error(f'Пустое наименование {s[6]}')
+                XML.add_element(self,'drug',gl_root,attrib=attrib)
+            XML().save_file(root=gl_root,filename=self.file_name + str(self.profile_id) +".xml")
+            Archiv(self.file_name+self.profile_id, 'xml').zip_File()
+            FTP_work(self.conf).upload_FTP(self.file_name+self.profile_id + '.zip',isbynary=True)
+        else:
+            return logger.info(f'{self.profile_id} в списке исключенных')
 
 
 

@@ -1,0 +1,49 @@
+select
+
+                cast((select s from utpr_datetostr('{FROM_DATE}'))as dm_datetime) as StockBalanceDate,
+                '{DepartmentCode}' as DepartmentCode,
+               '{profile_id}0000' as IDDepartment,
+                (select (select docs.docnum from docs where docs.id=pr.doc_id and docs.G$PROFILE_ID ={profile_id})  from pr_getmotherpart(p.id,{profile_id}) pr) as InvoiceNum,
+                (select (select docs.docdate from docs where docs.id=pr.doc_id and docs.G$PROFILE_ID ={profile_id})  from pr_getmotherpart(p.id,{profile_id}) pr) as InvoiceDate,
+                p.WARE_id as GoodsCode,
+
+                wb.quant as Quantity,
+                cast (abs(p.price_o) as numeric(9,2)) as PriceWholeBuy,
+                cast(p.price_o - abs(p.price_o/(1+(p.nds/100)))as numeric(9,2)) as PvatWholeBuy,
+                cast(p.price_o - (cast(p.price_o - abs(p.price_o/(1+(p.nds/100)))as numeric(9,2)))as numeric(9,2)) as PriceWholebuyWithoutVat,
+                cast (abs(p.price) as numeric(9,2)) as PriceRetail,
+                coalesce(cast(p.price-abs(p.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)),0) as PVatWholeRetail,
+                cast(p.price - (coalesce(cast(p.price-abs(p.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)),0))as numeric(9,2))  as PriceRetailWithoutVat,
+                '10000' as IDstore,
+                (select iif(pr.agent_id>0,pr.agent_id,'999999')  from pr_getmotherpart(p.id,{profile_id}) pr)as SupplierCode,
+                iif (p.godendo is not null, cast(p.godendo as dm_datetime),null) as BestBefore,
+                p.seria as Series,
+                w.barcode as Barcode,
+                '' as KIZ,
+                (select first 1 dd1.gtin from doc_detail dd1 where dd1.part_id=wb.part_id and dd1.g$profile_id={profile_id}) as GTIN,
+                '' as SGTIN,
+                '' as DateProduction
+            from (select  part_id,sum(quant)as quant,sum(sum_ndso)as sum_ndso,sum(SUM_NDSR)as SUM_NDSR from
+            ( select DD.PART_ID, -DD.QUANT as quant,
+
+            -dd.sum_ndso as sum_ndso ,-dd.sum_ndsr as sum_ndsr
+                          from DOC_DETAIL DD
+                          where DD.DOC_COMMITDATE between '{FROM_DATE}' and '{date_end}' and
+                               DD.G$PROFILE_ID ={profile_id} and
+                               DD.PART_TYPE = 0
+                        union all
+                            select WW.PART_ID,iif(WW.QUANT is null, 0,ww.quant)as quant,
+                            WW.sum_ndso ,0 as SUM_NDSR  from warebase_g WW where WW.G$PROFILE_ID ={profile_id}
+                            ) u
+                           group by u.part_id
+                            having
+         abs(sum(quant))>0.01 or abs(sum(sum_ndso))>0.1*10) wb
+
+                left join parts p on p.id=wb.part_id and p.G$PROFILE_ID ={profile_id}
+                left join docs d on d.id=p.doc_id and d.G$PROFILE_ID ={profile_id}
+                left join wares w on w.id=p.ware_id
+                left join vals v_izg on v_izg.id=w.izg_id
+                left join vals v_strana on v_strana.id=w.country_id
+                left join vals v_sname on v_sname.id=w.name_id
+             where wb.quant>0
+

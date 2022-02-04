@@ -1,0 +1,40 @@
+select
+           d.id||dd.id  as IdLotMovement,
+           '{DepartmentCode}' as DepartmentCode,
+           '{profile_id})'||'0000' as IDDepartment,
+           iif(d.doc_type=2,d.agent_id,'') as IDDepartmentFrom,
+           p.ware_id as GoodsCode,
+           (select iif(docs.agent_id<0,'999999',docs.agent_id)  from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as SupplierCode,
+           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
+           (select docs.docnum from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceNum,
+           (select docs.docdate from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceDate,
+           d.docnum as PurchaseStuinvoiceNum,
+           d.docdate as PurchaseStuInvoiceDate,
+           iif(d.doc_type= 1,'PurchaseInvoice',iif(d.doc_type=20,'ImportRemains',iif(d.doc_type=9,
+           'ActReturnBuyer',iif(d.doc_type=2,'MoveAdd',''))))as PurchaseDocType,
+           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
+          cast(p.price_o - abs(p.price_o/(1+((p.nds)/100)))as numeric(9,2))as PvatWholeBuy,
+          cast(p.nds as numeric (3,0)) as VatWholeBuy,
+          cast(dd.price as numeric(9,2)) as PriceRetail,
+          cast(dd.price-abs(dd.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)) as PVatWholeRetail,
+          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
+         p.godendo as BestBefore,
+          p.seria as Series,
+          'PROC' as DocState,
+          10000 as Idstore,
+          iif(d.doc_type=2,d.agent_id,'') as IDStoreFrom,
+          '' as KIZ,
+          dd.gtin as GTIN,
+          '' as SGTIN,
+          '0' as InternetOrderNum,
+           '' as BaseDocumentName,
+          '' as OrderComment
+from doc_detail dd
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in (9,2,1,20)  and d.g$profile_id={profile_id}
+  inner join agents a on a.id = d.agent_id
+  left join parts p on dd.part_id=p.id  and p.g$profile_id={profile_id}
+  join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id
+ where  dd.doc_commitdate between '{date_start}' and '{date_end}'   and dd.g$profile_id={profile_id}order by d.docdate

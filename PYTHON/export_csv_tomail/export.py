@@ -15,7 +15,7 @@ for i in params:
         logger.info('Формируем:'+ firm)
         path = read_ini(firm.upper(),'PATH_EXPORT',firm)
         queue = read_ini(firm.upper(),'QUEUE',firm)
-        clear_export_path(path)
+
         path = './log/'
         clear_export_path(path)
         ExportData(firm).create('file',queue)

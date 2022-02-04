@@ -137,8 +137,8 @@ class Db:
                 return i
         return False
 
-    def get_from_base(self, module,sql_file:str,val=None):
-        path=f'./modules/{module}/sql/'
+    def get_from_base(self, module,sql_file:str,val=None,profile=''):
+        path=f'./modules/{module}/sql{profile}/'
         SQL = get_File(path=path, file=sql_file)
         SQL=self.prepare_sql(SQL,values=val)
         #logger.info(SQL)

@@ -1,0 +1,7 @@
+Select
+  '{profile_id})'||'0000'  as IdStore,
+  (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'and p.g$profile_id={profile_id})as StoreName,
+  '{profile_id})'||'0000'  as IdDepartment,
+  '��������'as StoreTypeName,
+  0 as IsDeleted
+  from rdb$database

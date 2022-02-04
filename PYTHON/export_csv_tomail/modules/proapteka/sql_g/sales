@@ -1,0 +1,51 @@
+select  d.id||dd.id as IdLotMovement,
+           '{DepartmentCode}' as DepartmentCode,
+           iif(d.agent_id<0,'{profile_id})'||'0000',d.agent_id) as IDDepartment,
+           iif(d.doc_type=6,d.agent_id,'') as IDDepartmentTo,
+           p.ware_id as GoodsCode,
+           (select iif(docs.agent_id<0,'999999',docs.agent_id) from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as SupplierCode,
+           cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
+           (select docs.docnum from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceNum,
+           (select docs.docdate from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceDate,
+           d.docnum as SaleStuNum,
+           d.docdate as SaleStuDate,
+           iif(d.doc_type =3, d.id,'') as ChequeID,
+           iif(d.doc_type =3,d.docnum,'') as ChequeNum,
+           d.docdate as ChequeDate,
+cast(iif(d.doc_type =3,d.commitdate ,null)as dm_datetime) as ChequeDateModified,
+           iif (d.doc_type=3,'SALE',iif(d.doc_type=9,'RETURN',''))as ChequeType,
+           iif((d.doc_type =3 and d.summ1<>0 and d.summ2=0),'CASH',iif((d.doc_type =3 and d.summ1=0 and d.summ2<>0),'P_CARD',iif(d.doc_type =3,'MIXED','')))as ChequePaymentType,
+           iif(d.doc_type =3,iif(d.creater<0,abs(d.creater*10000),d.creater),'') as ChequeUserNum,
+           iif(d.doc_type =3,'Cheque',iif(d.doc_type=11,'Invoice_Out',iif(d.doc_type=4,'ActReturnToContractor',iif(d.doc_type=6,'MoveSub',''))))as SaleDocType,
+           cast(p.price_o as numeric (9,2)) as PriceWholeBuy,
+          cast(p.price_o - abs(p.price_o/(1+(p.nds/100)))as numeric(9,2)) as PvatWholeBuy,
+          cast(p.nds as numeric (3,0)) as VatWholeBuy,
+          cast(dd.price as numeric(9,2)) as PriceRetail,
+          cast(dd.price-abs(dd.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)) as PVatWholeRetail,
+          cast((select deps.ndsr from deps where deps.id = p.dep)as numeric (3,0)) as VatWholeRetail,
+          abs(iif(d.doc_type =3,cast(dd.discount as numeric(9,2)),0)) as Discount,
+          p.godendo BestBefore,
+          p.seria as Series,
+          'PROC' as DocState,
+          10000 as Idstore,
+          iif(d.doc_type=6,d.agent_id,'') as IDStoreTO,
+          '0' as InternetOrderNum,
+          '' as KIZ,
+          dd.gtin as GTIN,
+          '' as SGTIN,
+          d.FNNUMBER as KKM_EKLZ_NUM,
+          d.fiscalsign as FISCAL_SIGN,
+          iif(d.doc_type=3,d.docnum,'')  as FISCAL_DOCUMENT,
+          '' as BaseDocumentName,
+          '' as OrderComment
+from doc_detail dd
+
+  inner join docs d on d.id = dd.doc_id  and d.doc_type in  (3,11,4,6,9) and d.g$profile_id={profile_id}
+  inner join agents a on a.id = d.agent_id and a.g$profile_id={profile_id}
+
+  left join parts p on dd.part_id=p.id and p.g$profile_id={profile_id}
+  join WARES w on p.ware_id=w.id
+  inner join vals vname on w.name_id=vname.id
+  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vcountry on w.country_id=vcountry.id
+  where  dd.doc_commitdate between '{date_start}' and '{date_end}' AND dd.g$profile_id={profile_id} order by d.docdate

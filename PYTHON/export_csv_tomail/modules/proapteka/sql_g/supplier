@@ -1,0 +1,13 @@
+select
+ iif(docs.agent_id<0,(select agents.caption from agents where id=1),agents.caption) as Name,
+ agents.fullname as FullName,
+ iif(docs.agent_id<0,'999999',docs.agent_id) as Code,
+ (select * from pr_getaddress(agents.addr_id)) as adress,
+ agents.inn as Tin,
+ agents.kpp as Trrc,
+ agents.phonenumbers as Phone,
+ 0 as IsDeleted
+ from docs
+inner join agents on agents.id = docs.agent_id
+where docs.doc_type in (1,4,20,8) and docs.agent_id<>0
+group by docs.agent_id,agents.caption, agents.fullname,tin,Trrc,Phone,agents.addr_id

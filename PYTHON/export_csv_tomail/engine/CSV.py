@@ -20,7 +20,7 @@ class CSV_File:
         self.quota = quota
         logger.info('Create File:'+self.filename + self.ext)
         with open(self.filename + self.ext, 'w', newline='',encoding=self.encoding) as f:
-            writer = csv.writer(f,delimiter=self.delimeter, escapechar='',quotechar='', quoting=csv.QUOTE_NONE)
+            writer = csv.writer(f,delimiter=self.delimeter, escapechar='~',quotechar='', quoting=csv.QUOTE_NONE)
             if self.header is not None:
                 writer.writerow(self.header)
             for row in self.data:

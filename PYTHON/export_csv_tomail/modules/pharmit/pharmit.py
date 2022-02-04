@@ -23,16 +23,17 @@ class Pharmit(Db):
         self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE', self.path_ini), 'PROCEDURE')
         self.DB.cheak_db(read_ini(self.conf, 'TRIGGER', self.path_ini), 'TRIGGER')
 
-        base = self.DB.get_from_base(self.path_ini,'getbase',{"profile_id":self.profile_id})[0][0]
-        self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))[str(base)] if base  else read_ini(self.conf, 'LOGIN', self.conf)
-        self.password = json.loads(read_ini(self.conf, 'PASS', self.conf).replace("'", '"'))[str(base)] if base  else read_ini(self.conf, 'PASS', self.conf)
+        self.base = self.DB.get_from_base(self.path_ini,'getbase',{"profile_id":self.profile_id})[0][0]
+        self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))[str(self.base)] if self.base  else read_ini(self.conf, 'LOGIN', self.conf)
+        self.password = json.loads(read_ini(self.conf, 'PASS', self.conf).replace("'", '"'))[str(self.base)] if self.base  else read_ini(self.conf, 'PASS', self.conf)
         self.auth=HTTPBasicAuth(self.Logins,self.password)
 
     def get_Data(self,date_start=None):
 
         if not date_start and int(datetime.datetime.now().strftime('%H')) != 23 and int(datetime.datetime.now().strftime('%M')) < 50:
-            self.check_date()
             self.get_Decada()
+            self.check_date()
+
             return
         self.date_start = self.getDate() if not date_start else date_start
 
@@ -55,7 +56,7 @@ class Pharmit(Db):
     def send_request(self, type,data=None,header=None,auth=None,url=None):
         header = {'Content-type': 'application/json'} if type=='POST' else None
         res = requests.request(type,url=url,data=data,headers=header,auth=auth)
-        logger.info(f'{self.url_file_id}-{res.status_code}- {res.reason}-\n{res.text}')
+#        logger.info(f'{self.url_file_id}-{res.status_code}- {res.reason}-\n{res.text}')
         return res.text
 
 
@@ -64,11 +65,12 @@ class Pharmit(Db):
         data = json.dumps({type: date})
         #logger.error(data)
         res=self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_file_id)
-        if "Данные за эту дату уже загружены!" in res or "Данные за эту декаду уже загружены!" in res:
+        if "Данные за эту дату уже загружены!" in res or "Данные за эту декаду уже загружены!" in res or "Данные за этот месяц уже загружены!" in res:
             logger.error("Данные за эту дату уже загружены!")
             res=0
             
             #res=self.send_request(url=self.url_get_file_id+date,type='GET',auth=self.auth)
+        logger.info(f'Baseagent-{self.base} -{self.Logins} - getToken {type}  Answer- {res}')
         return res
 
     def getPacket(self):
@@ -110,15 +112,16 @@ class Pharmit(Db):
                 packet = []
             j += 1
         self.send_packet(packet,j)
-        print(j)
+#        pbar.write(j)
         return j
 
 
     def send_packet(self, packet,count,last=None):
         data = json.dumps(packet, ensure_ascii=False).encode('utf8')
         headers = {'Content-type': 'application/json'}
-        print(self.path+str(count)+'.json')
+#       print(self.path+str(count)+'.json')
        # print(packet)
+       # logger.info(self.path+str(self.fileID)+'_'+str(count)+'.json')
         put_file(self.path+str(self.fileID)+'_'+str(count)+'.json',data)
 
         self.send_request(data=data,type='POST',header=headers,auth=self.auth,url=self.url_load)
@@ -183,9 +186,10 @@ class Pharmit(Db):
     def get_Decada(self):
         today =datetime.date.today().strftime('%d')
         date_go = None
-        month = str(int(datetime.date.today().strftime('%m')) - 1) if int(datetime.date.today().strftime('%m')) != 1 else '12'
-        year = str(int(datetime.date.today().strftime('%Y'))) if int(month) != 1 else str(int(datetime.date.today().strftime('%Y'))-1)
+        month = read_ini(self.conf, 'MONTH', self.conf) if read_ini(self.conf, 'MONTH', self.conf)  else str(int(datetime.date.today().strftime('%m')) - 1) if int(datetime.date.today().strftime('%m')) != 1 else '12' 
+        year = read_ini(self.conf, 'YEAR', self.conf) if read_ini(self.conf, 'YEAR', self.conf)  else str(int(datetime.date.today().strftime('%Y'))) if int(month) != 1 else str(int(datetime.date.today().strftime('%Y'))-1)
         last_day=str(monthrange(int(year), int(month))[1])
+        
         date_start = f'01.{month}.{year}'
         if today==5 or read_ini(self.conf,'DECADA',self.conf)=='5':
             #month
@@ -206,6 +210,7 @@ class Pharmit(Db):
             date_end = f'20.{month}.{year}'
         if not date_go:
             return
+        logger.info(f'{date_go}--{type}')
         self.fileID = self.getToken(date=date_go,type=type)
 
         if self.fileID != 0:

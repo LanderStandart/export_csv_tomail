@@ -55,7 +55,9 @@ def clear_export_path(path):
                 if now-time_file>datetime.timedelta(days=1):
                     print('Удален - '+file.name)
                     i +=1
+
                     os.remove(path+file.name)
+
         logger.info('Удаленно ' + str(i) + ' файлов')
     except FileNotFoundError:
         logger.info('Удалять нечего')

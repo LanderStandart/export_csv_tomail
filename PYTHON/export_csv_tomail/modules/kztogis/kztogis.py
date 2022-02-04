@@ -1,5 +1,6 @@
 #  Autor by Lander (c) 2020. Created for Standart-N LLT
-from engine import Db,CSV_File,FTP_work,LogIt,existPath,read_ini
+from engine import Db,CSV_File,FTP_work,existPath,read_ini,my_log,
+logger = my_log.get_logger(__name__)
 class Kztogis(Db):
     def __init__(self,profile_id=None):
         self.profile_id = profile_id
@@ -7,10 +8,10 @@ class Kztogis(Db):
         self.path_ini=__name__
         self.conf = 'KZTOGIS'
         existPath(read_ini(self.conf, 'PATH_EXPORT',self.path_ini))
-        self.head = read_ini[('CSV_CONF', 'HEAD',self.path_ini)]
+        self.head = read_ini(self.conf, 'HEAD',self.path_ini).split(';')
         self.file_name = read_ini(self.conf, 'PATH_EXPORT',self.path_ini) + read_ini(self.conf, 'ID_CLIENT',self.path_ini)
         if self.profile_id:
-            self.SQL = "SELECT first 10 sname, cast(quant as numeric(9,2)), price FROM warebase_g w "
+            self.SQL = "SELECT  sname, cast(quant as numeric(9,2)), price FROM warebase_g w "
             self.profile_name = self.DB.get_sql("SELECT caption FROM G$PROFILES where id="+str(self.profile_id))[0][0]
             self.where = " where w.g$profile_id="+str(self.profile_id)
             self.file_name = self.file_name+'_'+str(self.profile_id)

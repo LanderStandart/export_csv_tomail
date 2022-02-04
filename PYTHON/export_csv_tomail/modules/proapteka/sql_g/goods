@@ -1,0 +1,20 @@
+select distinct
+w.id as Code,
+vname.svalue as Name,
+vorig_izg.svalue as Producer,
+vcountry.svalue as Country,
+iif (w.barcode is null,'',w.barcode) as barcode1,
+'' as barcode2,
+'' as barcode3,
+'' as GuidEs,
+'' as CodeSup1,
+'' as CodeSup2,
+'' as CodeGoodsSup1,
+'' as CodeGoodsSup2,
+0 as IsDeleted
+from wares w
+ inner join parts p on p.ware_id=w.id
+  left join vals vname on w.name_id=vname.id
+  left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  left join vals vcountry on w.country_id=vcountry.id
+  where w.id is not null

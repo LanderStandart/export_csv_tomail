@@ -1,0 +1,19 @@
+select
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id={profile_id})as DepartmentName,
+  '{DepartmentCode}' as DepartmentCode,
+  (select p.g$profile_id  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id={profile_id})||'0000' as IDDepartment,
+(select p.param_value  from params p where p.param_id='ORG_ADRESS'and p.g$profile_id={profile_id}) as DepartmentAddress,
+'' as InstallPointCode,
+'0' as Is_buyer,
+'' as InventoryControl,
+'' as PriceCompare,
+
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'and p.g$profile_id={profile_id})as CompanyName,
+(select p.param_value  from params p where p.param_id='ORG_PARENT_ADRES'and p.g$profile_id={profile_id})as AddressJur,
+(select p.param_value  from params p where p.param_id='ORG_INN'and p.g$profile_id={profile_id})as Tin,
+(select p.param_value  from params p where p.param_id='ORG_KPP'and p.g$profile_id={profile_id})as Trrc,
+(select p.param_value  from params p where p.param_id='ORG_PHONE'and p.g$profile_id={profile_id})as PHONE,
+(select p.param_value  from params p where p.param_id='ORG_DIRECTOR'and p.g$profile_id={profile_id})as ManagerName,
+'0' as IsDeleted
+
+from rdb$database
