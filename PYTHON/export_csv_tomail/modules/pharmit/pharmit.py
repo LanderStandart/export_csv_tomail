@@ -23,7 +23,7 @@ class Pharmit(Db):
         self.DB.cheak_db(read_ini(self.conf, 'PROCEDURE', self.path_ini), 'PROCEDURE')
         self.DB.cheak_db(read_ini(self.conf, 'TRIGGER', self.path_ini), 'TRIGGER')
 
-        self.base = self.DB.get_from_base(self.path_ini,'getbase',{"profile_id":self.profile_id})[0][0]
+        self.base = self.DB.get_from_base(self.path_ini,'getbase',{"profile_id":self.profile_id})[0][0] if self.profile_id else 1
         self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))[str(self.base)] if self.base  else read_ini(self.conf, 'LOGIN', self.conf)
         self.password = json.loads(read_ini(self.conf, 'PASS', self.conf).replace("'", '"'))[str(self.base)] if self.base  else read_ini(self.conf, 'PASS', self.conf)
         self.auth=HTTPBasicAuth(self.Logins,self.password)
@@ -43,8 +43,13 @@ class Pharmit(Db):
         self.fileID = self.getToken(datetime.datetime.strptime(self.date_start, '%d.%m.%Y').strftime('%Y%m%d'))
         logger.info(f'FileID-{self.fileID}')
         if self.fileID!=0:
-            val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
-            self.data = self.DB.get_from_base(__name__, 'move', val)
+            if self.profile_id:
+                val = {'date_start': self.date_start, 'date_end': self.date_start, 'profile_id': self.profile_id}
+                self.data = self.DB.get_from_base(__name__, 'move', val)
+            else:
+                val = {'date_start': self.date_start, 'date_end': self.date_start}
+                self.data = self.DB.get_from_base(__name__, 'move_alone', val)
+
             self.put_packet(self.getPacket())
         # date_start = datetime.date.today()-datetime.timedelta(days=11)
 
