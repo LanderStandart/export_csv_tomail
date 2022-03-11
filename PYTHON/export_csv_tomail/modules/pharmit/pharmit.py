@@ -30,11 +30,11 @@ class Pharmit(Db):
 
     def get_Data(self,date_start=None):
 
-        if not date_start and int(datetime.datetime.now().strftime('%H')) != 23 and int(datetime.datetime.now().strftime('%M')) < 50:
+        if not date_start : #and int(datetime.datetime.now().strftime('%H')) != 23 and int(datetime.datetime.now().strftime('%M')) < 50:
             self.get_Decada()
             self.check_date()
+        #return
 
-            return
         self.date_start = self.getDate() if not date_start else date_start
 
 
@@ -202,17 +202,17 @@ class Pharmit(Db):
             type='MonthSale'
             date_end = f'{last_day}.{month}.{year}'
 
-        if today==15 or read_ini(self.conf,'DECADA',self.conf)=='15':
-            #decade 1
-            date_go=year+month+'1'
-            type = 'DecadeSale'
-            date_end = f'10.{month}.{year}'
-
-        if today==25 or read_ini(self.conf,'DECADA',self.conf)=='25':
-            #decade 2
-            date_go=year+month+'2'
-            type = 'DecadeSale'
-            date_end = f'20.{month}.{year}'
+        # if today==15 or read_ini(self.conf,'DECADA',self.conf)=='15':
+        #     #decade 1
+        #     date_go=year+month+'1'
+        #     type = 'DecadeSale'
+        #     date_end = f'10.{month}.{year}'
+        #
+        # if today==25 or read_ini(self.conf,'DECADA',self.conf)=='25':
+        #     #decade 2
+        #     date_go=year+month+'2'
+        #     type = 'DecadeSale'
+        #     date_end = f'20.{month}.{year}'
         if not date_go:
             return
         logger.info(f'{date_go}--{type}')
@@ -221,7 +221,11 @@ class Pharmit(Db):
         if self.fileID != 0:
             val = {'date_start': date_start, 'date_end': date_end, 'profile_id': self.profile_id}
             self.data = self.DB.get_from_base(__name__, 'decada', val)
-            self.put_packet(self.getPacket_decada())
+        else:
+            val = {'date_start': date_start, 'date_end': date_end}
+            self.data = self.DB.get_from_base(__name__, 'decada_alone', val)
+
+        self.put_packet(self.getPacket_decada())
 
 
 
