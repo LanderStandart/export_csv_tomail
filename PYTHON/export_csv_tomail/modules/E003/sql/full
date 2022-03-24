@@ -1,0 +1,24 @@
+select
+            (select caption from g$profiles g where g.id=w.g$profile_id) as caption,
+            w.sname,
+            w.sizg,
+            w.scountry,
+            sum(w.quant),
+            w.price,
+             iif(w.godendo<'01.01.2000','',cast(w.godendo as dm_date)),
+            w.bcode_izg,
+            w.ware_id
+            from
+            warebase_g w
+        where w.g$profile_id in ({profile_id}) and w.ware_id is not null  and w.sname is not null
+
+          group by
+           w.g$profile_id,
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.godendo,
+            w.bcode_izg,
+            w.ware_id
+                having sum(abs(w.quant))>0

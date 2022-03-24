@@ -194,7 +194,7 @@ class Pharmit(Db):
         month = read_ini(self.conf, 'MONTH', self.conf) if read_ini(self.conf, 'MONTH', self.conf)  else str(int(datetime.date.today().strftime('%m')) - 1) if int(datetime.date.today().strftime('%m')) != 1 else '12' 
         year = read_ini(self.conf, 'YEAR', self.conf) if read_ini(self.conf, 'YEAR', self.conf)  else str(int(datetime.date.today().strftime('%Y'))) if int(month) != 1 else str(int(datetime.date.today().strftime('%Y'))-1)
         last_day=str(monthrange(int(year), int(month))[1])
-        
+        month = month if len(month)>1 else '0'+month
         date_start = f'01.{month}.{year}'
         if today==5 or read_ini(self.conf,'DECADA',self.conf)=='5':
             #month

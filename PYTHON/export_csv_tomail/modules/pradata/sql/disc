@@ -1,0 +1,6 @@
+Select d.id as IdDiscountProgram,
+  d.dsc_text as DiscountProgramName,
+ abs(d.percent) as DiscountProgramPercent,
+ '' as DiscountType,
+ d.barcode as DiscountCardBarcode
+ from discounts d

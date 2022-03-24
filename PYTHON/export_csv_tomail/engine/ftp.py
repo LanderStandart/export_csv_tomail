@@ -43,7 +43,7 @@ class FTP_work:
             else:
                 with tqdm(unit='blocks', unit_scale=True, leave=False, miniters=1, desc='Uploading......',
                           total=filesize) as tqdm_instance:
-                    ftp.storlines('STOR ' + ext_filename, f_obj, 2048,
+                    ftp.storlines('STOR ' + ext_filename, f_obj,
                                    callback=lambda sent: tqdm_instance.update(len(sent)))
                 # ftp.storlines("STOR " + ext_filename, f_obj)
             #            toname = os.path.splitext(ext_filename)[0]+'.zip'

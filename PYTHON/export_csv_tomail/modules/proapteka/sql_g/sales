@@ -1,6 +1,6 @@
 select  d.id||dd.id as IdLotMovement,
            '{DepartmentCode}' as DepartmentCode,
-           iif(d.agent_id<0,'{profile_id})'||'0000',d.agent_id) as IDDepartment,
+           iif(d.agent_id<0,'{profile_id}'||'0000',d.agent_id) as IDDepartment,
            iif(d.doc_type=6,d.agent_id,'') as IDDepartmentTo,
            p.ware_id as GoodsCode,
            (select iif(docs.agent_id<0,'999999',docs.agent_id) from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as SupplierCode,
