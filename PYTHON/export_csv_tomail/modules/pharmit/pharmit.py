@@ -156,6 +156,9 @@ class Pharmit(Db):
         noDate=res['noDates']
         for date in noDate:
             c_date=datetime.datetime.strptime(str(date),'%Y%m%d').strftime('%d.%m.%Y')
+            date_now = datetime.datetime.now().strftime('%d.%m.%Y')
+            if date_now == c_date:
+                return
             self.get_Data(date_start=c_date)
         return
 

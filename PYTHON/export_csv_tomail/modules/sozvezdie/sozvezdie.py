@@ -70,7 +70,7 @@ class Sozvezdie(Db):
         x = 0
         pbar = tqdm(total=len(data), desc=head_file)
         for pid in data:
-            #если на входе PART_ID то берем дату из параметров, если PART_ID+DATE (для остатков -remhant) то соответственно из входных данных
+            #если на входе PART_ID то берем дату из параметров, если PART_ID+DATE # (для остатков -remhant) то соответственно из входных данных
             da_strt = self.date_start if type(pid) == int else pid[1]
             da_end = self.date_end if type(pid) == int else pid[1]
             pid = str(pid) if type(pid) == int else pid[0]
@@ -220,9 +220,9 @@ class Sozvezdie(Db):
         if self.type:
 
             self.create_export(gl_root=gl_root, root='remnants', element='remnant', data=docs1, head_file='base',
-                               sql='action_remnant_first', date_end='1')
+                               sql='action_remnant_first')
             self.create_export(gl_root=None, root='remnants', element='remnant', data=docs2, head_file='base',
-                               sql='action_remnant', date_start=self.date_start)
+                               sql='action_remnant')
         else:
             self.create_export(gl_root=gl_root, root='remnants', element='remnant', data=docs2, head_file='base',
                                sql='action_remnant')

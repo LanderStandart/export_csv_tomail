@@ -1,5 +1,5 @@
 select
-            0,
+            (select caption from g$profiles g where g.id=w.g$profile_id) as caption,
             w.sname,
             w.sizg,
             w.scountry,
@@ -9,11 +9,11 @@ select
             w.bcode_izg,
             w.ware_id
             from
-            warebase w
-        where  w.ware_id is not null  and w.sname is not null
+            warebase_g w
+        where w.g$profile_id in ({profile_id}) and w.ware_id is not null  and w.sname is not null
 
           group by
-
+           w.g$profile_id,
             w.sname,
             w.price,
             w.scountry,
