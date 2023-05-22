@@ -1,0 +1,16 @@
+select
+iif (g.description containing('Àëìàòû'),4,iif(g.description containing('Àñòàíà'),5,iif (g.description containing('Ïåòğî'),6,
+iif(g.description containing('Øûìêå'),7,iif(g.description containing('Êûçûë'),8,0)))))
+as IDDistr,
+(select a.email from agents a where a.id=d.agent_id) as kod_client,
+d.docdate,
+dd.ware_id,
+abs(dd.quant),
+0
+from  docs d
+join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id=d.g$profile_id
+join g$profiles g on g.id=d.g$profile_id
+where g.dbsecurekey is not null and g.dbsecurekey not containing('!')and char_length(g.description)>1
+and d.docdate>'{date_start}'       and d.doc_type in (6)
+and g.id in (5,16,63,129,143)
+order by iddistr,d.docdate

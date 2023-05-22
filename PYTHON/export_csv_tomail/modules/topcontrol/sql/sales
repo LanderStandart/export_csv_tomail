@@ -1,0 +1,40 @@
+select
+(select s from UTPR_DATETOSTR(d.docdate,1)),
+(select caption from doc_types where id=d.doc_type) as doctype,
+d.docnum,
+right(dd.id,4),
+cast(p.ware_id as dm_text),
+p.seria,
+w.sname,
+'' as baseei,
+'' as strei,
+-dd.quant as kolvo,
+dd.price,
+p.price_o,
+cast(d.agent_id as dm_text) as idkontr,
+cast(d.agent_id as dm_text),
+(select caption from agents where id=d.agent_id)as kontrag,
+'' as kodul,
+'' as urlico,
+'' as koddog,
+'' as dogovor,
+'' as kodskl,
+'' as sklad,
+'' as kodpodr,
+'' as podrazd,
+cast(d.owner as dm_text),
+(select u.username from users u where u.id=d.owner) as otvdoc,
+(select cast(agent_id as dm_text) from pr_getmotherpart(p.id)),
+(select caption from agents where id=(select agent_id from pr_getmotherpart(p.id))) as postavdoc,
+'' as datazak,
+'' as numzak,
+(select (select s from UTPR_DATETOSTR(d2.docdate,1))  from docs d2 where d2.id=p.doc_id),
+cast(dd.part_id as dm_text) as numpart,
+(select param_value from params where param_id='ORG_NAME_SHORT')
+
+from docs d
+left join doc_detail dd on dd.doc_id=d.id
+left join parts p on p.id=dd.part_id
+left join wares w on w.id=p.ware_id
+where d.doc_type in (3,9)
+and d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'

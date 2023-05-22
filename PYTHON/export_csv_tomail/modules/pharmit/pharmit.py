@@ -28,6 +28,7 @@ class Pharmit(Db):
         self.password = json.loads(read_ini(self.conf, 'PASS', self.conf).replace("'", '"'))[str(self.base)] if self.base  else read_ini(self.conf, 'PASS', self.conf)
         self.auth=HTTPBasicAuth(self.Logins,self.password)
 
+
     def get_Data(self,date_start=None):
 
         if not date_start : #and int(datetime.datetime.now().strftime('%H')) != 23 and int(datetime.datetime.now().strftime('%M')) < 50:

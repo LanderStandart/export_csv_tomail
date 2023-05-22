@@ -1,0 +1,51 @@
+select
+'{date_end}' as datatime,
+cast(dd.part_id  as dm_text),
+cast(dd.part_id  as dm_text),
+w.sname ,
+'' as HARAKT  ,
+'' as BASEEI,
+'' as STREI,
+sum (dd.quant),
+coalesce((select sum(dd1.quant) from docs d1
+  join doc_detail dd1 on dd1.doc_id=d1.id and dd1.part_id=dd.part_id where d1.doc_type in( 1,20)
+  and d1.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+),0) as PRIHKOL ,
+coalesce((select abs(sum(dd1.quant)) from docs d1
+  join doc_detail dd1 on dd1.doc_id=d1.id and dd1.part_id=dd.part_id where d1.doc_type in( 3)
+  and d1.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+),0) as RASHKOL,
+coalesce((select sum(dd1.summa_o) from docs d1
+  join doc_detail dd1 on dd1.doc_id=d1.id and dd1.part_id=dd.part_id where d1.doc_type in( 1,20)
+  and d1.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+),0) as PRIHRUB,
+coalesce((select abs(sum(dd1.summa)) from docs d1
+  join doc_detail dd1 on dd1.doc_id=d1.id and dd1.part_id=dd.part_id where d1.doc_type in( 3)
+  and d1.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+),0) as RASHRUB ,
+p.price as CENA,
+'' as KODUL,
+'' as URLICO,
+'' as KODSKL,
+'' as SKLAD,
+(select cast(abs(agent_id) as dm_text) from pr_getmotherpart(dd.part_id)) as KODPOST,
+(select cast(abs(agent_id) as dm_text) from pr_getmotherpart(dd.part_id)) as IDPOST,
+(select caption from agents  where id =(select cast(agent_id as dm_text) from pr_getmotherpart(dd.part_id))),
+'' as KODZAKUP,
+(select (select s from UTPR_DATETOSTR(d2.docdate,1))  from docs d2 where d2.id=p.doc_id),
+cast(dd.part_id as dm_text) as numpart,
+(select param_value from params where param_id='ORG_NAME_SHORT')
+
+from docs d
+join doc_detail dd on dd.doc_id=d.id -- and dd.doc_commitdate  = '{date_start}'
+join parts p on p.id=dd.part_id
+join wares w on w.id=p.ware_id
+
+where d.docdate < '{date_end} 23:59:59'
+ and exists (select dd2.id from docs d2
+  join doc_detail dd2 on dd2.doc_id=d2.id and dd2.part_id=dd.part_id where d2.doc_type in( 1,20,3)
+  and d2.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+)
+
+group by dd.part_id,w.sname,p.price,p.doc_id
+having sum(dd.quant)>0.01

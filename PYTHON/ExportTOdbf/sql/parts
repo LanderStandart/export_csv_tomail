@@ -1,0 +1,23 @@
+select
+--Данные о документе
+d.docdate,
+d.docnum,
+--данные о аптеки
+'1' as pharm_code,
+(select param_value from params where params.param_id='ORG_NAME_SHORT') as pharm_name,
+
+--Данные о поставщике
+(select iif (a.id=0,(select param_value from params where params.param_id='ORG_NAME_SHORT'),caption) from agents a where a.id=(select d1.agent_id from docs d1 where id=(select doc_id from pr_getmotherpart(dd.part_id)))) as supp_name,
+(select iif (a.id=0,(select param_value from params where params.param_id='ORG_INN'),inn) from agents a where a.id=(select d1.agent_id from docs d1 where id=(select doc_id from pr_getmotherpart(dd.part_id)))) as supp_inn,
+(select iif (a.id=0,(select param_value from params where params.param_id='ORG_KPP'),kpp) from agents a where a.id=(select d1.agent_id from docs d1 where id=(select doc_id from pr_getmotherpart(dd.part_id)))) as supp_kpp,
+(select d1.docnum from docs d1 where id=(select doc_id from pr_getmotherpart(dd.part_id)))
+,(select d1.docdate from docs d1 where id=(select doc_id from pr_getmotherpart(dd.part_id))),
+abs(dd.summa_o),
+abs(dd.summa),
+(select param_value from params where params.param_id='ORG_NAME_SHORT')
+
+
+from DOCS d
+join doc_detail dd on dd.doc_id=d.id
+where d.doc_type in ({doc_type})
+and d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'

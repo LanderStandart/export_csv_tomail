@@ -1,0 +1,41 @@
+select
+(select iif (g.description containing('Алматы'),4,iif(g.description containing('Астана'),5,iif (g.description containing('Петро'),6,
+iif(g.description containing('Шымке'),7,iif(g.description containing('Кызыл'),8,0))))) from g$profiles g where g.id=g$profile_id)
+as IDDistr,
+'{date_ware}',
+ware_id,
+quant
+from
+(select
+q.g$profile_id,
+q.ware_id,
+sum(q.quant) as quant
+from(
+ Select
+  d.g$profile_id,
+    p.ware_id,
+  cast(coalesce(sum(dd.quant),0)as numeric (15,2))as quant
+  from  docs d
+
+  join doc_detail dd on d.id=dd.doc_id and dd.g$profile_id=d.g$profile_id
+  join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+
+  where
+    d.docdate between '{date_wared}:00:00:00' and '{date_ware}:23:59:00' and
+    d.g$profile_id in (5,16,63,129,143)
+
+     group by p.ware_id,d.g$profile_id
+
+union all
+ select
+  w.g$profile_id,
+
+ pp.ware_id,
+ w.quant
+ from
+ warebase_d w
+ join parts pp on pp.id= w.part_id and pp.g$profile_id=w.g$profile_id
+ where w.doc_commitdate = '{date_wared}' and w.g$profile_id in (16,63,129,143))q
+
+ group by q.ware_id,q.g$profile_id
+ having sum(q.quant) >0)

@@ -1,0 +1,17 @@
+select first 2
+            w.sname,
+            cast(w.price as numeric(9,0)),
+            w.scountry,
+            w.sizg,
+            sum(w.quant),
+            right(replace(w.ware_id,'-','')||cast(w.price as numeric(9,0)),20)
+            from
+            warebase w
+        where --w.g$profile_id in ({profile_id}) and
+         w.ware_id is not null and w.quant>0.01
+          group by
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.ware_id

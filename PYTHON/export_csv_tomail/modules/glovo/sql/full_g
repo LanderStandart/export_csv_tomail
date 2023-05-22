@@ -1,0 +1,31 @@
+select distinct
+qq.sname,
+qq.price,
+'',--qq.scountry,
+'',--qq.sizg,
+'',
+qq.ware_id,
+list(qq.g$profile_id)as profile
+from (
+select  distinct
+            w.sname,
+           cast(w.price as numeric(9,0))as price,
+            w.scountry,
+            w.sizg,
+            sum(w.quant) as quant,
+            right(replace(w.ware_id,'-','')||cast(w.price as numeric(9,0)),20)  as ware_id
+            ,w.g$profile_id
+            from
+            warebase_g w
+        where w.g$profile_id in (8,13,14) and w.ware_id is not null and w.quant>0 and w.sname is not null
+          group by
+          w.ware_id,
+            w.sname,
+            w.price,
+            w.scountry,
+            w.sizg,
+            w.g$profile_id        )qq
+group by
+qq.ware_id   , qq.sname , qq.price--,
+--qq.scountry,
+--qq.sizg

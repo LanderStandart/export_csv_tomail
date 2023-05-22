@@ -1,6 +1,7 @@
 select
- iif(u.id<0,abs(u.id*10000),u.id) as UserNum,
+ iif(u.id<0,abs(u.id*10000)+u.g$profile_id,u.id+u.g$profile_id) as UserNum,
  u.username as Name,
  u.username as FullName,
  '' as DateDeleted
 from users u
+where u.g$profile_id = {profile_id}

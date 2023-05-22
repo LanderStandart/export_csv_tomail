@@ -1,0 +1,15 @@
+select
+ g.description
+as IDDistr,
+g.id,
+--(select id from g$profiles where id in ({profile}) and description containing((select description from g$profiles where id = g.id )) ),
+(select pp.param_value from params pp where pp.g$profile_id=g.id and pp.param_id = 'ORG_PARENT_NAME'),
+'ёр.адрес не заведен',
+(select pp.param_value from params pp where pp.g$profile_id=g.id and pp.param_id = 'ORG_NAME_SHORT'),
+'—амовывоз'  ,
+g.description||' '||g.id,
+(select pp.param_value from params pp where pp.g$profile_id=g.id and pp.param_id = 'ORG_INN')
+from g$profiles g
+where g.id not in  ({profile}) and g.id in ({profile_id}) and g.status=0 and char_length(g.description)>2
+--{datestart}
+and exists(select pp.param_value from params pp where pp.g$profile_id=g.id and pp.param_id = 'ORG_PARENT_NAME')1

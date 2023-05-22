@@ -1,0 +1,1 @@
+Select caption from g$profiles g where id={profile_id}

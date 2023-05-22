@@ -1,0 +1,46 @@
+select ware_id,
+sname,
+barcode,
+sizg,
+(select cast(avg(p.price_o)as numeric(9,2)) from parts p join doc_detail dd on dd.part_id=p.id  and dd.doc_commitdate  between '{date_start}' and '{date_end}'
+ where p.ware_id=www.ware_id  )as avg_price_o,
+(select cast(avg(p.price)as numeric(9,2)) from parts p join doc_detail dd on dd.part_id=p.id  and dd.doc_commitdate  between '{date_start}' and '{date_end}'
+ where p.ware_id=www.ware_id )as avg_price,
+cast(coalesce(sum(quant_beg),0)as numeric(9,2))as quant_beg,
+cast(coalesce(sum(quant_prihod),0)as numeric(9,2)) as quant_prihod,
+cast(coalesce(sum(quant_rashod),0)as numeric(9,2)) as quant_rashod,
+cast(coalesce(sum(quant_end),0)as numeric(9,2)) as quant_end
+from
+(select
+(select ware_id from parts where id=qq.part_id)as ware_id,
+(select sname from wares w where w.id=(select ware_id from parts where id=qq.part_id ))as sname,
+(select barcode from wares w where w.id=(select ware_id from parts where id=qq.part_id ))as barcode,
+(select svalue from vals where id = (select izg_id from wares where id =(select ware_id from parts where id=qq.part_id )) ) as sizg,
+(select quant from warebase_d wd1 where wd1.part_id=qq.part_id  and wd1.doc_commitdate = '{date_start}') as quant_beg,
+(select sum(quant) from doc_detail dd1 inner join docs d1 on d1.id=dd1.doc_id  and
+ d1.doc_type=1 where dd1.part_id=qq.part_id  and dd1.doc_commitdate between '{date_start}' and '{date_end}')as quant_prihod,
+
+(select abs(sum(quant)) from doc_detail dd1 inner join docs d1 on d1.id=dd1.doc_id  and
+ d1.doc_type in (3,9) where dd1.part_id=qq.part_id and  dd1.doc_commitdate between '{date_start}' and '{date_end}')as quant_rashod,
+
+ (select sum (quant) from
+ (select (sum(quant))as quant from doc_detail dd1 inner join docs d1 on d1.id=dd1.doc_id  and
+ d1.doc_type in (1,3,9) where dd1.part_id=qq.part_id  and dd1.doc_commitdate between '{date_start}' and '{date_end}'
+   union all
+   select quant from warebase_d wd1 where wd1.part_id=qq.part_id  and wd1.doc_commitdate = '{date_start}') )
+   as quant_end
+
+
+from doc_detail qq
+inner join docs d on d.id =qq.doc_id and d.doc_type in (1,3,9)
+
+
+where  qq.doc_commitdate between '{date_start}' and '{date_end}'
+group by part_id  ) www
+group by ware_id,
+sname,
+barcode,
+sizg
+
+
+

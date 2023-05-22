@@ -1,0 +1,46 @@
+select distinct
+            p1.id as map_batch_id,
+            '{departmentcode}' as map_pharmacy_id,
+            (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id=p1.g$profile_id)as map_pharmacy_name,
+            '' as nomenclature_id,
+            vname.svalue as map_nomenclature_name,
+            '' as map_product_code,
+            '' as map_product_name,
+            '' as producer_id,
+            trim(w.orig_izg_id) as map_producer_code,
+            coalesce(vorig_izg.svalue,'') as map_producer_name,
+            '' as producer_country_id,
+            w.country_id as map_producer_country_code,
+            vcountry.svalue as map_producer_country_name,
+            d.agent_id as map_supplier_code,
+            coalesce(a.inn, '') as map_supplier_tin,
+            a.caption as supplier_name,
+            (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,0)) as batch_doc_date,
+            d.docnum as batch_doc_number,
+            cast (p1.price_o as numeric(10,2)) as purchase_price_nds,
+            coalesce( cast((select round(deps.ndsr,0) from deps where deps.id = p1.dep)as dm_text),'') as purchase_nds,
+            cast (p1.price as numeric(10,2)) as retail_price_nds,
+            cast (p1.nds as numeric(9,0)) as retail_nds,
+            iif(char_length (w.barcode)>14 or char_length (w.barcode)<5 ,'',w.barcode) as barcode,
+            '0' as sign_comission,
+            w.name_id as nomenclature_codes
+         from
+         (
+SELECT distinct part_id
+from docs d
+left join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id= d.g$profile_id
+where d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59' and dd.quant>0
+and part_id is not null  and d.g$profile_id= {profile_id})
+
+pp
+         join parts p1 on p1.id=pp.part_id and p1.g$profile_id={profile_id}
+         join docs d on d.id = p1.doc_id  and d.g$profile_id =p1.g$profile_id
+
+         left join agents a on a.id=d.agent_id and a.g$profile_id=p1.g$profile_id
+         left join WARES w on p1.ware_id=w.id
+         left join vals vname on w.name_id=vname.id
+         left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+         left join vals vcountry on w.country_id=vcountry.id
+
+
+

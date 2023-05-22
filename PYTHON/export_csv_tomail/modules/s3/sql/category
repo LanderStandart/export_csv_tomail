@@ -1,0 +1,6 @@
+select  distinct
+g.id,
+g.caption
+
+from groups g
+where g.grouptable='PARTS.NAME_ID'

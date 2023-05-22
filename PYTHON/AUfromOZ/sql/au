@@ -1,0 +1,1 @@
+select postname, sname||' '|| sizg, clientname, quant,price, cast(summ as Numeric(9,2)) from au

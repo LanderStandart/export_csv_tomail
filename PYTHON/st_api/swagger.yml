@@ -1,0 +1,52 @@
+openapi: 3.0.0
+info:
+  title: "Lander Export REST API"
+  description: "An API about points and export_logs"
+  version: "1.0.0"
+
+servers:
+  - url: "/api"
+
+components:
+  schemas:
+    Point:
+      type: "object"
+      required:
+        - pointname
+      properties:
+        pointid:
+          type: "integer"
+        pointname:
+          type: "string"
+        exportname:
+          type: "string"
+        status:
+          type: "string"
+
+paths:
+  /point:
+    get:
+      operationId: "point.read_all"
+      tags:
+        - "Point"
+      summary: "Read the list of points"
+      responses:
+        "200":
+          description: "Successfully read points list"
+    post:
+      operationId: "point.create"
+      tags:
+        - "Point"
+      summary: "Create point"
+      requestBody:
+          description: "Point to create"
+          required: True
+          content:
+            application/json:
+              schema:
+                x-body-name: "point"
+                $ref: "#/components/schemas/Point"
+      responses:
+        "201":
+          description: "Success create point"
+

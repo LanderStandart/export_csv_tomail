@@ -1,0 +1,26 @@
+select distinct
+cast(w.id as dm_text),
+cast(w.id as dm_text),
+left(w.sname,100),
+w.sname,
+coalesce(p.seria,'') as ARTIKUL,
+'',
+0,
+'',
+'' as ZAKUP,
+cast((select abs(agent_id) from pr_getmotherpart(p.id)) as dm_text),
+cast((select abs(agent_id) from pr_getmotherpart(p.id)) as dm_text),
+(select caption from agents a where a.id=(select agent_id from pr_getmotherpart(p.id))) as POSTAV,
+'',
+(select membership from PR_MEMBERSHIPS('PARTS=' || p.id || ';PARTS.NAME_ID=' || w.name_id || ';PARTS.IZG_ID=' || w.izg_id ||';',ascii_char(13)||ascii_char(10),1)),
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+(select param_value from params where params.param_id='ORG_NAME_SHORT' )
+ from wares w
+Left join parts p on p.ware_id = w.id
+where w.id>0

@@ -1,0 +1,29 @@
+/*TRANSACTIONS - Движения товара*/
+select
+dd.g$profile_id||'_'||dd.doc_id||'_'||dd.id as TrID,
+iif(dt.base_type=1,'IN',iif(dt.base_type=2,'OUT','') )    as Direction,
+iif((select caption from agents a where a.id=d.agent_id)='Касса',dd.g$profile_id,(select caption from agents a where a.id=d.agent_id))as Origin,
+iif(dt.base_type=1,dd.g$profile_id,iif(dt.base_type=2,'CLIENT','') ) ,
+dd.ware_id,
+abs(dd.quant),
+dd.price,
+1,
+'',
+'',
+'',
+'',
+'',
+'',
+extract(year from d.docdate),
+extract(month from d.docdate),
+extract(day from d.docdate),
+extract(hour from d.docdate),
+extract(minute from d.docdate)
+
+
+from
+doc_detail dd
+join docs d on d.id=dd.doc_id and d.g$profile_id=dd.g$profile_id
+join doc_types dt on dt.id=d.doc_type and dt.base_type in(1,2)
+where dd.g$profile_id in({profile_id})
+and d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'

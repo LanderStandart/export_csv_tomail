@@ -38,19 +38,31 @@ class Pradata(Db):
 
         for i in self.expfile:
             logger.info(i)
-            date_s = datetime.date.today()-datetime.timedelta(days=45)
+            date_s = datetime.datetime.today()-datetime.timedelta(days=45)
             date_start = datetime.datetime.today().strftime('%d.%m.%Y')
             head = self.get_File(f'./modules/{self.path_ini}/head/',i.lower()).split('\n')
 
-            val={'FROM_DATE':date_start,
-                 'date_start':date_s.strftime('%d.%m.%Y'),
+            val={'date_start':date_s.strftime('%d.%m.%Y'),
                  'date_end':datetime.date.today().strftime('%d.%m.%Y')} if not self.profile_id \
                 else {'FROM_DATE':date_start,
                       'date_start':date_s.strftime('%d.%m.%Y'),
                       'profile_id':self.profile_id,
                       'date_end':datetime.date.today().strftime('%d.%m.%Y')}
-            data=self.DB.get_from_base(__name__,i.lower(),val,profile=suffix)
-            CSV_File(self.getFilename(i),data, head,delimeter=';',encoding='utf-8').create_csv()
+            if i.lower() == 'stocks':
+                date_wares = date_s
+                stocks = []
+                while date_wares<datetime.datetime.today():
+                    val={'date_wared':date_s.strftime('01.%m.%Y'),'date_ware':date_wares.strftime('%d.%m.%Y'),'profile_id':self.profile_id}
+                    data = self.DB.get_from_base(__name__, i.lower(), val, profile=suffix)
+                    stocks.extend(data)
+                    logger.info(date_wares.strftime('%d.%m.%Y'))
+                    date_wares = date_wares + datetime.timedelta(days=1)
+
+                CSV_File(self.getFilename(i), stocks, head, delimeter=';', encoding='utf-8').create_csv()
+
+            if i.lower() not in 'stocks':
+                data=self.DB.get_from_base(__name__,i.lower(),val,profile=suffix)
+                CSV_File(self.getFilename(i),data, head,delimeter=';',encoding='utf-8').create_csv()
 
         fl=list_file_in_path(self.path,'*')
 #        print(fl)

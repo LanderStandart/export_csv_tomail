@@ -1,10 +1,10 @@
 select
            d.id||dd.id  as IdLotMovement,
-           '{DepartmentCode}' as DepartmentCode,
-           '{profile_id})'||'0000' as IDDepartment,
+           '' as DepartmentCode,
+         (select id  from agents where email = '{profile_id}') as IDDepartment,
            iif(d.doc_type=2,d.agent_id,'') as IDDepartmentFrom,
            p.ware_id as GoodsCode,
-           (select iif(docs.agent_id<0,'999999',docs.agent_id)  from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as SupplierCode,
+           (select iif(docs.agent_id<=0,'999999',docs.agent_id)  from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as SupplierCode,
            cast(trunc(abs(dd.quant),0) as numeric (4,0)) as Quantity,
            (select docs.docnum from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceNum,
            (select docs.docdate from docs where docs.id=p.doc_id  and docs.g$profile_id={profile_id}) as InvoiceDate,
@@ -21,12 +21,12 @@ select
          p.godendo as BestBefore,
           p.seria as Series,
           'PROC' as DocState,
-          10000 as Idstore,
+                   (select id  from agents where email = '{profile_id}') as Idstore,
           iif(d.doc_type=2,d.agent_id,'') as IDStoreFrom,
           '' as KIZ,
           dd.gtin as GTIN,
           '' as SGTIN,
-          '0' as InternetOrderNum,
+          '' as InternetOrderNum,
            '' as BaseDocumentName,
           '' as OrderComment
 from doc_detail dd

@@ -1,0 +1,22 @@
+/*STATUS - остатки на складе/магазине */
+select
+wg.g$profile_id,
+wg.ware_id,
+wg.quant,
+0,
+0,
+extract(YEAR from wg.godendo)as Earliest_Expiration_Year,
+extract(MONTH from wg.godendo)as Earliest_Expiration_MONTH,
+extract(DAY from wg.godendo)as Earliest_Expiration_Year,
+'',
+'',
+'',
+'',
+'',
+'{Year}',
+'{MONTH}',
+'{DAY}'
+
+from
+warebase_g wg
+where wg.g$profile_id  in({profile_id})

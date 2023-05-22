@@ -1,0 +1,50 @@
+select
+--Данные о документе
+(select dt.caption from doc_types dt where dt.id=d.doc_type),
+d.commitdate,
+cast(d.vnum as dm_text),
+--данные о аптеки
+'1' as pharm_code,
+(select param_value from params where params.param_id='ORG_NAME_SHORT') as pharm_name,
+
+--Данные о поставщике
+iif(d.doc_type in (1,2,4),(select caption from agents a where a.id = d.agent_id),'') as supp_name,
+iif(d.doc_type in (1,2,4),(select a.inn from agents a where a.id = d.agent_id),'') as supp_inn,
+iif(d.doc_type in (1,2,4),(select a.kpp from agents a where a.id = d.agent_id),'') as supp_kpp,
+--данные о ккм
+d.device_num,
+d.rnm,
+--данные о ценах закупа
+(select abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20) as supp_sum20,
+cast((select abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10) as numeric(9,2))as supp_sum10,
+(select abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0) as supp_sum0,
+--данные о ценах розницы
+abs(d.summa)as sum_rozn,
+(select abs(sum(dd.summa)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20) as sum20,
+(select abs(sum(dd.sum_ndsr)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20) as sum_NDSR_20,
+(select abs(sum(dd.summa))-abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20) as sum_nac20,
+iif (d.doc_type =3,(select abs(sum(dd.sum_dsc)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20),0) as sum_dsc20,
+
+(select abs(sum(dd.summa)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10) as sum10,
+(select abs(sum(dd.sum_ndsr)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10) as sum_NDSR_10,
+cast((select abs(sum(dd.summa))-abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10)as numeric(9,2)) as sum_nac10,
+iif (d.doc_type =3,(select abs(sum(dd.sum_dsc)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10),0) as sum_dsc10,
+
+(select abs(sum(dd.summa)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0) as sum0,
+(select abs(sum(dd.sum_ndsr)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0) as sum_NDSR_0,
+(select abs(sum(dd.summa))-abs(sum(dd.summa_o)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0)as sum_nac0,
+iif (d.doc_type =3,(select abs(sum(dd.sum_dsc)) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0),0) as sum_dsc0,
+
+
+iif(abs(d.summ2)>0 and abs(d.summ1)=0,(select coalesce(abs(sum(dd.summa)),0) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=20),0) as summ_bezn20,
+iif(abs(d.summ2)>0 and abs(d.summ1)=0,(select coalesce(abs(sum(dd.summa)),0) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=10),0) as summ_bezn10,
+iif(abs(d.summ2)>0 and abs(d.summ1)=0,(select coalesce(abs(sum(dd.summa)),0) from doc_detail dd join parts p on p.id = dd.part_id where dd.doc_id=d.id and p.nds=0),0) as summ_bezn0,
+
+d.docnum,
+d.docdate,
+'1' as code_firm,
+(select param_value from params where params.param_id='ORG_NAME_SHORT')as firm
+
+from DOCS d
+where d.doc_type in ({doc_type})
+and d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'

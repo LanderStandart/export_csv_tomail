@@ -1,0 +1,41 @@
+/*STOCKLOCATIONS – Склады*/
+select
+g.id,
+g.caption,
+0,
+'Point Of Sale',
+'' as Region,
+'' as StoreFormat,
+'' as ManagingGroup,
+'',
+'' as BrandName,
+'',
+''as Reserved7,
+'' as Route,
+'' as S_Own,
+'' as s_Market,
+'' as SalesEvents,
+'',
+'',
+''as ROI,
+'',
+'',
+'',
+'' as GPSLatitude,
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'' as Command,
+'{Year}',
+'{MONTH}',
+'{DAY}'
+
+
+from
+g$profiles g
+where g.id not in(0,100) and g.status=0 and g.dbsecurekey not containing('!')

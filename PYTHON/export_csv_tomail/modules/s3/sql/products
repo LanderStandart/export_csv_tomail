@@ -1,0 +1,11 @@
+select
+w.id,
+w.sname,
+(select svalue from vals v where v.id=w.izg_id),
+(select svalue from vals v where v.id=w.country_id),
+(select list (gd.group_id) from group_detail gd where gd.grouptable='PARTS.NAME_ID' and gd.grouptable_id=w.name_id),
+'',
+'false',
+(select v.preparedvalue from vals v where v.id=w.name_id)
+
+from wares w

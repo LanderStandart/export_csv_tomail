@@ -1,0 +1,95 @@
+select * from
+(  select
+              '{departmentcode}' as map_pharmacy_id,
+               p.id as distribution_id,
+               p.id as batch_id,
+               (select RESULT from pr_sozvezdie_format_datetime('{date_start}',null)) as  doc_date,
+               9 as doc_type,
+               'Первичная выгрузка' as doc_number,
+               ''as pos_number,
+               ''as check_number,
+               ''as check_unique_number,
+              pp.quant as quantity,
+             cast(abs(p.price_o*pp.quant)as numeric(10,2)) as purchase_sum_nds,
+             cast(abs(p.price*pp.quant) as numeric(10,2)) as retail_sum_nds,
+             cast(0 as numeric(9,2)) as discount_sum,
+             '' as cashier_id,
+             '' as cashier_full_name,
+             '' as cashier_tin,
+             '0' as resale_sign,
+             '' as fn_doc_number,
+             '' as fn_doc_sign,
+             '' as fn_number,
+             '' as  fn_doc_date,
+             cast(substring('{date_start} 00:00:00' from 1 for 10) as dm_datetime) as docdate
+
+ from    (   select
+part_id ,quant
+from warebase_d w
+
+where w.doc_commitdate='{date_start}' and w.quant>0.01 and w.g$profile_id={profile_id}
+ ) pp
+join parts p on p.id=pp.part_id and p.g$profile_id={profile_id}
+
+
+union
+select --distinct
+      '{departmentcode}' as map_pharmacy_id,
+               d.id||dd.part_id as distribution_id,
+               dd.part_id as batch_id,
+               (select RESULT from pr_sozvezdie_format_datetime(d.docdate,null)) as  doc_date,
+               case d.doc_type
+                when 1 then 3
+                when 2 then 6
+                when 3 then 2
+                when 4 then 5
+                when 5 then 8
+                when 6 then 7
+                when 17 then 8
+                when 10 then 8
+                when 9 then 4
+                when 11 then 1
+                when 20 then 9
+                when 30 then iif (dd.quant>0,9,8)
+                when 8 then iif (dd.quant>0,9,8)
+                when 7 then iif (dd.quant>0,9,8)
+                when 18 then iif (dd.quant>0,9,8)
+                when 23 then iif (dd.quant>0,9,8)
+                when 32 then 8
+               end as doc_type,
+
+              coalesce( iif(d.doc_type=3,(select d1.docnum from docs d1 where cast(d1.commitdate as date)=d.datez and d1.vshift=d.vshift and d1.doc_type=13),
+                left(d.docnum,iif(position(' ',d.docnum)=0,char_length(d.docnum), position(' ',d.docnum)))), ' ')as doc_number,
+              coalesce( iif(d.doc_type=3,d.device_num,''),' ')as pos_number,
+               iif(d.doc_type=3,d.docnum,'')as check_number,
+               iif(d.doc_type=3,d.docnum,'')as check_unique_number,
+        round(abs(dd.quant),2) as quantity,
+             cast(abs(dd.summa_o)as numeric(10,2)) as purchase_sum_nds,
+             cast(abs(dd.summa)+abs(dd.sum_dsc) as numeric(10,2)) as retail_sum_nds,
+             cast(abs(dd.sum_dsc) as numeric(9,2)) as discount_sum,
+            trim( iif(d.doc_type in(3,9),coalesce(u.d$uuid,''),'')) as cashier_id,
+             iif(d.doc_type in(3,9),u.username,'') as cashier_full_name,
+             iif(d.doc_type in(3,9), coalesce(u.inn,''),'') as cashier_tin,
+             '0' as resale_sign,
+             iif(d.doc_type in (3,9),d.docnum,'') as fn_doc_number,
+             iif(d.doc_type in (3,9),d.fiscalsign,'') as fn_doc_sign,
+             iif(d.doc_type in (3,9),d.fnnumber,'') as fn_number,
+             iif(d.doc_type in (3,9), (select RESULT from pr_sozvezdie_format_datetime(d.commitdate,null)),'') as  fn_doc_date,
+             d.docdate
+           from  ( SELECT  part_id
+from docs d
+left join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id= d.g$profile_id
+where d.docdate between '{date_start} 00:00:00' and '{date_start} 23:59:59' and dd.quant>0
+and part_id is not null  and d.g$profile_id= {profile_id}
+           )          pp
+      inner join doc_detail dd on pp.part_id = pp.part_id   and dd.g$profile_id = {profile_id}
+      join docs d on d.id = dd.doc_id and d.g$profile_id=dd.g$profile_id
+
+      left join users u on u.id=d.owner and u.g$profile_id = dd.g$profile_id
+
+      where  d.g$profile_id = {profile_id}
+       and
+       d.doc_type in (1,11,10,17,2,3,5,6,9,8,20,7,18,32,30,4,23)
+       and d.docdate between '{date_start} 00:00:00' and '{date_start} 23:59:00'  )
+
+order by batch_id

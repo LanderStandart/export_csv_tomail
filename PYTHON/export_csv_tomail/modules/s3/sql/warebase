@@ -1,0 +1,16 @@
+select
+w.ware_id as product_id,
+w.bcode_izg as barcode,
+w.g$profile_id,
+w.price,
+w.quant as available_count,
+iif(w.godendo is not null,iif(char_length(extract(DAY from w.godendo))<2,'0'||extract(DAY from w.godendo),extract(DAY from w.godendo))
+||'-'||
+iif(char_length(extract(MONTH from w.godendo))<2,'0'||extract(MONTH from w.godendo),extract(MONTH from w.godendo))||'-'||extract(YEAR from w.godendo),'')
+
+
+
+from warebase_g w
+where
+w.g$profile_id = {profile_id}
+and w.quant>0.01

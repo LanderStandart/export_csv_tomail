@@ -1,0 +1,5 @@
+SELECT  part_id
+from docs d
+left join doc_detail dd on dd.doc_id=d.id
+ where d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+and dd.quant>0 and part_id is not null

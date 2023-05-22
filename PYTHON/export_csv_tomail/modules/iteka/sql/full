@@ -6,8 +6,9 @@ select
             sum(w.quant),
             w.ware_id
             from
-            warebase_g w
-        where w.g$profile_id in ({profile_id}) and w.ware_id is not null
+            warebase w
+        where --w.g$profile_id in ({profile_id}) and
+         w.ware_id is not null
           group by
             w.sname,
             w.price,

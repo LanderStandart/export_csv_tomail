@@ -1,7 +1,16 @@
 Select
-  '{profile_id})'||'0000'  as IdStore,
+  (select id  from agents where email ='{profile_id}')  as IdStore,
   (select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'and p.g$profile_id={profile_id})as StoreName,
-  '{profile_id})'||'0000'  as IdDepartment,
-  'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ'as StoreTypeName,
+(select id  from agents where email =  '{profile_id}')  as IdDepartment,
+  'основной'as StoreTypeName,
   0 as IsDeleted
   from rdb$database
+union
+select
+(select id  from agents where email =cast(g.id as dm_text)),
+g.caption,
+(select id  from agents where email =cast(g.id as dm_text)),
+'',
+0
+from g$profiles g
+where  g.id  in (1,2,3,4,100) and g.id not in ({profile_id})

@@ -11,6 +11,7 @@ select
             from
             warebase w
         where  w.ware_id is not null  and w.sname is not null
+        and w.mmbsh not containing('-9=') and w.mmbsh not CONTAINING (' 3=')
 
           group by
 

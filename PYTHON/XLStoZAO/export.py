@@ -31,7 +31,7 @@ def xls_to_zao(file):
    # datum1.append(list(['3', 'Ввод остатков', inn]))
         pos = str(excel_data_df['№'][i])+'\t'
         name = str(excel_data_df['Наименование / Изготовитель'][i]).strip(' ')
-        zakaz = str(excel_data_df['заказ'][i])
+        zakaz = str(excel_data_df['Кол-во'][i])
         data.append(list([name.rstrip('')+'\t\t\t',zakaz+'\t\t',zakaz+'\t','0'+'\t',name+';'+name+';'+name+';\t'+' ' ]))
         i=i+1
 

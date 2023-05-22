@@ -1,8 +1,8 @@
 select
 
                 cast((select s from utpr_datetostr('{FROM_DATE}'))as dm_datetime) as StockBalanceDate,
-                '{DepartmentCode}' as DepartmentCode,
-               '{profile_id}0000' as IDDepartment,
+                '' as DepartmentCode,
+              (select id  from agents where email = '{profile_id}') as IDDepartment,
                 (select (select docs.docnum from docs where docs.id=pr.doc_id and docs.G$PROFILE_ID ={profile_id})  from pr_getmotherpart(p.id,{profile_id}) pr) as InvoiceNum,
                 (select (select docs.docdate from docs where docs.id=pr.doc_id and docs.G$PROFILE_ID ={profile_id})  from pr_getmotherpart(p.id,{profile_id}) pr) as InvoiceDate,
                 p.WARE_id as GoodsCode,
@@ -14,7 +14,7 @@ select
                 cast (abs(p.price) as numeric(9,2)) as PriceRetail,
                 coalesce(cast(p.price-abs(p.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)),0) as PVatWholeRetail,
                 cast(p.price - (coalesce(cast(p.price-abs(p.price/(1+((select deps.ndsr from deps where deps.id = p.dep)/100)))as numeric(9,2)),0))as numeric(9,2))  as PriceRetailWithoutVat,
-                '10000' as IDstore,
+                {profile_id} as IDstore,
                 (select iif(pr.agent_id>0,pr.agent_id,'999999')  from pr_getmotherpart(p.id,{profile_id}) pr)as SupplierCode,
                 iif (p.godendo is not null, cast(p.godendo as dm_datetime),null) as BestBefore,
                 p.seria as Series,

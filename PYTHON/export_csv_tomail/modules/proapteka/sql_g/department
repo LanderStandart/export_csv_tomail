@@ -1,19 +1,20 @@
 select
-(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id={profile_id})as DepartmentName,
-  '{DepartmentCode}' as DepartmentCode,
-  (select p.g$profile_id  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id={profile_id})||'0000' as IDDepartment,
-(select p.param_value  from params p where p.param_id='ORG_ADRESS'and p.g$profile_id={profile_id}) as DepartmentAddress,
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id=g.id)as DepartmentName,
+  '' as DepartmentCode,
+(select id  from agents where email =cast(g.id as dm_text)) as IDDepartment,
+(select p.param_value  from params p where p.param_id='ORG_ADRESS'and p.g$profile_id=g.id) as DepartmentAddress,
 '' as InstallPointCode,
 '0' as Is_buyer,
 '' as InventoryControl,
 '' as PriceCompare,
 
-(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'and p.g$profile_id={profile_id})as CompanyName,
-(select p.param_value  from params p where p.param_id='ORG_PARENT_ADRES'and p.g$profile_id={profile_id})as AddressJur,
-(select p.param_value  from params p where p.param_id='ORG_INN'and p.g$profile_id={profile_id})as Tin,
-(select p.param_value  from params p where p.param_id='ORG_KPP'and p.g$profile_id={profile_id})as Trrc,
-(select p.param_value  from params p where p.param_id='ORG_PHONE'and p.g$profile_id={profile_id})as PHONE,
-(select p.param_value  from params p where p.param_id='ORG_DIRECTOR'and p.g$profile_id={profile_id})as ManagerName,
+(select p.param_value  from params p where p.param_id='ORG_NAME_SHORT'and p.g$profile_id=g.id)as CompanyName,
+(select p.param_value  from params p where p.param_id='ORG_PARENT_ADRES'and p.g$profile_id=g.id)as AddressJur,
+(select p.param_value  from params p where p.param_id='ORG_INN'and p.g$profile_id=g.id)as Tin,
+(select p.param_value  from params p where p.param_id='ORG_KPP'and p.g$profile_id=g.id)as Trrc,
+(select p.param_value  from params p where p.param_id='ORG_PHONE'and p.g$profile_id=g.id)as PHONE,
+(select p.param_value  from params p where p.param_id='ORG_DIRECTOR'and p.g$profile_id=g.id)as ManagerName,
 '0' as IsDeleted
 
-from rdb$database
+from g$profiles   g
+where g.status=0 and g.id not in (0,98,100,101)

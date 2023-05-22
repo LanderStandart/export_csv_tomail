@@ -1,0 +1,1 @@
+select description from g$profiles where id = {profile_id} and description is not null and description <>('-')and description not containing('удалять') and  status =0

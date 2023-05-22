@@ -5,8 +5,8 @@ logger = my_log.get_logger(__name__)
 class Damumed(Db):
     def __init__(self, profile_id=None):
         self.DB = Db()
-        self.conf = 'DAMUMED'
-        self.path_ini=__name__
+        self.path_ini = __name__
+        self.conf = self.path_ini.upper()
         self.path = read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
         existPath(self.path)
         self.profile_id = profile_id
@@ -18,8 +18,11 @@ class Damumed(Db):
 
 
     def get_Data(self):
-        ignore_profile = read_ini(self.conf, 'PROFILES_OFF',self.path_ini)
-        if self.profile_id not in ignore_profile:
+        val = {'profile_id': self.profile_id}
+        pharmname = self.DB.get_from_base(__name__, 'pharmname', val)
+        pharm = pharmname[0][0]
+
+        if read_ini(self.conf, 'ID_CLIENT',self.path_ini) in pharm:
             gl_root=XML.add_root(self,root='drugs' )
             SQL_DAMUMED =get_File('./modules/damumed/sql/','SQL_DAMUMED')
             SQL = SQL_DAMUMED.format(profile_id=self.profile_id)

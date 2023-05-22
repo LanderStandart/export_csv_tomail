@@ -1,0 +1,29 @@
+select
+           '{pharm}' as ORG,
+            (select first 1 p1.param_value as inn from params p1 where p1.param_id ='ORG_INN' and p1.g$profile_id=dd.g$profile_id)as inn,
+             (select g.caption from g$profiles g where g.id = dd.g$profile_id) as SPROFILE,
+            d.docdate,
+            d.docnum,
+            vname.svalue as sname,
+            w.barcode,
+            abs(dd.quant) as quant,
+            vorig_izg.svalue as izg,
+            vcountry.svalue as country,
+            dd.price,
+            d.fnnumber,
+            d.fiscalsign
+
+            from wares w
+
+  inner join doc_detail dd on dd.ware_id = w.id
+   and dd.doc_commitdate  BETWEEN '{date_start}' and '{date_end}'
+ inner  join docs d on d.id=dd.doc_id and d.g$profile_id=dd.g$profile_id
+   and d.docdate BETWEEN '{date_start} 00:00:00' and '{date_end} 23:59:59'
+ inner  join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+   join vals vname on w.name_id=vname.id
+  join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  join vals vcountry on w.country_id=vcountry.id
+ where  dd.doc_commitdate BETWEEN '{date_start}' and '{date_end}'
+ and   dd.g$profile_id   in  ({profile_id})
+ and d.doc_type in (3,9)
+ order by  d.docdate

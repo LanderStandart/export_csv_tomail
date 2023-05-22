@@ -1,0 +1,1 @@
+Select DESCRIPTION from g$profiles g where id={profile_id} and status=0

@@ -1,0 +1,40 @@
+select qq.datedoc,
+(select sname from wares where id=qq.ware_id),
+qq.ware_id,sum(qq.quant) as quant
+ from
+(select
+(select g.description  from g$profiles g where g.id=d.g$profile_id)
+as IDDistr,
+
+cast (d.docdate as dm_date)as datedoc,
+    p.ware_id,
+
+    cast(coalesce(sum(dd.quant),0)as numeric (15,2))as quant
+  from  docs d
+
+  join doc_detail dd on d.id=dd.doc_id and dd.g$profile_id=d.g$profile_id
+  join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+
+  where
+    d.docdate between '{datestart}'||' 00:00:00' and '{datestart}'||' 23:59:59'
+     and
+    d.g$profile_id  in ({profile})
+  -- and      d.g$profile_id  in (45,46)
+
+     group by datedoc,p.ware_id,d.g$profile_id,d.agent_id,p.id
+union all
+select
+ (select g.description  from g$profiles g where g.id=wd.g$profile_id) as IDDistr,
+ cast ('{datestart}' as dm_date)as datedoc,
+ p.ware_id,
+ wd.quant
+
+from
+warebase_d wd
+ join parts p on p.id=wd.part_id and p.g$profile_id=wd.g$profile_id
+ where wd.doc_commitdate = '01.'|| extract(month from (cast('{datestart}' as dm_date)))||'.'||extract(year from (cast('{datestart}' as dm_date)))
+   and wd.g$profile_id  in ({profile}) and wd.quant>0
+     )  qq
+
+ group by  1,2,3
+ having    sum(qq.quant)>0

@@ -1,0 +1,22 @@
+select
+cast (d.docdate as dm_date)as datedoc,
+
+
+ --(select g.description  from g$profiles g where g.id=d.g$profile_id) ||''|| d.g$profile_id as GLN,
+ -- dd.part_id,
+(select sname from wares where id=p.ware_id),
+    p.ware_id,
+
+  -1*cast(coalesce(sum(dd.quant),0)as numeric (15,2))as quant
+  from  docs d
+
+  join doc_detail dd on d.id=dd.doc_id and dd.g$profile_id=d.g$profile_id
+  join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+
+  where  d.doc_type in (3,9)    and
+    d.docdate between '{datestart}'||' 00:00:00' and '{datestart}'||' 23:59:59'
+     and
+    d.g$profile_id not in ({profile})and d.g$profile_id in ({profile_id})
+
+
+     group by datedoc,p.ware_id,d.g$profile_id

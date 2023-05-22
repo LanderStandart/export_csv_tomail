@@ -1,0 +1,10 @@
+select
+(select g.description from g$profiles g where g.id=d.g$profile_id)as ID_DISTR_OUT,
+(select g.description from g$profiles g where g.id=(select email from agents a where a.id=d.agent_id))as ID_DISTR_in,
+cast(d.docdate as dm_date) as datedoc,
+dd.ware_id,
+abs(dd.quant)
+from docs d
+join doc_detail dd on dd.doc_id=d.id and dd.g$profile_id=d.g$profile_id
+where d.doc_type = 6 and
+d.docdate between '{datestart}'||' 00:00:00' and '{datestart}'||' 23:59:59'

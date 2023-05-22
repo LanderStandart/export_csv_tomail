@@ -1,0 +1,3 @@
+Select trim(replace(replace(replace(replace(replace(iif ((position(' тел.',g.caption))>0,
+substring (g.caption from 1 for (position(' тел.',g.caption))),g.caption),'ООО "Иж-Фарма"',''),'',''),'Респект',''),'/',''),',',''))
+from g$profiles g where id={profile_id}

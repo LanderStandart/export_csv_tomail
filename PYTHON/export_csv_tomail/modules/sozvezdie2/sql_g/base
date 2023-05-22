@@ -1,0 +1,1 @@
+select org_name from g$profiles where id = {profile}

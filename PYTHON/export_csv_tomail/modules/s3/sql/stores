@@ -1,0 +1,26 @@
+Select
+g.id,
+'' as region,
+'' as city,
+(select p.param_value from params p where p.param_id='ORG_ADRESS' and p.g$profile_id=g.id) as address,
+(select p.param_value from params p where p.param_id='ORG_NAME_SHORT' and p.g$profile_id=g.id) as name,
+'' as latitude,
+'' as longitude,
+(select p.param_value from params p where p.param_id='ORG_PHONE' and p.g$profile_id=g.id) as phone,
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+'',
+''
+
+from g$profiles g
+where g.status=0 and g.dbsecurekey is not null and g.dbsecurekey not containing('!')

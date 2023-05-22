@@ -35,6 +35,6 @@ from doc_detail dd
   left join parts p on dd.part_id=p.id
   join WARES w on p.ware_id=w.id
   inner join vals vname on w.name_id=vname.id
-  inner join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  inner join vals vorig_izg on w.izg_id=vorig_izg.id
   inner join vals vcountry on w.country_id=vcountry.id
  where  dd.doc_commitdate between '{date_start}' and '{date_end}' order by d.docdate

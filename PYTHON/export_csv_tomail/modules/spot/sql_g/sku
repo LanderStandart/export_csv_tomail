@@ -1,0 +1,10 @@
+select
+1,
+w.id,
+w.sname,
+w.barcode,
+--left(w.barcode,13),
+1
+
+from wares w
+where w.sname is not null and char_length(w.sname)>1

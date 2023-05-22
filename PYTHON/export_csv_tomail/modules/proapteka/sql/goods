@@ -15,6 +15,6 @@ iif (w.barcode is null,'',w.barcode) as barcode1,
 from wares w
  inner join parts p on p.ware_id=w.id
   left join vals vname on w.name_id=vname.id
-  left join vals vorig_izg on w.orig_izg_id=vorig_izg.id
+  left join vals vorig_izg on w.izg_id=vorig_izg.id
   left join vals vcountry on w.country_id=vcountry.id
   where w.id is not null

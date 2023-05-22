@@ -1,0 +1,31 @@
+select
+'{date_start}' as datatime,
+cast(dd.part_id  as dm_text),
+cast(dd.part_id  as dm_text),
+w.sname ,
+'' as EIOST  ,
+'' as BASEEI,
+sum (dd.quant),
+p.price,
+'0',
+'' as KODSKL,
+'' as SKLAD,
+'' as KODUL,
+'' as URLICO,
+(select cast(abs(agent_id) as dm_text) from pr_getmotherpart(dd.part_id)) as KODPOST,
+(select cast(abs(agent_id) as dm_text) from pr_getmotherpart(dd.part_id)) as IDPOST,
+(select caption from agents  where id =(select cast(agent_id as dm_text) from pr_getmotherpart(dd.part_id))),
+(select cast(d2.docdate as dm_text) from docs d2 where d2.id=p.doc_id),
+cast(dd.part_id as dm_text) as numpart,
+'',
+(select param_value from params where param_id='ORG_NAME_SHORT')
+from docs d
+inner join doc_detail dd on dd.doc_id=d.id
+join parts p on p.id=dd.part_id
+join wares w on w.id=p.ware_id
+
+where d.docdate < '{date_end} 23:59:59'
+
+
+group by dd.part_id,w.sname,p.price,p.doc_id
+having sum(dd.quant)>0.01

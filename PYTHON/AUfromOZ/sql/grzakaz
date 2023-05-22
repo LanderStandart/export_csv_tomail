@@ -1,0 +1,13 @@
+select c.client_name as postname,
+
+ c1.client_name as clientname,
+
+       sum(od.order_summ) as summ
+      from zorders o
+      left join zorder_detail od on od.global_order_id = o.global_id
+   left join zclients c on c.id = od.post_id
+      left join zclients c1 on c1.id = o.client_id
+inner JOIN zproduct_detail zd ON zd.system_id =od.system_id AND zd.class={class}
+  where o.insertdt > '{datestart} 00:00:00' and o.insertdt < '{datestart} 23:59:59' and c1.parent_id = 0 and
+      INSTR(c1.client_name, '{client_name}') > 0 and c.ispost = 2 and c.id in ({postid})
+      group by  c1.client_name, od.post_id

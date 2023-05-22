@@ -1,0 +1,4 @@
+select first 5
+ cast(SUBSTRING(m1.answer FROM 1 FOR (iif(char_length(m1.answer)>9999,9999,char_length(m1.answer)) ))as dm_bigtext) as answer
+from messages m1
+where m1.insertdt > '08.08.2022' and m1.type_m=1 and m1.sorting=1

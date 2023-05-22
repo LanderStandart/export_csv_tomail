@@ -1,0 +1,24 @@
+select
+(select iif (g.description containing('Алматы'),4,iif(g.description containing('Астана'),5,iif (g.description containing('Петро'),6,
+iif(g.description containing('Шымке'),7,iif(g.description containing('Кызыл'),8,0))))) from g$profiles g where g.id=d.g$profile_id)
+as IDDistr,
+cast (d.docdate as dm_date)as datedoc,
+
+(select iif (g.description containing('Алматы'),4,iif(g.description containing('Астана'),5,iif (g.description containing('Петро'),6,
+iif(g.description containing('Шымке'),7,iif(g.description containing('Кызыл'),8,0))))) from g$profiles g where g.id=d.g$profile_id) ||'#'||d.g$profile_id,
+  d.g$profile_id as GLN,
+ -- dd.part_id,
+    p.ware_id,
+  -1*cast(coalesce(sum(dd.quant),0)as numeric (15,2))as quant,
+  0
+  from  docs d
+
+  join doc_detail dd on d.id=dd.doc_id and dd.g$profile_id=d.g$profile_id
+  join parts p on p.id=dd.part_id and p.g$profile_id=dd.g$profile_id
+
+  where  d.doc_type in (3,9)    and
+    d.docdate between '{date_start}:00:00:00' and '{date_end}:23:59:00' and
+    d.g$profile_id not in (5,16,63,129,143)
+    and      d.g$profile_id  in ({profile_id})
+
+     group by datedoc,p.ware_id,dd.part_id,d.g$profile_id
