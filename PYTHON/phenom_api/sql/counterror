@@ -1,0 +1,5 @@
+SELECT COUNT(zs.id)
+ FROM zorders z
+left JOIN zorders_statuses zs ON zs.order_id=z.global_id
+WHERE  zs.status_code<0 AND z.insertdt>date_sub(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR)
+ORDER BY z.insertdt DESC

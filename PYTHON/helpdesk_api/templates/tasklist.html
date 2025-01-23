@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title%} {{ title }} {% endblock %}
+{% block content%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Задачи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Подключаем библиотеку SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Задачи</h1>
+
+        <!-- Таблица из данных, переданных как JSON-строка -->
+        <h2>за период c {{ date_s}} по {{ date_e}}  </h2>
+                <!-- Кнопка для экспорта в Excel -->
+        <button id="export-btn" class="btn btn-success mt-3">Экспорт в Excel</button>
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Автор</th>
+                    <th>Точка</th>
+                    <th>Дата заявки</th>
+                    <th>ИД заявки</th>
+                    <th>Текст</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody id="json-table">
+                <!-- Данные будут добавлены с помощью JavaScript -->
+            </tbody>
+        </table>
+
+
+    </div>
+
+    <script>
+        // Функция для форматирования даты
+    function formatDate(dateString) {
+        const date = new Date(dateString);  // Преобразуем строку в объект Date
+        const day = String(date.getDate()).padStart(2, '0');  // День (двузначный)
+        const month = String(date.getMonth() + 1).padStart(2, '0');  // Месяц (двузначный)
+        const year = date.getFullYear();  // Год
+        const hours = String(date.getHours()).padStart(2, '0');  // Часы (двузначные)
+        const minutes = String(date.getMinutes()).padStart(2, '0');  // Минуты (двузначные)
+
+        return `${day}.${month}.${year} ${hours}:${minutes}`;  // Формат: "09.01.2025 11:53"
+    }
+
+        const jsonData = JSON.parse({{ json_data | tojson | safe }});  // Преобразуем строку в объект
+        console.log(jsonData);  // Проверка данных в консоли
+        console.log(Array.isArray(jsonData));  // Проверка, что это массив
+
+        const tbody = document.getElementById('json-table');
+        if (Array.isArray(jsonData)) {  // Проверяем, что jsonData — это массив
+            jsonData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.agent || ''}</td>
+                    <td>${item.caption || ''}</td>
+                    <td>${formatDate(item.obj_date) || ''}</td>
+                    <td>${item.id || ''}</td>
+                    <td>${item.answer.replace(/\r\n/g, '<br>') || ''}</td>
+                    <td>${item.task_status || ''}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        } else {
+            console.error("Ожидался массив, но получен:", jsonData);
+        }
+
+        // Функция для экспорта таблицы в Excel
+        function exportTableToExcel() {
+            // Получаем таблицу по её ID
+            const table = document.getElementById('json-table');
+
+            // Преобразуем таблицу в рабочий лист Excel
+            const ws = XLSX.utils.table_to_sheet(table);
+
+            // Создаем новую книгу Excel
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");  // Добавляем лист в книгу
+
+            // Сохраняем книгу как файл .xlsx
+            XLSX.writeFile(wb, 'table_export.xlsx');
+        }
+
+        // Назначаем обработчик события на кнопку
+        document.getElementById('export-btn').addEventListener('click', exportTableToExcel);
+    </script>
+</body>
+</html>
+{% endblock %}

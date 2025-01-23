@@ -1,0 +1,10 @@
+Select
+w.id,
+sname,
+barcode,
+vizg.svalue,
+vstrana.svalue
+
+from wares w
+join vals vizg on vizg.id=w.izg_id
+join vals vstrana on vstrana.id=w.country_id

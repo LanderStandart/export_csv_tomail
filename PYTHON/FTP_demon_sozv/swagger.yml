@@ -1,0 +1,39 @@
+openapi: 3.0.0
+info:
+  title: "Lander FTP DEMON REST API"
+  description: "FTP DEMON for SOZVEZDIE"
+  version: "1.0.0"
+
+servers:
+  - url: "/api"
+
+components:
+  schemas:
+    Server:
+      type: "object"
+      required:
+        - servername
+      properties:
+        pointid:
+          type: "integer"
+        pointname:
+          type: "string"
+        exportname:
+          type: "string"
+        status:
+          type: "string"
+
+
+paths:
+  /server:
+    get:
+      operationId: "server.read_all"
+      tags:
+        - "Server"
+      summary: "Read the list of points"
+      responses:
+        "200":
+          description: "Successfully read points list"
+
+
+

@@ -1,24 +1,33 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 import json
 import glob
-from engine import Db, existPath, read_ini, my_log, os, time, XML,Archiv,FTP_work
+#from engine import Db, existPath, read_ini, my_log, os, time, XML,Archiv,FTP_work
 from datetime import datetime
+import sys,os,glob
+sys.path.insert(0, "./engine")
+from system import System
+from firebirdsql import Db
+from ftp import FTP_work
+from Archiv import Archiv
+from XMLcreate import XML
+from dbf_F import DBF_File
 
 
-logger = my_log.get_logger(__name__)
 
 
-class E003(Db):
-    def __init__(self, profile_id=None):
-        logger.info('Init...')
+
+class E003(Db,System):
+    def __init__(self):
+        self.logger = self.Logs(__name__)
+        self.logger.info('Init...')
         self.DB = Db()
         self.path_ini = __name__
         self.conf = self.path_ini.upper()
-        self.path = read_ini(self.conf, 'PATH_EXPORT', self.conf)
-        existPath(self.path)
-        self.profile_id = profile_id
-        self.date_start = read_ini(self.conf, 'DATE_START', self.conf)
-        self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))
+        self.path = self.read_ini(self.conf, 'PATH_EXPORT', self.conf)
+        self.existPath(self.path)
+
+        self.date_start = self.read_ini(self.conf, 'DATE_START', self.conf)
+        self.Logins = json.loads(self.read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))
 
 
 
@@ -30,7 +39,8 @@ class E003(Db):
         self.type = 0 #if (datetime.now().strftime('%w') == '1' or read_ini(self.conf, 'TYPE', self.conf)) and chkFile == 0 else 1
         print(f'LOGIN-{Log}--{self.type}')
 
-    def get_Data(self):
+    def get_Data(self, profile_id=None):
+        self.profile_id = profile_id
         print(self.profile_id)
 
         if self.profile_id:
@@ -43,7 +53,7 @@ class E003(Db):
         else:
             sql_name = 'full'
             val=None
-            pharm =read_ini(self.conf, 'PHARM', self.conf)
+            pharm =self.read_ini(self.conf, 'PHARM', self.conf)
             self.file_name = self.path + f'pharm_1'
 
 
@@ -54,7 +64,7 @@ class E003(Db):
         gl_root = XML.add_root(self, root='yml_catalog', attrib=attrib)
         root = XML.add_element(self, 'shop', gl_root)
 
-        url =read_ini(self.conf, 'URL', self.conf)
+        url =self.read_ini(self.conf, 'URL', self.conf)
         XML.add_element(self, 'name', gl_root,data=pharm)
         root1 = XML.add_element(self, 'offers', gl_root)
         for s in self.data:

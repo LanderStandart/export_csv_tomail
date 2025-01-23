@@ -29,11 +29,14 @@ class ExportData(Db,System):
         try:
             spec = importlib.util.spec_from_file_location(self.firm.lower(), self.module_path+self.firm.lower()+'.py')
             module = importlib.util.module_from_spec(spec)
+            self.logger.info(module)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
             self.firmname = getattr(module,self.firm)
+            self.Module = self.firmname()
 
-        except FileNotFoundError:
+        except FileNotFoundError as E:
+            self.logger.error(E)
             self.logger.error('Алгоритм выгрузки:'+self.firm+'- недоступен для загрузки')
             exit()
         else:
@@ -44,7 +47,7 @@ class ExportData(Db,System):
             try:
                 entity=self.read_ini(self.firm.upper(), 'ENTITY', self.firm.lower())
                 if int(self.read_ini('BASE_CONF', 'ALONE')):
-                    self.firmname().get_Data()
+                    self.Module.get_Data()
                 elif not entity and not int(self.read_ini('BASE_CONF', 'ALONE')):
 
                     SQL_profile = f"SELECT id,caption FROM G$PROFILES where id {self.get_profile(self.firm.upper())} and status=0 " \
@@ -56,34 +59,39 @@ class ExportData(Db,System):
                     if not queue:
                         self.logger.info('NOT QUEUE')
                         for i in profiles:
-                            self.firmname(profile_id=str(i[0])).get_Data()
+                            self.Module.get_Data(profile_id=str(i[0]))
                     else:
                         self.logger.info('QUEUE')
                         for i in profiles:
+                            print(i)
                             prof.append(str(i[0]))
                         prof=','.join(prof)
-                        self.firmname(profile_id=str(prof)).get_Data()
+                        self.Module.get_Data(profile_id=str(prof))
                 else:
                     entity = entity.split(',')
 
 
                     for i in entity:
                         val={'baseagent':str(i)}
+
                         profiles = self.DB.get_from_base( sql_file='baseagent', module=self.firm.lower(), val=val)
+
                         prof = []
                         if not queue:
                             for i in profiles:
-                                self.firmname(profile_id=str(i[0])).get_Data()
+                                self.Module.get_Data(profile_id=str(i[0]))
                         else:
                             for i in profiles:
                                 prof.append(str(i[0]))
                             prof = ','.join(prof)
-                            self.firmname(profile_id=str(prof)).get_Data()
+
+                            self.Module.get_Data(profile_id=str(prof))
 
 
 
 
-            except AttributeError:
+            except AttributeError as E:
+                self.logger.error(E)
                 self.logger.error(f'Нет алгоритма для выгрузки get_DATA(){self.firmname}')
 
 
@@ -155,7 +163,7 @@ class ExportData(Db,System):
     def clear_string(self,text,code='cp866'):
             if isinstance(text,str):
                 text = re.sub("^\s+|\n|\r|\s+$", '', text)
-                re.sub(regex, subst, test_str, 0, re.MULTILINE)
+               # re.sub(regex, subst, test_str, 0, re.MULTILINE)
                 regex = r"[a-zA-Z]+|[а-яА-Я]+|\d+|№|\s"
                 text1 = re.findall(regex,text)
                 text =''.join(text1)

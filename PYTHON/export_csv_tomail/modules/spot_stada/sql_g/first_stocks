@@ -1,0 +1,16 @@
+select
+'' as ID_DISTR,
+'' as data_s,
+wd.g$profile_id  as profile_id,
+ wd.ware_id,
+ wd.quant,
+0 as price
+   from (
+ select wsd.ware_id from wares_set_detail wsd
+ where wsd.wares_set_d$uuid='{wares_set}'
+ --and wsd.ware_id='76578F97-9410-4A59-8920-339C2252F689'
+ ) t join warebase_d wd
+   on t.ware_id=wd.ware_id
+ join g$profiles g on g.id=wd.g$profile_id
+-- join parts p on p.id=(select part_id from pr_getmotherpart(wd.part_id,wd.g$profile_id)) and p.g$profile_id=wd.g$profile_id
+ where wd.doc_commitdate='{datestart}' and wd.quant>0 and g.status=0

@@ -1,3 +1,4 @@
 SELECT convert(MAX(z.insertdt),char) FROM zorders z
 WHERE EXISTS (SELECT STATUS FROM zorders_statuses zs WHERE zs.order_id=z.global_id AND zs.status_code>1)
+and z.insertdt>date_sub(CURRENT_TIMESTAMP(),INTERVAL 24 HOUR)
 ORDER BY z.insertdt desc

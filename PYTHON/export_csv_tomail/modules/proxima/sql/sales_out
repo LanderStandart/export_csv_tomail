@@ -1,0 +1,18 @@
+select
+p.ware_id as id,
+w.sname as name,
+0 as quant_in,
+0 as price_in,
+abs(sum(dd.quant)) as quant_out,
+abs(dd.price) as price_out,
+0 as stock,
+0 as reimburse
+from
+doc_detail dd
+join parts p on p.id=dd.id and p.g$profile_id=dd.g$profile_id
+join wares w on w.id=p.ware_id
+join docs d on d.id=dd.doc_id and d.g$profile_id=dd.g$profile_id and d.doc_type in (3,9)
+
+where dd.g$profile_id={profile_id} and d.docdate between '{date_start} 00:00:00' and '{date_end} 23:59:59'
+group by
+p.ware_id, w.sname,dd.price

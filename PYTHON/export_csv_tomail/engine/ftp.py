@@ -1,7 +1,7 @@
 pass#  Autor by Lander (c) 2021. Created for Standart-N LLT
 #Выгрузка на ФТП
 import ftplib
-from ftplib import FTP
+from ftplib import FTP,FTP_TLS
 from system import System
 import os.path,pathlib
 from tqdm import tqdm
@@ -17,8 +17,8 @@ class FTP_work(System):
         self.logger = self.Logs(__name__)
 
     def upload_FTP(self, file_name, isbynary=None, extpath=None, rename=None):
-        self.file_name =  file_name
-        self.logger.info(pathlib.Path(self.file_name).name)
+        self.file_name =  pathlib.Path(file_name)
+        self.logger.info(f' тут {pathlib.Path(self.file_name)}')
         if self.status == '1':
 
             self.isbynary = isbynary
@@ -26,11 +26,18 @@ class FTP_work(System):
 
                 #            print(self.host, self.ftp_user, self.ftp_password, self.file_name, self.port+self.isbynary)
                 self.logger.info(f'Connect to FTP - {self.host}:{self.port} for Upload {self.file_name}')
-                f_obj = open(self.file_name, 'rb')
+                try:
+                    f_obj = open(self.file_name, 'rb')
+                except Exception as Error:
+                    Err = Error.args
+                    Errs = Err[0].split('- ')
+                    self.logger.error(''.join(str(Err)))
 
                 filesize = os.path.getsize(self.file_name)
 
                 ext_filename = pathlib.Path(self.file_name).name
+
+                self.logger.info(f'Connect to FTP - {self.host}:{self.port} for Upload {ext_filename}')
 
                 try:
                     ftp = FTP()
@@ -43,9 +50,9 @@ class FTP_work(System):
                     return
 
                 if extpath:
-                    ftp.cwd(extpath)
+                    ftp.cwd(str(extpath))
                 self.logger.info('Upload:' + ext_filename)
-                ftp.set_pasv(True)
+                #ftp.set_pasv(True)
 
                 if self.isbynary:
                     with tqdm(unit='blocks', unit_scale=True, leave=False, miniters=1, desc='Uploading......',
@@ -78,7 +85,7 @@ class FTP_work(System):
                 return 1
         else:
             self.logger.info(str(self.host) +':'+ str(self.port))
-            ext_filename = os.path.basename(r'' + self.file_name)
+            ext_filename = os.path.basename(self.file_name)
             self.logger.info(ext_filename)
             self.logger.warning('FTP:Тестовый режим выгрузка отключена')
             return 1

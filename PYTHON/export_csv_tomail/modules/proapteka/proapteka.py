@@ -11,19 +11,18 @@ import json,re
 import time,datetime
 
 class Proapteka(System):
-    def __init__(self,profile_id=None):
+    def __init__(self):
         self.logger = self.Logs(__name__)
-        self.profile_id = profile_id
+
         self.CSV_File =CSV_File()
         self.DB = Db()
         self.conf = 'PROAPTEKA'
         self.path_ini=__name__
-        self.path = self.read_ini(self.conf, 'PATH_EXPORT',self.path_ini)+f'{self.profile_id }/' if self.profile_id else self.read_ini(self.conf, 'PATH_EXPORT',self.path_ini)
-        self.existPath(self.path)
-        self.clear_export_path(self.path)
+        self.code = str(self.read_ini(self.conf, 'ID_CLIENT',self.path_ini))
+
         #список файлов фыгрузки
         self.expfile = self.read_ini(self.conf, 'FILE_LIST',self.path_ini).split(',')
-        self.dep_code = json.loads(self.read_ini(self.conf, 'KOD_PROFILE', self.conf).replace("'", '"'))
+
 
     def getFilename(self, filename):#формируем имя файла
         self.filename= filename
@@ -39,11 +38,23 @@ class Proapteka(System):
             exit()
         return p
 
-    def get_Data(self):
+    def get_Data(self,profile_id=None):
+
         #Если сеть запросы другие
+        self.profile_id = profile_id
+        #self.depcode = f'RegUg_{self.profile_id}'  # self.dep_code = json.loads(self.read_ini(self.conf, 'KOD_PROFILE', self.conf).replace("'", '"'))
+        # self.path = self.read_ini(self.conf, 'PATH_EXPORT',
+        #                           self.path_ini)\
+        #             + f'{self.profile_id}/' if self.profile_id else self.read_ini(
+        #     self.conf, 'PATH_EXPORT', self.path_ini)
+        self.path = self.read_ini(self.conf, 'PATH_EXPORT', self.path_ini)
+
+        self.existPath(self.path)
+        self.clear_export_path(self.path, sec=3000)
+
         if self.profile_id:
             suffix = '_g'
-            self.depcode = self.dep_code[self.profile_id]
+            self.depcode =f'{self.code}_{self.profile_id}' # self.dep_code[self.profile_id]
         else:
             suffix = ''
             self.depcode = self.dep_code["1"]
@@ -51,7 +62,7 @@ class Proapteka(System):
 
         self.logger.info(self.profile_id)
         #полная выгрузка производится в 10-00 и 22-00
-        if int(datetime.datetime.today().strftime('%H')) in (13,10,22):
+        if int(datetime.datetime.today().strftime('%H')) in (12,10,22):
             for i in self.expfile:
                 self.logger.info(i)
                 date_s = datetime.date.today()-datetime.timedelta(days=45)
@@ -84,19 +95,28 @@ class Proapteka(System):
                           'DepartmentCode':self.depcode,
                           'date_end':datetime.date.today().strftime('%d.%m.%Y')}
             data=self.DB.get_from_base(__name__,i.lower(),val,profile=suffix)
-            self.logger.info(i)
+            self.logger.info(self.getFilename(i))
+            # os.remove(self.getFilename(i))
             self.CSV_File.create_csv(self.getFilename(i), data, head, delimeter='|', encoding='utf-8')
         fl=self.list_file_in_path(self.path,'*')
-        data_file = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        data_file = datetime.datetime.fromtimestamp(os.path.getmtime(f'{self.getFilename(i)}.csv')).strftime('%Y%m%d%H%M%S')
+        self.logger.info(data_file)
         lst_file = self.list_file_in_path(self.path, 'zip')
+        for file in lst_file:
+
+            os.remove(file)
+
+         #datetime.datetime.now().strftime('%Y%m%d%H%M00')
+        arc_name = f'{self.path}{self.depcode}.zip'
+        self.logger.info(f'Create archive - {arc_name}')
+        Archiv().zip_Files(fl,arc_name)
+        #os.rename(arc_name,f'{arc_name}_{data_file}.zip')
+        lst_file = self.list_file_in_path(self.path, 'csv')
         for file in lst_file:
             os.remove(file)
 
-        arc_name=f'{self.path}{self.depcode}_{data_file}.zip'
-        self.logger.info(arc_name)
-        Archiv().zip_Files(fl,arc_name)
-
-        FTP_work(self.conf).upload_FTP(arc_name, extpath=str(self.read_ini(self.conf, 'FTP_PATH')), isbynary=True,rename=False)
+        self.logger.info(f'Create archive - {arc_name}')
+        FTP_work(self.conf).upload_FTP(f'{arc_name}', extpath=str(self.read_ini(self.conf, 'FTP_PATH', self.path_ini)), isbynary=True,rename=False)
         # for fname in fl:
         #     FTP_work(self.conf).upload_FTP(fname, extpath=extpath, isbynary=True,rename=False)
 

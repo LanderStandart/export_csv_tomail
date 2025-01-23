@@ -6,17 +6,18 @@ class Mysql(System):
     def __init__(self,section='MYSQL'):
 
         self.logger = System.Log(self,__name__)
-        self.section = section
-        self.host = System.read_ini(self,self.section, 'HOST')
-        self.base = System.read_ini(self,self.section, 'BASE')
-        self.user = System.read_ini(self,self.section, 'USER')
-        self.passw = System.read_ini(self,self.section, 'PASS')
 
-        self.conn = pymysql.connect(host=self.host, user=self.user, password=self.passw, db=self.base,charset='cp1251')
-        self.curs = self.conn.cursor()
+        self.host =System.read_ini(self,section, 'HOST')
+        self.base = System.read_ini(self,section, 'BASE')
+        self.user = System.read_ini(self,section, 'USER')
+        self.passw = System.read_ini(self,section, 'PASS')
+
+#        self.conn = pymysql.connect(host=self.host, user=self.user, password=self.passw, db=self.base,charset='cp1251')
+       # self.curs = self.conn.cursor()
 
 #Запрос к базе с условием
     def get_sql(self,sql,where=None,commit=None):
+
         self.sql=sql
         self.commit = commit
         self.where = where
@@ -26,47 +27,25 @@ class Mysql(System):
         #self.logger.info('Запрос-'+self.sql)
      # проверка корректности запроса
         try:
-            query = self.curs.execute(self.sql)
+            self.conn = pymysql.connect(host=self.host, user=self.user, password=self.passw, db=self.base,charset='cp1251')
+            self.curs = self.conn.cursor()
+            self.curs.execute(self.sql)
         except Exception as Error:
-            Err = Error.args
-            Errs = str(Err[0]).split('- ')
-            self.logger.error(''.join(str(Err)))
-
-            if Errs:
             self.conn.connect()
-                if self.search(Errs, 'Table unknown\n'):
-                    msg='Таблица не найдена\n'
-                    sql_err='errTable'
-                elif self.search(Errs, 'Procedure unknown\n'):
-                    msg='Процедура не найдена\n'
-                    sql_err='errProcedure'
-                else:
-                    self.logger.error('Ошибка в запросе')
-                    self.logger.error('Вероятная ошибка - ' + Errs[2]+self.sql)
-                    sql_err='errSql'
-                #logger.error(msg)
-                if 'errTable' in sql_err or 'errProcedure' in sql_err:
-                    self.create_sql(Errs)
-                    return self.get_sql(sql,where,commit)
-                else:
-                    sys.exit(sql_err)
+            self.curs.execute(self.sql)
+            self.curs = self.conn.cursor()
 
-        # Вывод результатов или проведение
         result = []
-        if self.commit:
-            self.conn.commit()
-            return
-        else:
+        data = self.curs.fetchall()
 
-            data = self.curs.fetchall()
+        for i in data:
 
-            for i in data:
-
-                result.append(list(i))
+            result.append(list(i))
 
             #LogIt(self.sql + 'Содержит ' + str(len(result)))
-            self.conn.commit()
-            return result
+        self.conn.commit()
+        self.conn.close()
+        return result
 
     def get_from_base(self, module,sql_file:str,val=None,profile=''):
         path=f'./sql{profile}/'

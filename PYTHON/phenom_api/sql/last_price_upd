@@ -1,0 +1,5 @@
+SELECT
+convert(MAX(zi.insert_dt),char)
+from
+zprice_info zi
+WHERE zi.insert_dt>date_sub(CURRENT_TIMESTAMP(),INTERVAL 24 HOUR)

@@ -29,7 +29,7 @@ class CSV_File(System):
             with open(self.filename + self.ext, 'w', newline='',encoding=self.encoding) as f:
 
                 # writer = csv.writer(f,delimiter=self.delimeter,dialect='excel', escapechar='~',quotechar=self.quotechar, quoting=csv.QUOTE_NONE)
-                writer = csv.writer(f,dialect=self.dialect, delimiter=self.delimeter, escapechar='',quotechar=self.quotechar)
+                writer = csv.writer(f,dialect=self.dialect, delimiter=self.delimeter, escapechar='~',quotechar=self.quotechar)
 
                 if self.header is not None:
                     writer.writerow(self.header)

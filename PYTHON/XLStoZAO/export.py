@@ -21,7 +21,7 @@ def xls_to_zao(file):
     excel_data_df = pd.read_excel(file, sheet_name=xl.sheet_names[0],header=0)
 
 
-# столбцы  1- '№'  2- 'Наименование / Изготовитель' 3-'заказ'
+# столбцы  1- '№'  2- 'Наименование / Изготовитель' 3-'заказ' 4- ШК
 
     i = 0
 
@@ -29,10 +29,13 @@ def xls_to_zao(file):
     while i< len(excel_data_df):
     #print(excel_data_df['Наименование / Изготовитель'][i])
    # datum1.append(list(['3', 'Ввод остатков', inn]))
-        pos = str(excel_data_df['№'][i])+'\t'
-        name = str(excel_data_df['Наименование / Изготовитель'][i]).strip(' ')
-        zakaz = str(excel_data_df['Кол-во'][i])
-        data.append(list([name.rstrip('')+'\t\t\t',zakaz+'\t\t',zakaz+'\t','0'+'\t',name+';'+name+';'+name+';\t'+' ' ]))
+    #Наименование товара	Изготовитель	Штрихкод	количество
+
+        #pos = str(excel_data_df['№'][i])+'\t'
+        name = str(excel_data_df['Наименование товара'][i]).strip(' ')
+        zakaz = str(excel_data_df['количество'][i])
+        barcode = str(excel_data_df['Штрихкод'][i]).strip(' ').replace('.0','')
+        data.append(list([name.rstrip('')+'\t\t\t',zakaz+'\t\t',zakaz+'\t','0'+'\t',name+';'+name+';'+name+';\t'+' ',barcode ]))
         i=i+1
 
     path = './zao/'+file.replace('./export','')+'.zao'

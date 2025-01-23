@@ -1,0 +1,12 @@
+select
+sum(task.l_time)
+ from sp$users u
+left join uchet task on (((task.user_id =u.id) and (coalesce(task.peredano,'|'||u.id||'|') like '%|'||u.id||'|%')
+or (task.peredano like '%|'||u.id||'|%')))and task.obj_date>'01.01.2022'
+
+where
+u.status<>-1 and u.id={user_id} and
+task.status_id =1 and
+task.close_date between '{date_start}' and '{date_end}'
+{task_project_id}
+{task_time}

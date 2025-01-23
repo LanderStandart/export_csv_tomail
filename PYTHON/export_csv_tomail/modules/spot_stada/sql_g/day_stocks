@@ -1,0 +1,12 @@
+select
+'' as ID_DISTR,
+'' as data_s,
+dd.g$profile_id as profile_id
+,dd.ware_id,sum(dd.quant)as quant,
+0 as price
+  from (
+ select wsd.ware_id from wares_set_detail wsd
+ where wsd.wares_set_d$uuid='{wares_set}'
+ ) t join doc_detail dd on t.ware_id=dd.ware_id where dd.doc_commitdate
+  between '{datestart}' and '{datestart}'
+  group by  dd.ware_id,dd.g$profile_id

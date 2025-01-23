@@ -1,0 +1,8 @@
+Flask
+datetime
+uuid
+sqlalchemy==1.3.24
+PyJWT
+flask_restx
+pydantic_settings
+flask-api-key

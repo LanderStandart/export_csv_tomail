@@ -1,23 +1,30 @@
 #  Autor by Lander (c) 2021. Created for Standart-N LLT
 import json
-import glob
-from engine import Db, existPath, read_ini, my_log, os, time, XML,FTP_work
+import glob,sys
+sys.path.insert(0, "./engine")
+from system import System
+from firebirdsql import Db
+from ftp import FTP_work
+from Archiv import Archiv
+from XMLcreate import XML
 from datetime import datetime,timedelta
 
-logger = my_log.get_logger(__name__)
 
 
-class Iteka(Db):
-    def __init__(self, profile_id=None):
+
+class Iteka(Db,System):
+    def __init__(self):
         self.DB = Db()
+        self.logger = self.Logs(__name__)
         self.path_ini = __name__
         self.conf = self.path_ini.upper()
-        self.path = read_ini(self.conf, 'PATH_EXPORT', self.conf)
-        existPath(self.path)
-        self.profile_id = profile_id
-        self.date_start = read_ini(self.conf, 'DATE_START', self.conf)
-        self.Logins = json.loads(read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))
-        self.Pass = json.loads(read_ini(self.conf, 'PASSWORD', self.conf).replace("'", '"'))
+        self.path = self.read_ini(self.conf, 'PATH_EXPORT', self.conf)
+        self.existPath(self.path)
+
+        self.date_start = self.read_ini(self.conf, 'DATE_START', self.conf)
+        self.Logins = json.loads(self.read_ini(self.conf, 'LOGIN', self.conf).replace("'", '"'))
+        self.Pass = json.loads(self.read_ini(self.conf, 'PASSWORD', self.conf).replace("'", '"'))
+        self.file_name = ''
 
 
 
@@ -28,28 +35,29 @@ class Iteka(Db):
         # Log = self.Logins[self.profile_id]
 
         chkFile = self.chk_file(f'{Log}_0')
-        self.type = 0 if (datetime.now().strftime('%w') == '1' or read_ini(self.conf, 'TYPE', self.conf)) and chkFile == 0 else 1
+        self.type = 0 if (datetime.now().strftime('%w') == '1' or self.read_ini(self.conf, 'TYPE', self.conf)) and chkFile == 0 else 1
         print(f'LOGIN-{Log}--{self.type}')
 
     def getUserFTP(self):
         val = {'profile_id': self.profile_id}
         sql_name = 'bin'
         self.data = self.DB.get_from_base(__name__, sql_name, val)
-        self.LoginsFtp = json.loads(read_ini(self.conf, 'LOGINFTP', self.conf).replace("'", '"'))
-        self.PassFtp = json.loads(read_ini(self.conf, 'PASSWORDFTP', self.conf).replace("'", '"'))
+        self.LoginsFtp = json.loads(self.read_ini(self.conf, 'LOGINFTP', self.conf).replace("'", '"'))
+        self.PassFtp = json.loads(self.read_ini(self.conf, 'PASSWORDFTP', self.conf).replace("'", '"'))
         self.l_ftp = self.LoginsFtp[self.data[0][0]]
         self.p_ftp = self.PassFtp[self.data[0][0]]
-        logger.info(f'{self.l_ftp} --- {self.p_ftp}')
+        self.logger.info(f'{self.l_ftp} --- {self.p_ftp}')
 
 
 
-    def get_Data(self):
+    def get_Data(self, profile_id=None):
+        self.profile_id = profile_id
         suffix = '_g' if self.profile_id else ''
         self.profile_id = self.profile_id if self.profile_id else '1'
 
         print(self.profile_id)
         if list(self.Logins.keys()).count(self.profile_id)>0:
-        self.file_name = self.path + self.Logins[self.profile_id]
+            self.file_name = self.path + self.Logins[self.profile_id]
         print(self.file_name)
         self.date_start = datetime.now()-timedelta(hours=1)
         self.date_start = self.date_start.strftime('%d.%m.%Y  %H:%M')
@@ -73,7 +81,7 @@ class Iteka(Db):
 
         val = {'profile_id': self.profile_id}
         pharmname = self.DB.get_from_base(__name__, 'pharmname', val)
-        pharm = pharmname[0][0] if self.profile_id else read_ini(self.conf, 'COMPANY', self.conf)
+        pharm = pharmname[0][0] if self.profile_id else self.read_ini(self.conf, 'COMPANY', self.conf)
 
         XML.add_element(self, 'company', root,data=pharm)
 
@@ -92,18 +100,17 @@ class Iteka(Db):
             XML.add_element(self, 'vendor', offer, data=str(s[3]))
             XML.add_element(self, 'count', offer, data=str(s[4]))
             XML.add_element(self, 'offer_id', offer, data=str(s[5]))
-        count = read_ini(self.conf, 'COUNT', self.conf)
+        count = self.read_ini(self.conf, 'COUNT', self.conf)
         upd_count = int(count)+1
         XML().save_file(root=gl_root, filename=f'{self.file_name}_{self.type}_{str(upd_count)}.xml')
-        read_ini(self.conf, 'COUNT', self.conf, save=1, values=upd_count)
+        self.read_ini(self.conf, 'COUNT', self.conf, save=1, values=upd_count)
 
 
         FTP_work(self.conf,self.Logins[self.profile_id],self.Pass[self.profile_id]).upload_FTP('./' + f'{self.file_name}_{self.type}_{str(upd_count)}.xml',isbynary=True)
-        else:
-            return
+
 
     def chk_file(self, Login):
-        logger.info(f'{self.path}{Login}_*')
+        self.logger.info(f'{self.path}{Login}_*')
         path = f'{self.path}{Login}_*'
         try:
             list_of_files = glob.glob(path)  # * means all if need specific format then *.csv

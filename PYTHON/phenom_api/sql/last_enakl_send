@@ -1,0 +1,5 @@
+SELECT
+convert(MAX(zi.insertdt),char)
+from
+zenakl zi
+WHERE zi.insertdt>date_sub(CURRENT_TIMESTAMP(),INTERVAL 24 HOUR)

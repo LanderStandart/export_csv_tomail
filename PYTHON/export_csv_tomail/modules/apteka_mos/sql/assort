@@ -1,0 +1,19 @@
+select
+{org_id} as org_id,
+0 as DRUG_ID,
+cast (w.price as numeric(12,2)) as PRICE,
+0 as DELIVERY,
+0 as reserv,
+0 as PREORDER,
+0 as PATONLINE,
+0 as LIMITED,
+0 as ACTION,
+0 as BYCARD,
+cast (w.quant as numeric(12,2))as QTTY,
+w.ware_id as ITEM_ID,
+'' as ITEM_CODE,
+w.sname||' '||coalesce(w.sizg,'')||' '||coalesce(w.scountry,'') as ITEM_NAME,
+'' as REMARK
+
+from warebase w
+where w.quant>0.9

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} {{ title }} {% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-lg-5 col-md-6 m-auto card p-4">
+            <div class="text-center">
+                <h2>Выберите период для вывода задач</h2>
+            </div>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="text-center">
+                    <div class="form-group mb-3">
+                        {{ form.date_s.label }} {{ form.date_s(class="form-control", placeholder="DD.MM.YYYY") }}
+                        {% if form.date_s.errors %}
+                            <ul>
+                                {% for error in form.date_s.errors %}
+                                    <li style="color: red;">{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group mb-3">
+                        {{ form.date_e.label }} {{ form.date_e(class="form-control", placeholder="DD.MM.YYYY") }}
+                        {% if form.date_e.errors %}
+                            <ul>
+                                {% for error in form.date_e.errors %}
+                                    <li style="color: red;">{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
